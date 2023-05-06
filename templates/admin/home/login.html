@@ -1,0 +1,217 @@
+{{define "head"}}
+<style>
+    .error {
+        border-color: var(--bs-danger) !important;
+        padding-right: calc(1.5em + .75rem);
+        background-image: url(data:image/svg+xml,%3csvg xmlns= 'http://www.w3.org/2000/svg' viewBox= '0 0 12 12' width= '12' height= '12' fill= 'none' stroke= '%23dc3545' %3e%3ccircle cx= '6' cy= '6' r= '4.5' /%3e%3cpath stroke-linejoin= 'round' d= 'M5.8 3.6h.4L6 6.5z' /%3e%3ccircle cx= '6' cy= '8.2' r= '.6' fill= '%23dc3545' stroke= 'none' /%3e%3c/svg%3e) !important;
+        background-repeat: no-repeat !important;
+        background-position: right calc(.375em + .1875rem) center !important;
+        background-size: calc(.75em + .375rem) calc(.75em + .375rem) !important;
+    }
+
+    /* ============ signin css ============= */
+    .auth-row {
+        background: #fff;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .auth-cover-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 45px;
+        position: relative;
+        z-index: 1;
+        height: 100%;
+    }
+
+    @media (max-width: 767px) {
+        .auth-cover-wrapper {
+            padding: 30px 20px;
+        }
+    }
+
+    .auth-cover-wrapper .auth-cover .title {
+        margin-bottom: 40px;
+    }
+
+    @media (max-width: 767px) {
+        .auth-cover-wrapper .auth-cover .title h1 {
+            font-size: 24px;
+        }
+    }
+
+    .auth-cover-wrapper .auth-cover .cover-image {
+        max-width: 100%;
+        margin: auto;
+    }
+
+    .auth-cover-wrapper .auth-cover .cover-image img {
+        width: 100%;
+    }
+
+    .auth-cover-wrapper .auth-cover .shape-image {
+        position: absolute;
+        z-index: -1;
+        right: 0;
+        top: 0;
+    }
+
+    .signin-wrapper {
+        background: #f7f1fd;
+        padding: 68px;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media only screen and (min-width: 992px) and (max-width: 1199px) {
+        .signin-wrapper {
+            padding: 40px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .signin-wrapper {
+            padding: 30px;
+        }
+    }
+
+    .signin-wrapper .form-wrapper {
+        width: 100%;
+    }
+
+    /*.signin-wrapper .singin-option button {*/
+    /*    font-size: 16px;*/
+    /*    font-weight: 600;*/
+    /*    border-radius: 20px;*/
+    /*    padding: 10px 60px; }*/
+    /*@media only screen and (min-width: 1200px) and (max-width: 1399px) {*/
+    /*    .signin-wrapper .singin-option button {*/
+    /*        padding-left: 25px;*/
+    /*        padding-right: 25px; } }*/
+    /*@media only screen and (min-width: 992px) and (max-width: 1199px) {*/
+    /*    .signin-wrapper .singin-option button {*/
+    /*        padding-left: 30px;*/
+    /*        padding-right: 30px; } }*/
+    /*@media (max-width: 767px) {*/
+    /*    .signin-wrapper .singin-option button {*/
+    /*        width: 100%; } }*/
+    /*@media only screen and (min-width: 550px) and (max-width: 767px) {*/
+    /*    .signin-wrapper .singin-option button {*/
+    /*        width: auto; } }*/
+    /*.signin-wrapper .singin-option a:hover {*/
+    /*    text-decoration: underline; }*/
+
+    /* ============ Theme Change Css ============== */
+    .darkTheme .auth-row {
+        background: #271c37;
+    }
+
+    .darkTheme .signin-wrapper {
+        background: #271c37;
+    }
+
+    .darkTheme .signin-wrapper .danger-btn-outline {
+        background: transparent;
+        color: rgba(213, 1, 0, 0.8);
+        border-color: rgba(213, 1, 0, 0.8);
+    }
+
+    .darkTheme .signin-wrapper .danger-btn-outline:hover {
+        color: #fff;
+        background: #d43433;
+    }
+
+</style>
+<script>
+</script>
+{{end}}
+{{define "body"}}
+<section class="signin-section">
+    <div class="container-fluid">
+        <div class="row g-0 auth-row">
+            <div class="col-lg-6">
+                <div class="auth-cover-wrapper bg-primary-100">
+                    <div class="auth-cover">
+                        <div class="title text-center">
+                            <h1 class="text-primary mb-10">Welcome 欢迎</h1>
+                            <p class="text-medium">
+                                登录到您的帐户
+                            </p>
+                        </div>
+                        <div class="cover-image">
+                            <img src="/assets/images/auth/signin-image.svg" alt=""/>
+                        </div>
+                        <div class="shape-image">
+                            <img src="/assets/images/auth/shape.svg" alt=""/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end col -->
+            <div class="col-lg-6">
+                <div class="signin-wrapper">
+                    <div class="form-wrapper">
+                        <!--                            <h6 class="mb-15">登录</h6>-->
+                        {{if .errorMsg}}
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-circle"></i>
+                           {{.errorMsg}}
+                        </div>
+                        {{end}}
+                        <form method="post" action="/sweet/admin/login">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="input-style-1">
+                                        <label>用户名</label>
+                                        <input type="text" name="username"
+                                               value="{{.username}}" placeholder="用户名" required/>
+                                    </div>
+                                </div>
+                                <!-- end col -->
+                                <div class="col-12">
+                                    <div class="input-style-1">
+                                        <label>密码</label>
+                                        <input type="password" name="password" placeholder="密码" value="{{.password}}"
+                                               required/>
+                                    </div>
+                                </div>
+                                <div class="col-7">
+                                    <div class="input-style-1">
+                                        <label>验证码</label>
+                                        <input type="text" autocomplete="off" name="captcha" placeholder="验证码"
+                                               value="{{.captcha}}" required/>
+                                    </div>
+                                </div>
+                                <div class="col-5">
+                                    <div class="input-style-1 mt-4">
+                                        <img src="/sweet/admin/captcha"
+                                             onclick="this.src='/sweet/admin/captcha?v='+Math.random()"/>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class=" button-group d-flex justify-content-center flex-wrap">
+                                        <button type="submit" class="main-btn primary-btn btn-hover w-100 text-center"
+                                        >确认
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end row -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- end col -->
+        </div>
+
+        <!-- end row -->
+    </div>
+</section>
+
+{{end}}
+

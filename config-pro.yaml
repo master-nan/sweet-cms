@@ -1,0 +1,15 @@
+name: 'sweet-cms'
+version: '1.0'
+db:
+  host: '127.0.0.1'
+  port: 3306
+  name: 'sweet-cms'
+  user: 'root'
+  password: '123456'
+redis:
+  host: '127.0.0.1'
+  port: 6379
+session:
+  secret: '123456'
+configure:
+  salt: '123456'
