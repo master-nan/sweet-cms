@@ -22,12 +22,12 @@ func AccessLog() gin.HandlerFunc {
 		var query = c.Request.URL.Query()
 		_ = c.ShouldBindBodyWith(&body, binding.JSON)
 		var accessLog = model.AccessLog{
-			BasicModel: model.BasicModel{},
-			Method:     c.Request.Method,
-			Ip:         c.ClientIP(),
-			Locality:   "",
-			Url:        c.Request.URL.Path,
-			Data:       fmt.Sprintf("body:%v，query:%v", body, query),
+			Basic:    model.Basic{},
+			Method:   c.Request.Method,
+			Ip:       c.ClientIP(),
+			Locality: "",
+			Url:      c.Request.URL.Path,
+			Data:     fmt.Sprintf("body:%v，query:%v", body, query),
 		}
 		logServer := server.NewLogServer(c)
 		_, err := logServer.CreateAccessLog(accessLog)

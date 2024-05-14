@@ -131,7 +131,7 @@ func (q *QuestionnaireServer) UpdateQuestionnaireAnswer(id int, data request.Que
 
 func (q *QuestionnaireServer) DeleteQuestionnaireAnswer(id int) error {
 	var qa = model.QuestionnaireAnswer{
-		BasicModel: model.BasicModel{
+		Basic: model.Basic{
 			ID: id,
 		},
 	}

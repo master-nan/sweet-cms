@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -101,7 +102,7 @@ func (as *ArticleServer) CreateArticleChannel(ac model.ArticleChannel) (int, err
 
 func (as *ArticleServer) DeleteArticleChannel(id int) error {
 	var ac = model.ArticleChannel{
-		BasicModel: model.BasicModel{
+		Basic: model.Basic{
 			ID: id,
 		},
 	}
@@ -160,7 +161,7 @@ func (as *ArticleServer) GetArticleChannel(query request.ArticleChannelQueryReq)
 func (as *ArticleServer) GetArticleContentByID(id int) (model.ArticleContent, error) {
 	var acModel model.ArticleContent
 	err := global.DB.Where("gmt_delete is null").First(&acModel, id).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return acModel, err
 	}
 	return acModel, nil
@@ -176,7 +177,7 @@ func (as *ArticleServer) CreateArticleContent(ac model.ArticleContent) (int, err
 
 func (as *ArticleServer) DeleteArticleContent(id int) error {
 	var ac = model.ArticleContent{
-		BasicModel: model.BasicModel{
+		Basic: model.Basic{
 			ID: id,
 		},
 	}

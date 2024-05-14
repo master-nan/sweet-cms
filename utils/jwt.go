@@ -40,7 +40,8 @@ func (t *JWTTokenGen) ParseToken(token string) (string, error) {
 	})
 
 	if err != nil {
-		if ve, ok := err.(*jwt.ValidationError); ok {
+		var ve *jwt.ValidationError
+		if errors.As(err, &ve) {
 			if ve.Errors&jwt.ValidationErrorMalformed != 0 {
 				return "", errors.New("token 错误")
 			} else if ve.Errors&jwt.ValidationErrorExpired != 0 {

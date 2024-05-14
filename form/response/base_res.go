@@ -39,9 +39,11 @@ func (r *RespData) SetCode(code int) *RespData {
 
 func (r *RespData) ReturnJson() {
 	r.c.JSON(r.Code, r)
+	return
 }
 
 func (r *RespData) AbortStatusJson() {
 	r.c.Abort()
 	r.c.JSON(r.Code, r)
+	return
 }

@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"math/rand"
-	"sweet-cms/model"
 	"time"
 
-	//"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"reflect"
 )
@@ -99,100 +97,4 @@ func Encryption(password string, salt string) string {
 	h := md5.New()
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-func GetMenu() []model.MenuTree {
-	var menuList []model.MenuTree
-	menu1 := model.MenuTree{
-		SysMenu: model.SysMenu{
-			PID:    0,
-			Name:   "index",
-			Path:   "/sweet/admin/index",
-			Title:  "首页",
-			Option: "",
-			Icon:   "speedometer2",
-		},
-		Children: nil,
-	}
-	menu2 := model.MenuTree{
-		SysMenu: model.SysMenu{
-			PID:    0,
-			Name:   "#",
-			Path:   "#",
-			Title:  "系统设置",
-			Option: "",
-			Icon:   "gear",
-		},
-		Children: []model.MenuTree{
-			{
-				SysMenu: model.SysMenu{
-					PID:    0,
-					Name:   "#",
-					Path:   "#",
-					Title:  "角色管理",
-					Option: "",
-					Icon:   "gear",
-				},
-				Children: nil,
-			},
-			{
-				SysMenu: model.SysMenu{
-					PID:    0,
-					Name:   "#",
-					Path:   "#",
-					Title:  "菜单管理",
-					Option: "",
-					Icon:   "gear",
-				},
-				Children: nil,
-			},
-			{
-				SysMenu: model.SysMenu{
-					PID:    0,
-					Name:   "#",
-					Path:   "#",
-					Title:  "用户管理",
-					Option: "",
-					Icon:   "gear",
-				},
-				Children: nil,
-			},
-		},
-	}
-	menu3 := model.MenuTree{
-		SysMenu: model.SysMenu{
-			PID:    0,
-			Name:   "article",
-			Path:   "/sweet/admin/article",
-			Title:  "内容设置",
-			Option: "",
-			Icon:   "journal-album",
-		},
-		Children: []model.MenuTree{
-			{
-				SysMenu: model.SysMenu{
-					PID:    0,
-					Name:   "#",
-					Path:   "channel",
-					Title:  "分类管理",
-					Option: "",
-					Icon:   "",
-				},
-				Children: nil,
-			},
-			{
-				SysMenu: model.SysMenu{
-					PID:    0,
-					Name:   "index",
-					Path:   "index",
-					Title:  "内容管理",
-					Option: "",
-					Icon:   "",
-				},
-				Children: nil,
-			},
-		},
-	}
-	menuList = append(menuList, menu1, menu2, menu3)
-	return menuList
 }

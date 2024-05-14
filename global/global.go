@@ -3,6 +3,7 @@ package global
 import (
 	"gorm.io/gorm"
 	"sweet-cms/config"
+	"sweet-cms/utils"
 )
 
 var (
@@ -11,4 +12,5 @@ var (
 	RedisConf   = &config.Redis{}
 	DB          *gorm.DB
 	SessionConf = &config.Session{}
+	SF          *utils.Snowflake
 )

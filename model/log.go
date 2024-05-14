@@ -6,7 +6,7 @@
 package model
 
 type AccessLog struct {
-	BasicModel
+	Basic
 	Method   string `json:"method"`
 	Ip       string `json:"ip"`
 	Locality string `json:"locality"`
@@ -15,7 +15,7 @@ type AccessLog struct {
 }
 
 type LoginLog struct {
-	BasicModel
+	Basic
 	Ip       string `json:"ip"`
 	Locality string `json:"locality"`
 	Username string `json:"username"`

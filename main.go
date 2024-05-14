@@ -18,8 +18,8 @@ func main() {
 	//initialize.DB()                // 初始化db
 	//initialize.Logger()            // 初始化日志
 	router := initialize.Routers() //初始化路由
-	templates := initialize.LoadTemplates()
-	router.HTMLRender = templates
+	//templates := initialize.LoadTemplates()
+	//router.HTMLRender = templates
 	err := router.Run(fmt.Sprintf(":%d", global.ServerConf.Port))
 	if err != nil {
 		zap.S().Error("项目启动失败……")

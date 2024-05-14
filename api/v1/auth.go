@@ -19,10 +19,16 @@ import (
 )
 
 type AuthApi struct {
+	TokenGenerator TokenGenerator
+}
+type TokenGenerator interface {
+	GenerateToken(id string) (string, error)
 }
 
 func NewAuthApi() *AuthApi {
-	return &AuthApi{}
+	return &AuthApi{
+		TokenGenerator: utils.NewJWTTokenGen(),
+	}
 }
 
 func (c *AuthApi) Login(ctx *gin.Context) {
@@ -43,7 +49,7 @@ func (c *AuthApi) Login(ctx *gin.Context) {
 		if err != nil || utils.Encryption(data.Password, global.ServerConf.Configure.Salt) != user.Password {
 			rsp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest).ReturnJson()
 		} else {
-			token, err := utils.NewJWTTokenGen().GenerateToken(strconv.Itoa(user.ID))
+			token, err := c.TokenGenerator.GenerateToken(strconv.Itoa(user.ID))
 			if err != nil {
 				rsp.SetMsg(err.Error()).SetCode(http.StatusBadRequest).ReturnJson()
 			} else {

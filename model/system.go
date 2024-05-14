@@ -1,7 +1,7 @@
 package model
 
 type SysMenu struct {
-	BasicModel
+	Basic
 	PID       int    `gorm:"type:int" json:"pid"`
 	Name      string `json:"name"`
 	Path      string `json:"path"`
@@ -16,14 +16,14 @@ type SysMenu struct {
 }
 
 type SysRole struct {
-	BasicModel
+	Basic
 	Name string `json:"name"`
 	Rs   string `json:"rs"`
 	Memo string `json:"memo"`
 }
 
 type SysUser struct {
-	BasicModel
+	Basic
 	UserName string `json:"username"`
 	RoleId   string `json:"roleId"`
 	Password string `json:"-"`

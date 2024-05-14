@@ -21,7 +21,7 @@ func (at ArticleType) Value() (driver.Value, error) {
 }
 
 type ArticleBasic struct {
-	BasicModel
+	Basic
 	UUID         uuid.UUID   `gorm:"type:uuid;column:uuid" json:"uuid"`
 	Title        string      `json:"title"`
 	Cover        string      `json:"cover"`
@@ -39,7 +39,7 @@ func (ab ArticleBasic) IsEmpty() bool {
 }
 
 type ArticleChannel struct {
-	BasicModel
+	Basic
 	PID       int    `gorm:"column:pid;type:int" json:"pid"`
 	Name      string `json:"name"`
 	Sequence  uint8  `json:"sequence"`
@@ -47,20 +47,20 @@ type ArticleChannel struct {
 }
 
 type ArticleComment struct {
-	BasicModel
+	Basic
 	ArticleUUID uuid.UUID `gorm:"column:article_uuid;type:uuid" json:"articleUUID"`
 	PID         int       `json:"pid"`
 	Comment     string    `json:"comment"`
 }
 
 type ArticleContent struct {
-	BasicModel
+	Basic
 	ArticleUUID string `json:"articleUUID"`
 	Content     string `json:"content"`
 }
 
 type ArticleRead struct {
-	BasicModel
+	Basic
 	ArticleUUID string `json:"articleUUID"`
 	IP          string `json:"ip"`
 }
