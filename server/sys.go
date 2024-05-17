@@ -5,14 +5,14 @@ import (
 	"sweet-cms/model"
 )
 
-type SystemServer struct {
+type SysServer struct {
 }
 
-func NewSystemServer() *SystemServer {
-	return &SystemServer{}
+func NewSysServer() *SysServer {
+	return &SysServer{}
 }
 
-func (s *SystemServer) GetSysUser(username string) (model.SysUser, error) {
+func (s *SysServer) GetSysUser(username string) (model.SysUser, error) {
 	var user model.SysUser
 	result := global.DB.Where(&model.SysUser{UserName: username}).First(&user)
 	return user, result.Error

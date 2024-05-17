@@ -1,8 +1,3 @@
-/**
- * @Author: Nan
- * @Date: 2024/4/26 下午6:40
- */
-
 package model
 
 import (
@@ -10,6 +5,54 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 )
+
+type SysMenu struct {
+	Basic
+	PID       int    `gorm:"type:int" json:"pid"`
+	Name      string `gorm:"size:32;comment:路由" json:"name"`
+	Path      string `gorm:"size:128;comment:路径" json:"path"`
+	Component string `gorm:"size:64;comment:路由主体" json:"component"`
+	Title     string `gorm:"size:64;comment:显示标题" json:"title"`
+	IsHidden  bool   `gorm:"size:64;comment:是否隐藏" json:"isHidden"`
+	Sequence  uint8  `gorm:"comment:排序" gorm:"type:tinyint" json:"sequence"`
+	Option    string `gorm:"size:64;comment:排序" json:"option"`
+	Icon      string `gorm:"size:32;comment:图标" json:"icon"`
+	Redirect  string `gorm:"size:128;comment:重定向地址" json:"redirect"`
+	IsUnfold  bool   `gorm:"size:32;comment:默认展开" json:"isUnfold"`
+}
+
+type SysMenuBtnPosition uint8
+
+const (
+	COLUMN SysMenuBtnPosition = iota + 1
+	LINE
+)
+
+func (sbp SysMenuBtnPosition) Value() (driver.Value, error) {
+	return int(sbp), nil
+}
+
+type SysMenuBtn struct {
+	Basic
+	Name     string             `gorm:"size:128;comment:按钮名称" json:"name"`
+	Code     string             `gorm:"size:128;comment:按钮编码" json:"code"`
+	Memo     string             `gorm:"size:128;comment:备注" json:"memo"`
+	Position SysMenuBtnPosition `gorm:"size:128;comment:位置" json:"position"`
+}
+
+type SysRole struct {
+	Basic
+	Name string `json:"name"`
+	Rs   string `json:"rs"`
+	Memo string `json:"memo"`
+}
+
+type SysUser struct {
+	Basic
+	UserName string `json:"username"`
+	RoleId   string `json:"roleId"`
+	Password string `json:"-"`
+}
 
 type SysTableType uint8
 
@@ -19,7 +62,7 @@ const (
 )
 
 func (stt SysTableType) Value() (driver.Value, error) {
-	return string(stt), nil
+	return int(stt), nil
 }
 
 type SysTableFieldType uint8
@@ -35,7 +78,7 @@ const (
 )
 
 func (stf SysTableFieldType) Value() (driver.Value, error) {
-	return string(stf), nil
+	return int(stf), nil
 }
 
 type SysTableFieldInputType uint8

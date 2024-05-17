@@ -4,49 +4,63 @@ import (
 	"bytes"
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"net/http"
+	"strconv"
+	"sweet-cms/form/request"
+	"sweet-cms/form/response"
 	"sweet-cms/global"
+	"sweet-cms/inter"
+	"sweet-cms/model"
 	"sweet-cms/server"
 	"sweet-cms/utils"
 	"time"
 )
 
 type Basic struct {
+	TokenGenerator inter.TokenGenerator
 }
 
 func NewBasic() *Basic {
-	return &Basic{}
+	return &Basic{
+		TokenGenerator: utils.NewJWTTokenGen(),
+	}
 }
 
 func (b *Basic) Login(ctx *gin.Context) {
-	if ctx.Request.Method == "GET" {
-		ctx.HTML(http.StatusOK, "login.html", nil)
-		return
-	} else if ctx.Request.Method == "POST" {
-		username := ctx.PostForm("username")
-		password := ctx.PostForm("password")
-		captchaVal := ctx.PostForm("captcha")
+	var data request.SignInReq
+	rsp := response.NewRespData(ctx)
+	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
+		rsp.SetMsg(err.Error()).SetCode(http.StatusBadRequest).ReturnJson()
+	} else {
 		captchaId := utils.GetSessionString(ctx, "captcha")
-		boolean := captcha.VerifyString(captchaId, captchaVal)
-		data := gin.H{
-			"username": username,
-			"password": password,
-			"captcha":  captchaVal,
-		}
+		boolean := captcha.VerifyString(captchaId, data.Captcha)
 		if boolean == false {
-			data["errorMsg"] = "验证码错误"
-			ctx.HTML(http.StatusOK, "login.html", data)
-			return
+			rsp.SetMsg("验证码错误").SetCode(http.StatusUnauthorized).ReturnJson()
 		}
-		user, err := server.NewSystemServer().GetSysUser(username)
-		if err != nil || utils.Encryption(password, global.ServerConf.Configure.Salt) != user.Password {
-			data["errorMsg"] = "用户名或密码错误"
-			ctx.HTML(http.StatusOK, "login.html", data)
+		logServer := server.NewLogServer(ctx)
+		var log = model.LoginLog{
+			Ip:       ctx.ClientIP(),
+			Locality: "",
+			Username: data.Username,
+		}
+		_, err := logServer.CreateLoginLog(log)
+		user, err := server.NewSysServer().GetSysUser(data.Username)
+		if err != nil || utils.Encryption(data.Password, global.ServerConf.Configure.Salt) != user.Password {
+			rsp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest).ReturnJson()
 		} else {
-			ctx.HTML(http.StatusOK, "index.html", nil)
+			token, err := b.TokenGenerator.GenerateToken(strconv.Itoa(user.ID))
+			if err != nil {
+				rsp.SetMsg(err.Error()).SetCode(http.StatusBadRequest).ReturnJson()
+			} else {
+				signInRes := response.SignInRes{
+					AccessToken: token,
+					UserInfo:    user,
+				}
+				rsp.SetData(signInRes).ReturnJson()
+			}
 		}
 	}
-
 }
 
 func (b *Basic) Captcha(ctx *gin.Context) {
