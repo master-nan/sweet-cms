@@ -129,7 +129,7 @@ func (as *ArticleServer) UpdateArticleChannel(data request.ArticleChannelUpdateR
 func (as *ArticleServer) GetArticleChannelByID(id int) (model.ArticleChannel, error) {
 	var acModel model.ArticleChannel
 	err := global.DB.Where("gmt_delete is null").First(&acModel, id).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return acModel, err
 	}
 	return acModel, nil

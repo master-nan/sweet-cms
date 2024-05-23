@@ -1,13 +1,13 @@
 package config
 
 type Server struct {
-	Name      string    `mapStructure:"name"`
-	Version   string    `mapStructure:"version"`
-	Port      int       `mapStructure:"port"`
-	DB        DB        `mapStructure:"db"`
-	Redis     Redis     `mapStructure:"redis"`
-	Session   Session   `mapStructure:"session"`
-	Configure Configure `mapStructure:"conf"`
+	Name    string  `mapStructure:"name"`
+	Version string  `mapStructure:"version"`
+	Port    int     `mapStructure:"port"`
+	DB      DB      `mapStructure:"db"`
+	Redis   Redis   `mapStructure:"redis"`
+	Session Session `mapStructure:"session"`
+	Config  Config  `mapStructure:"conf"`
 }
 
 type DB struct {
@@ -19,14 +19,16 @@ type DB struct {
 }
 
 type Redis struct {
-	Host string `mapStructure:"host"`
-	Port int    `mapStructure:"port"`
+	Host     string `mapStructure:"host"`
+	Port     int    `mapStructure:"port"`
+	DB       int    `mapStructure:"db"`
+	Password string `mapStructure:"password"`
 }
 
 type Session struct {
 	Secret string `mapStructure:"secret"`
 }
 
-type Configure struct {
+type Config struct {
 	Salt string `mapStructure:"salt"`
 }

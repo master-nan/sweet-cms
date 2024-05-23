@@ -8,9 +8,10 @@ import (
 )
 
 func init() {
-	initialize.Config() // 初始化配置
-	initialize.DB()     // 初始化db
-	initialize.Logger() // 初始化日志
+	initialize.Config()      // 初始化配置
+	initialize.DB()          // 初始化db
+	initialize.RedisClient() //初始化redis
+	initialize.Logger()      // 初始化日志
 
 }
 func main() {

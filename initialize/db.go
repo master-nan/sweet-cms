@@ -13,7 +13,6 @@ import (
 )
 
 func DB() {
-
 	conf := global.ServerConf.DB
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", conf.User, conf.Password, conf.Host, conf.Port, conf.Name)
 	dbLogger := logger.New(

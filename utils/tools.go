@@ -98,3 +98,31 @@ func Encryption(password string, salt string) string {
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
 }
+
+func IsEmpty(s interface{}) bool {
+	val := reflect.ValueOf(s)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if !val.IsValid() {
+		return true
+	}
+	for i := 0; i < val.NumField(); i++ {
+		if !isZero(val.Field(i)) {
+			return false
+		}
+	}
+	return true
+}
+
+func isZero(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Array, reflect.Slice:
+		return v.Len() == 0
+	case reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return v.IsNil()
+	}
+	zero := reflect.Zero(v.Type()).Interface()
+	current := v.Interface()
+	return reflect.DeepEqual(current, zero)
+}

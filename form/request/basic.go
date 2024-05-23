@@ -5,7 +5,10 @@
 
 package request
 
-import "database/sql/driver"
+import (
+	"database/sql/driver"
+	"sweet-cms/model"
+)
 
 type Basic struct {
 	Page   int     `json:"page"`
@@ -26,7 +29,7 @@ const (
 	LIKE
 	NOT_LIKE
 	IN
-	BETWEEN
+	NOT_IN
 	IS_NULL
 	IS_NOT_NULL
 )
@@ -36,10 +39,10 @@ func (e ExpressionType) Value() (driver.Value, error) {
 }
 
 type Query struct {
-	Field      string         `json:"field"`
-	Expression ExpressionType `json:"expression"`
-	Value      interface{}    `json:"value"`
-	Type       string         `json:"type"`
+	Field      string                  `json:"field"`
+	Expression ExpressionType          `json:"expression"`
+	Value      interface{}             `json:"value"`
+	Type       model.SysTableFieldType `json:"type"`
 }
 
 type Order struct {

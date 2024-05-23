@@ -6,6 +6,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type SysConfigure struct {
+	Basic
+	EnableCaptcha bool `gorm:"comment:登录验证码" json:"enable_captcha"`
+}
+
 type SysMenu struct {
 	Basic
 	PID       int    `gorm:"type:int" json:"pid"`
@@ -13,12 +18,12 @@ type SysMenu struct {
 	Path      string `gorm:"size:128;comment:路径" json:"path"`
 	Component string `gorm:"size:64;comment:路由主体" json:"component"`
 	Title     string `gorm:"size:64;comment:显示标题" json:"title"`
-	IsHidden  bool   `gorm:"size:64;comment:是否隐藏" json:"isHidden"`
+	IsHidden  bool   `gorm:"comment:是否隐藏" json:"isHidden"`
 	Sequence  uint8  `gorm:"comment:排序" gorm:"type:tinyint" json:"sequence"`
 	Option    string `gorm:"size:64;comment:排序" json:"option"`
 	Icon      string `gorm:"size:32;comment:图标" json:"icon"`
 	Redirect  string `gorm:"size:128;comment:重定向地址" json:"redirect"`
-	IsUnfold  bool   `gorm:"size:32;comment:默认展开" json:"isUnfold"`
+	IsUnfold  bool   `gorm:"comment:默认展开" json:"isUnfold"`
 }
 
 type SysMenuBtnPosition uint8
@@ -75,6 +80,7 @@ const (
 	BOOLEAN
 	DATE
 	DATETIME
+	TIME
 )
 
 func (stf SysTableFieldType) Value() (driver.Value, error) {
@@ -101,6 +107,7 @@ type SysTable struct {
 	TableName   string          `gorm:"size:128;comment:表名" json:"table_name"`
 	TableCode   string          `gorm:"size:128;comment:数据库中表名" json:"table_code"`
 	TableType   SysTableType    `gorm:"default:1" json:"table_type"`
+	ParentID    int             `gorm:"type:int" json:"parent_id"`
 	TableFields []SysTableField `gorm:"-" json:"table_fields"`
 }
 
@@ -133,7 +140,7 @@ type SysTableField struct {
 	IsAdvancedSearch   bool                   `gorm:"default:false;comment:是否高级搜索" json:"is_advanced_search"`
 	IsSort             bool                   `gorm:"default:false;comment:是否可排序" json:"is_sort"`
 	IsNull             bool                   `gorm:"default:true;comment:是否可空" json:"is_null"`
-	OriginalFieldID    int                    `gorm:"comment:原字段" json:"original_field_id"`
+	OriginalFieldID    int                    `gorm:"comment:原字段ID" json:"original_field_id"`
 }
 
 type SysDict struct {

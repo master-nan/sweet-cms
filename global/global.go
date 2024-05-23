@@ -1,6 +1,7 @@
 package global
 
 import (
+	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"sweet-cms/config"
 	"sweet-cms/utils"
@@ -8,9 +9,7 @@ import (
 
 var (
 	ServerConf  = &config.Server{}
-	DBConf      = &config.DB{}
-	RedisConf   = &config.Redis{}
 	DB          *gorm.DB
-	SessionConf = &config.Session{}
+	RedisClient *redis.Client
 	SF          *utils.Snowflake
 )

@@ -46,7 +46,7 @@ func (c *AuthApi) Login(ctx *gin.Context) {
 		}
 		_, err := logServer.CreateLoginLog(log)
 		user, err := server.NewSysServer().GetSysUser(data.Username)
-		if err != nil || utils.Encryption(data.Password, global.ServerConf.Configure.Salt) != user.Password {
+		if err != nil || utils.Encryption(data.Password, global.ServerConf.Config.Salt) != user.Password {
 			rsp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest).ReturnJson()
 		} else {
 			token, err := c.TokenGenerator.GenerateToken(strconv.Itoa(user.ID))
