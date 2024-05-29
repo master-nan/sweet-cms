@@ -13,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"strconv"
-	"sweet-cms/global"
 	"sweet-cms/inter"
 	"time"
 )
@@ -22,24 +21,37 @@ type RedisUtil struct {
 	client *redis.Client
 }
 
-func NewRedisUtil() *RedisUtil {
+func NewRedisUtil(client *redis.Client) *RedisUtil {
 	return &RedisUtil{
-		client: global.RedisClient,
+		client: client,
 	}
 }
 
 func withTimeout(duration time.Duration) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), duration)
+	return context.WithTimeout(context.Background(), 200*duration)
 }
 
 func (r *RedisUtil) Set(key string, value interface{}, expiration time.Duration) error {
-	ctx, cancel := withTimeout(2 * time.Second)
+	ctx, cancel := withTimeout(200 * time.Second)
 	defer cancel()
-	err := r.client.Set(ctx, key, value, expiration).Err()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return inter.ErrCacheMiss
+	var str string
+	switch value.(type) {
+	case string:
+		str = value.(string)
+	case []byte:
+		str = string(value.([]byte))
+	case int:
+		str = strconv.FormatInt(int64(value.(int)), 10)
+	default:
+		b, err := json.Marshal(value)
+		if err != nil {
+			zap.S().Errorf("json marshal value %s: %v", value, err)
+			return err
 		}
+		str = string(b)
+	}
+	err := r.client.Set(ctx, key, str, expiration).Err()
+	if err != nil {
 		zap.S().Errorf("failed to set key %s: %v", key, err)
 		return err
 	}
@@ -51,6 +63,9 @@ func (r *RedisUtil) Get(key string, value interface{}) error {
 	defer cancel()
 	val, err := r.client.Get(ctx, key).Bytes()
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return inter.ErrCacheMiss
+		}
 		zap.S().Errorf("failed to get key %s: %v", key, err)
 		return err
 	}
@@ -86,6 +101,9 @@ func (r *RedisUtil) Del(key string) error {
 	defer cancel()
 	err := r.client.Del(ctx, key).Err()
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return inter.ErrCacheMiss
+		}
 		zap.S().Errorf("failed to delete key %s: %v", key, err)
 		return err
 	}

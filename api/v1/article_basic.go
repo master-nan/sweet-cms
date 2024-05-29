@@ -8,7 +8,7 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
-	"sweet-cms/server"
+	"sweet-cms/service"
 	"sweet-cms/utils"
 )
 
@@ -26,7 +26,7 @@ func (ab ArticleBasicApi) GetList(ctx *gin.Context) {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
 		return
 	}
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	d, total, err := articleServer.GetArticleBasic(data)
 	if err != nil {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
@@ -38,7 +38,7 @@ func (ab ArticleBasicApi) GetList(ctx *gin.Context) {
 func (ab ArticleBasicApi) Get(ctx *gin.Context) {
 	uid := ctx.Param("uuid")
 	rsp := response.NewRespData(ctx)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	abModel, err := articleServer.GetArticleBasicByID(uid)
 	if err != nil {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
@@ -56,7 +56,7 @@ func (ab ArticleBasicApi) Create(ctx *gin.Context) {
 	}
 	var abModel model.ArticleBasic
 	utils.Assignment(&data, &abModel)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	uid, err := articleServer.CreateArticleBasic(abModel)
 	if err != nil {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
@@ -68,7 +68,7 @@ func (ab ArticleBasicApi) Create(ctx *gin.Context) {
 func (ab ArticleBasicApi) Delete(ctx *gin.Context) {
 	uid := ctx.Param("uuid")
 	rsp := response.NewRespData(ctx)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	err := articleServer.DeleteArticleBasic(uid)
 	if err != nil {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
@@ -90,7 +90,7 @@ func (ab ArticleBasicApi) Update(ctx *gin.Context) {
 		rsp.SetCode(http.StatusBadRequest).SetMsg("资源id错误").ReturnJson()
 		return
 	}
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	if err := articleServer.UpdateArticleBasic(uid, upData); err != nil {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
 		return

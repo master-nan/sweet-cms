@@ -8,7 +8,7 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
-	"sweet-cms/server"
+	"sweet-cms/service"
 	"sweet-cms/utils"
 )
 
@@ -22,7 +22,7 @@ func NewArticleContentApi() *ArticleContentApi {
 func (ac ArticleContentApi) Get(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	rsp := response.NewRespData(ctx)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	acModel, err := articleServer.GetArticleContentByID(id)
 	if err != nil {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
@@ -34,7 +34,7 @@ func (ac ArticleContentApi) Get(ctx *gin.Context) {
 func (ac ArticleContentApi) Create(ctx *gin.Context) {
 	var data request.ArticleChannelCreateReq
 	rsp := response.NewRespData(ctx)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	err := ctx.ShouldBindJSON(&data)
 	if err != nil {
 		rsp.SetCode(http.StatusBadRequest).SetMsg(err.Error()).ReturnJson()
@@ -53,7 +53,7 @@ func (ac ArticleContentApi) Create(ctx *gin.Context) {
 func (ac ArticleContentApi) Update(ctx *gin.Context) {
 	var upData request.ArticleContentUpdateReq
 	rsp := response.NewRespData(ctx)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	err := ctx.ShouldBindJSON(&upData)
 	if err != nil {
 		rsp.SetCode(http.StatusBadRequest).SetMsg(err.Error()).ReturnJson()
@@ -72,7 +72,7 @@ func (ac ArticleContentApi) Update(ctx *gin.Context) {
 }
 
 func (ac ArticleContentApi) Delete(ctx *gin.Context) {
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	rsp := response.NewRespData(ctx)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {

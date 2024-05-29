@@ -14,21 +14,21 @@ func Routers() *gin.Engine {
 	router := gin.Default()
 	store := cookie.NewStore([]byte(global.ServerConf.Session.Secret))
 	router.
+		Use(middlewares.JSONResponse()).
 		Use(middlewares.Cors()).
 		Use(middlewares.AccessLog()).
 		Use(sessions.Sessions("sweet-cms-session", store))
 	// 总路由
 	routerGroup := router.Group("/sweet")
 	// 后台非验证路由
-	adminBaseGroup := routerGroup.Group("/admin")
-	admin.InitBasic(adminBaseGroup)
+	adminBaseGroup := routerGroup.Group("/controller")
+	admin.InitBasicRouter(adminBaseGroup)
 
 	// 后台验证路由
-	adminGroup := routerGroup.Group("/admin")
-	adminGroup.Use(middlewares.Auth())
+	adminGroup := routerGroup.Group("/controller")
+	//adminGroup.Use(middlewares.Auth())
 	admin.InitIndex(adminGroup)
-	admin.InitArticle(adminGroup)
-
+	admin.InitDictRouter(adminGroup)
 	apiBaseV1 := routerGroup.Group("/api/v1")
 	v1.InitBase(apiBaseV1)
 	// api接口

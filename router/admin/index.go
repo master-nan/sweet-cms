@@ -2,10 +2,10 @@ package admin
 
 import (
 	"github.com/gin-gonic/gin"
-	"sweet-cms/admin"
+	"sweet-cms/controller"
 )
 
 func InitIndex(router *gin.RouterGroup) {
-	router.GET("", admin.NewIndex().Index)
-	router.GET("index", admin.NewIndex().Index)
+	router.GET("", controller.NewIndex().Index)
+	router.GET("index", controller.NewIndex().Index)
 }

@@ -7,18 +7,21 @@ package cache
 
 import (
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"sweet-cms/inter"
 	"sweet-cms/model"
-	"sweet-cms/server/sys"
+	"sweet-cms/service"
 	"time"
 )
 
 type SysConfigureCache struct {
-	ConfigureServer *sys.ConfigureServer
+	ConfigureServer *service.ConfigureService
 	CacheInterface  inter.CacheInterface
 }
 
-func NewSysConfigureCache(configureServer *sys.ConfigureServer, cacheInterface inter.CacheInterface) *SysConfigureCache {
+const ConfigureCacheKey = "CONFIGURE_CACHE_KEY_"
+
+func NewSysConfigureCache(configureServer *service.ConfigureService, cacheInterface inter.CacheInterface) *SysConfigureCache {
 	return &SysConfigureCache{
 		ConfigureServer: configureServer,
 		CacheInterface:  cacheInterface,
@@ -27,12 +30,16 @@ func NewSysConfigureCache(configureServer *sys.ConfigureServer, cacheInterface i
 
 func (sc *SysConfigureCache) Get(key string) (model.SysConfigure, error) {
 	var sysConfigure model.SysConfigure
-	err := sc.CacheInterface.Get(key, &sysConfigure)
+	err := sc.CacheInterface.Get(ConfigureCacheKey+key, &sysConfigure)
 	if err != nil {
 		if errors.Is(err, inter.ErrCacheMiss) {
 			sysConfigure, err := sc.ConfigureServer.Query()
 			if err != nil {
 				return model.SysConfigure{}, err
+			}
+			err = sc.Set(key, sysConfigure)
+			if err != nil {
+				zap.S().Error("Error setting key in cache", zap.String("key", key), zap.Error(err))
 			}
 			return sysConfigure, nil
 		} else {
@@ -43,7 +50,7 @@ func (sc *SysConfigureCache) Get(key string) (model.SysConfigure, error) {
 }
 
 func (sc *SysConfigureCache) Set(key string, value model.SysConfigure) error {
-	err := sc.CacheInterface.Set(key, value, 7200*time.Second)
+	err := sc.CacheInterface.Set(ConfigureCacheKey+key, value, 7200*time.Second)
 	if err != nil {
 		return err
 	}

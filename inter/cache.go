@@ -17,4 +17,7 @@ var (
 type CacheInterface interface {
 	Get(key string, value interface{}) error
 	Set(key string, value interface{}, expiration time.Duration) error
+	Del(key string) error
+	Exists(keys ...string) (int64, error)
+	Expire(key string, expiration time.Duration) (bool, error)
 }

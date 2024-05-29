@@ -3,7 +3,7 @@
  * @Date: 2024/5/17 上午11:12
  */
 
-package sys
+package controller
 
 type MenuController struct {
 }

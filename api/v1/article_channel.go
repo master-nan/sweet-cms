@@ -8,7 +8,7 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
-	"sweet-cms/server"
+	"sweet-cms/service"
 	"sweet-cms/utils"
 )
 
@@ -27,7 +27,7 @@ func (ac ArticleChannelApi) GetList(ctx *gin.Context) {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
 		return
 	}
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	d, count, err := articleServer.GetArticleChannel(query)
 	if err != nil {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
@@ -39,7 +39,7 @@ func (ac ArticleChannelApi) GetList(ctx *gin.Context) {
 func (ac ArticleChannelApi) Get(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	rsp := response.NewRespData(ctx)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	acModel, err := articleServer.GetArticleChannelByID(id)
 	if err != nil {
 		rsp.SetCode(http.StatusInternalServerError).SetMsg(err.Error()).ReturnJson()
@@ -51,7 +51,7 @@ func (ac ArticleChannelApi) Get(ctx *gin.Context) {
 func (ac ArticleChannelApi) Create(ctx *gin.Context) {
 	var data request.ArticleChannelCreateReq
 	rsp := response.NewRespData(ctx)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	err := ctx.ShouldBindBodyWith(&data, binding.JSON)
 	if err != nil {
 		rsp.SetCode(http.StatusBadRequest).SetMsg(err.Error()).ReturnJson()
@@ -70,7 +70,7 @@ func (ac ArticleChannelApi) Create(ctx *gin.Context) {
 func (ac ArticleChannelApi) Update(ctx *gin.Context) {
 	var upData request.ArticleChannelUpdateReq
 	rsp := response.NewRespData(ctx)
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	err := ctx.ShouldBindBodyWith(&upData, binding.JSON)
 	if err != nil {
 		rsp.SetCode(http.StatusBadRequest).SetMsg(err.Error()).ReturnJson()
@@ -84,7 +84,7 @@ func (ac ArticleChannelApi) Update(ctx *gin.Context) {
 }
 
 func (ac ArticleChannelApi) Delete(ctx *gin.Context) {
-	var articleServer = server.NewArticleServer(ctx)
+	var articleServer = service.NewArticleServer(ctx)
 	rsp := response.NewRespData(ctx)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {

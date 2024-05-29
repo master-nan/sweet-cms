@@ -3,7 +3,7 @@
  * @Date: 2023/3/19 14:47
  */
 
-package server
+package service
 
 import (
 	"github.com/gin-gonic/gin"

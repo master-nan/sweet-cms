@@ -13,8 +13,9 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/global"
+	"sweet-cms/middlewares"
 	"sweet-cms/model"
-	"sweet-cms/server"
+	"sweet-cms/service"
 	"sweet-cms/utils"
 )
 
@@ -33,31 +34,30 @@ func NewAuthApi() *AuthApi {
 
 func (c *AuthApi) Login(ctx *gin.Context) {
 	var data request.SignInReq
-	rsp := response.NewRespData(ctx)
-
+	resp := middlewares.NewResponse()
 	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		rsp.SetMsg(err.Error()).SetCode(http.StatusBadRequest).ReturnJson()
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
 	} else {
-		logServer := server.NewLogServer(ctx)
+		logServer := service.NewLogServer(ctx)
 		var log = model.LoginLog{
 			Ip:       ctx.ClientIP(),
 			Locality: "",
 			Username: data.Username,
 		}
 		_, err := logServer.CreateLoginLog(log)
-		user, err := server.NewSysServer().GetSysUser(data.Username)
+		user, err := service.NewSysUserService().Get(data.Username)
 		if err != nil || utils.Encryption(data.Password, global.ServerConf.Config.Salt) != user.Password {
-			rsp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest).ReturnJson()
+			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
 		} else {
 			token, err := c.TokenGenerator.GenerateToken(strconv.Itoa(user.ID))
 			if err != nil {
-				rsp.SetMsg(err.Error()).SetCode(http.StatusBadRequest).ReturnJson()
+				resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
 			} else {
 				signInRes := response.SignInRes{
 					AccessToken: token,
 					UserInfo:    user,
 				}
-				rsp.SetData(signInRes).ReturnJson()
+				resp.SetData(signInRes)
 			}
 		}
 	}

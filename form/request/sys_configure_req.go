@@ -3,7 +3,7 @@
  * @Date: 2024/5/21 下午2:46
  */
 
-package sys
+package request
 
 type ConfigureUpdateReq struct {
 	ID            int  `json:"id" binding:"required"`

@@ -13,11 +13,11 @@ func LoadTemplates() multitemplate.Renderer {
 	if err != nil {
 		panic(err.Error())
 	}
-	adminBase, err := filepath.Glob("templates/basic/admin/*")
+	adminBase, err := filepath.Glob("templates/basic/controller/*")
 	if err != nil {
 		panic(err.Error())
 	}
-	adminFiles, err := filepath.Glob("templates/admin/**/*")
+	adminFiles, err := filepath.Glob("templates/controller/**/*")
 	if err != nil {
 		panic(err.Error())
 	}

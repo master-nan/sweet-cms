@@ -3,36 +3,36 @@
  * @Date: 2024/5/17 下午5:52
  */
 
-package server
+package service
 
 import (
 	"encoding/json"
 	"gorm.io/gorm"
 	"net/http"
+	"sweet-cms/enum"
 	"sweet-cms/form/request"
-	"sweet-cms/model"
 	"time"
 )
 
-func parseValue(value interface{}, valueType model.SysTableFieldType) interface{} {
+func parseValue(value interface{}, valueType enum.SysTableFieldType) interface{} {
 	switch valueType {
-	case model.INT:
+	case enum.INT:
 		return value.(int)
-	case model.FLOAT:
+	case enum.FLOAT:
 		return value.(float64)
-	case model.VARCHAR:
+	case enum.VARCHAR:
 		return value.(string)
-	case model.BOOLEAN:
+	case enum.BOOLEAN:
 		return value.(bool)
-	case model.TEXT:
+	case enum.TEXT:
 		return value.(string)
-	case model.DATE:
+	case enum.DATE:
 		t, _ := time.Parse(time.DateOnly, value.(string))
 		return t
-	case model.DATETIME:
+	case enum.DATETIME:
 		t, _ := time.Parse(time.DateTime, value.(string))
 		return t
-	case model.TIME:
+	case enum.TIME:
 		t, _ := time.Parse(time.TimeOnly, value.(string))
 		return t
 	default:

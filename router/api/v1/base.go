@@ -13,5 +13,5 @@ import (
 func InitBase(router *gin.RouterGroup) {
 	baseRouter := router.Group("auth")
 	baseRouter.POST("login", v1.NewAuthApi().Login)
-	baseRouter.POST("question/answer", v1.NewQuestionnaireAnswerApi().Create)
+	//baseRouter.POST("question/answer", v1.NewQuestionnaireAnswerApi().Create)
 }

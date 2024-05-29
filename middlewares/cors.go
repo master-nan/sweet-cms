@@ -7,11 +7,13 @@ package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		zap.S().Infof("Cors start")
 		method := c.Request.Method
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
@@ -24,5 +26,6 @@ func Cors() gin.HandlerFunc {
 		}
 		// 处理请求
 		c.Next()
+		zap.S().Infof("Cors end")
 	}
 }

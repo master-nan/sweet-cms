@@ -1,6 +1,6 @@
 module sweet-cms
 
-go 1.20
+go 1.22
 
 require (
 	github.com/dchest/captcha v1.0.0
