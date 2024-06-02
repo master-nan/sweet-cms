@@ -19,10 +19,13 @@ type DB struct {
 }
 
 type Redis struct {
-	Host     string `mapStructure:"host"`
-	Port     int    `mapStructure:"port"`
-	DB       int    `mapStructure:"db"`
-	Password string `mapStructure:"password"`
+	Host         string `mapStructure:"host"`
+	Port         int    `mapStructure:"port"`
+	DB           int    `mapStructure:"db"`
+	Password     string `mapStructure:"password"`
+	PoolSize     int    `mapStructure:"pool_size"`
+	MinIdleConns int    `mapStructure:"min_idle_conns"`
+	MaxConnAge   int    `mapStructure:"max_conn_age"`
 }
 
 type Session struct {

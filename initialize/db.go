@@ -8,17 +8,17 @@ import (
 	"gorm.io/gorm/schema"
 	"log"
 	"os"
-	"sweet-cms/global"
+	"sweet-cms/config"
 	"time"
 )
 
-func DB() {
-	conf := global.ServerConf.DB
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", conf.User, conf.Password, conf.Host, conf.Port, conf.Name)
+func InitDB(serverConfig *config.Server) (*gorm.DB, error) {
+	cfg := serverConfig.DB
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name)
 	dbLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
-			SlowThreshold:             time.Second,
+			//SlowThreshold:             time.Second,
 			Colorful:                  false,
 			IgnoreRecordNotFoundError: true,
 			LogLevel:                  logger.Info,
@@ -32,14 +32,14 @@ func DB() {
 		Logger: dbLogger,
 	})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	sqlDB, err := db.DB()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
-	global.DB = db
+	return db, nil
 }

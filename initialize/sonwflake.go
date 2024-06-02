@@ -17,3 +17,7 @@ func SF() {
 	}
 	global.SF = sf
 }
+
+func InitSnowflake(nodeId int64) (*utils.Snowflake, error) {
+	return utils.NewSnowflake(nodeId)
+}

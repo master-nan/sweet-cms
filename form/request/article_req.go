@@ -1,40 +1,40 @@
 package request
 
 import (
-	"sweet-cms/model"
+	"sweet-cms/enum"
 	"time"
 )
 
 type ArticleBasicCreateReq struct {
-	Title        string            `json:"title" binding:"required"`
-	Cover        string            `json:"cover"`
-	Introduction string            `json:"introduction"`
-	IsAd         bool              `json:"is_ad"`
-	Status       model.ArticleType `json:"status"`
-	GmtReview    time.Time         `json:"gmt_review"`
-	RejectReason string            `json:"reject_reason"`
-	IsComment    bool              `json:"is_comment"`
-	ChannelId    int               `json:"channel_id" `
+	Title        string           `json:"title" binding:"required"`
+	Cover        string           `json:"cover"`
+	Introduction string           `json:"introduction"`
+	IsAd         bool             `json:"is_ad"`
+	Status       enum.ArticleType `json:"status"`
+	GmtReview    time.Time        `json:"gmt_review"`
+	RejectReason string           `json:"reject_reason"`
+	IsComment    bool             `json:"is_comment"`
+	ChannelId    int              `json:"channel_id" `
 }
 
 type ArticleBasicQueryReq struct {
-	Page         int                `form:"page"`
-	Num          int                `form:"num"`
-	Title        *string            `form:"title"`
-	Introduction *string            `form:"introduction"`
-	IsAd         *bool              `form:"is_ad"`
-	Status       *model.ArticleType `form:"status"`
-	IsComment    *bool              `form:"is_comment"`
-	ChannelId    *int               `form:"channel_id"`
+	Page         int               `form:"page"`
+	Num          int               `form:"num"`
+	Title        *string           `form:"title"`
+	Introduction *string           `form:"introduction"`
+	IsAd         *bool             `form:"is_ad"`
+	Status       *enum.ArticleType `form:"status"`
+	IsComment    *bool             `form:"is_comment"`
+	ChannelId    *int              `form:"channel_id"`
 }
 
 type ArticleBasicUpdateReq struct {
-	Title        *string            `json:"title"`
-	Introduction *string            `json:"introduction"`
-	IsAd         *bool              `json:"is_ad"`
-	Status       *model.ArticleType `json:"status"`
-	IsComment    *bool              `json:"is_comment"`
-	ChannelId    *int               `json:"channel_id"`
+	Title        *string          `json:"title"`
+	Introduction *string          `json:"introduction"`
+	IsAd         *bool            `json:"is_ad"`
+	Status       enum.ArticleType `json:"status"`
+	IsComment    *bool            `json:"is_comment"`
+	ChannelId    *int             `json:"channel_id"`
 }
 
 type ArticleChannelCreateReq struct {

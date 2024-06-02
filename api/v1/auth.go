@@ -55,7 +55,7 @@ func (c *AuthApi) Login(ctx *gin.Context) {
 			} else {
 				signInRes := response.SignInRes{
 					AccessToken: token,
-					UserInfo:    user,
+					//UserInfo:    user,
 				}
 				resp.SetData(signInRes)
 			}

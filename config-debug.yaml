@@ -12,6 +12,7 @@ redis:
   port: 6379
   db: 9
   password:
+
 session:
   secret: '123456'
 configure:

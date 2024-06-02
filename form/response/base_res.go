@@ -6,10 +6,10 @@ import (
 )
 
 type RespData struct {
-	Data  any    `json:"data"`
-	Msg   string `json:"msg"`
-	Total int    `json:"total"`
-	Code  int    `json:"code"`
+	Data  interface{} `json:"data"`
+	Msg   string      `json:"msg"`
+	Total int         `json:"total"`
+	Code  int         `json:"code"`
 	c     *gin.Context
 }
 

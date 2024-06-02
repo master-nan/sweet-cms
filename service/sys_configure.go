@@ -14,7 +14,7 @@ import (
 type ConfigureService struct {
 }
 
-func NewConfigureServer() *ConfigureService {
+func NewConfigureService() *ConfigureService {
 	return &ConfigureService{}
 }
 

@@ -77,3 +77,48 @@ const (
 func (s SysTableFieldInputType) Value() (driver.Value, error) {
 	return int(s), nil
 }
+
+type ExpressionType uint8
+
+const (
+	GT ExpressionType = iota + 1
+	LT
+	GTE
+	LTE
+	EQ
+	NE
+	LIKE
+	NOT_LIKE
+	IN
+	NOT_IN
+	IS_NULL
+	IS_NOT_NULL
+)
+
+func (e ExpressionType) Value() (driver.Value, error) {
+	return int(e), nil
+}
+
+type ExpressionLogic uint8
+
+const (
+	AND ExpressionLogic = iota + 1
+	OR
+)
+
+func (e ExpressionLogic) Value() (driver.Value, error) {
+	return int(e), nil
+}
+
+type ArticleType string
+
+const (
+	DRAFT   ArticleType = "draft"
+	REVIEW  ArticleType = "review"
+	RELEASE ArticleType = "release"
+	REJECT  ArticleType = "reject"
+)
+
+func (at ArticleType) Value() (driver.Value, error) {
+	return string(at), nil
+}

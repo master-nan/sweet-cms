@@ -1,37 +1,24 @@
 package model
 
 import (
-	"database/sql/driver"
 	"github.com/google/uuid"
 	"reflect"
+	"sweet-cms/enum"
 	"time"
 )
 
-type ArticleType string
-
-const (
-	DRAFT   ArticleType = "draft"
-	REVIEW  ArticleType = "review"
-	RELEASE ArticleType = "release"
-	REJECT  ArticleType = "reject"
-)
-
-func (at ArticleType) Value() (driver.Value, error) {
-	return string(at), nil
-}
-
 type ArticleBasic struct {
 	Basic
-	UUID         uuid.UUID   `gorm:"type:uuid;column:uuid" json:"uuid"`
-	Title        string      `json:"title"`
-	Cover        string      `json:"cover"`
-	Introduction string      `gorm:"default:null" json:"introduction"`
-	IsAd         bool        `gorm:"default:false" json:"isAd"`
-	Status       ArticleType `gorm:"default:draft" json:"status"`
-	GmtReview    time.Time   `gorm:"default:null" json:"gmtReview"`
-	RejectReason string      `gorm:"default:null" json:"rejectReason"`
-	IsComment    bool        `gorm:"default:false" json:"isComment"`
-	ChannelId    int         `gorm:"type:int" json:"channelId"`
+	UUID         uuid.UUID        `gorm:"type:uuid;column:uuid" json:"uuid"`
+	Title        string           `json:"title"`
+	Cover        string           `json:"cover"`
+	Introduction string           `gorm:"default:null" json:"introduction"`
+	IsAd         bool             `gorm:"default:false" json:"isAd"`
+	Status       enum.ArticleType `gorm:"default:draft" json:"status"`
+	GmtReview    time.Time        `gorm:"default:null" json:"gmtReview"`
+	RejectReason string           `gorm:"default:null" json:"rejectReason"`
+	IsComment    bool             `gorm:"default:false" json:"isComment"`
+	ChannelId    int              `gorm:"type:int" json:"channelId"`
 }
 
 func (ab ArticleBasic) IsEmpty() bool {

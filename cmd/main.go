@@ -3,27 +3,21 @@ package main
 import (
 	"fmt"
 	"go.uber.org/zap"
-	"sweet-cms/global"
+	_ "sweet-cms/docs"
 	"sweet-cms/initialize"
 )
 
-func init() {
-	initialize.Config()      // 初始化配置
-	initialize.DB()          // 初始化db
-	initialize.RedisClient() //初始化redis
-	initialize.Logger()      // 初始化日志
-	initialize.SF()
-
-}
 func main() {
-	//initialize.Config()            // 初始化配置
-	//initialize.DB()                // 初始化db
-	//initialize.Logger()            // 初始化日志
-	router := initialize.Routers() //初始化路由
-	//templates := initialize.LoadTemplates()
-	//router.HTMLRender = templates
-	err := router.Run(fmt.Sprintf(":%d", global.ServerConf.Port))
+	initialize.Logger() // 初始化日志
+	app, err := initialize.InitializeApp()
 	if err != nil {
-		zap.S().Error("项目启动失败……")
+		zap.S().Errorf("failed to initialize application: %v", err)
+	}
+	router := initialize.InitRouter(app)
+	port := app.Config.Port
+	zap.S().Infof("Starting server on port %d", port)
+	err = router.Run(fmt.Sprintf(":%d", port))
+	if err != nil {
+		zap.S().Errorf("failed to start server: %v", err)
 	}
 }

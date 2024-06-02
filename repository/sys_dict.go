@@ -5,19 +5,27 @@
 
 package repository
 
-import "sweet-cms/model"
+import (
+	"sweet-cms/form/request"
+	"sweet-cms/model"
+)
+
+type SysDictListResult struct {
+	Data  []model.SysDict `json:"data"`
+	Total int             `json:"total"`
+}
 
 type SysDictRepository interface {
-	GetSysDictById(id int) (model.SysDict, error)
-	GetSysDictList() ([]model.SysDict, int, error)
+	GetSysDictById(int) (model.SysDict, error)
+	GetSysDictList(request.Basic) (SysDictListResult, error)
 	UpdateSysDict(*model.SysDict) error
 	InsertSysDict(*model.SysDict) error
-	DeleteSysDictById(id int) error
-	GetSysDictByCode(code int) (model.SysDict, error)
+	DeleteSysDictById(int) error
+	GetSysDictByCode(int) (model.SysDict, error)
 
-	GetSysDictItemById(id int) (model.SysDictItem, error)
-	GetSysDictItemsByDictId(id int) ([]model.SysDictItem, int, error)
+	GetSysDictItemById(int) (model.SysDictItem, error)
+	GetSysDictItemsByDictId(int) ([]model.SysDictItem, error)
 	UpdateSysDictItem(*model.SysDictItem) error
 	InsertSysDictItem(*model.SysDictItem) error
-	DeleteSysDictItemById(id int) error
+	DeleteSysDictItemById(int) error
 }

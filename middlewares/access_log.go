@@ -33,7 +33,7 @@ func AccessLog() gin.HandlerFunc {
 		logServer := service.NewLogServer(c)
 		_, err := logServer.CreateAccessLog(accessLog)
 		if err != nil {
-			zap.S().Error("日志存储异常。。。。")
+			zap.S().Errorf("日志存储异常。。。。%s", err.Error())
 		}
 		c.Next()
 		duration := time.Since(startTime)

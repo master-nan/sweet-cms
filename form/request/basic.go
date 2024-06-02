@@ -6,46 +6,36 @@
 package request
 
 import (
-	"database/sql/driver"
-	"sweet-cms/model"
+	"sweet-cms/enum"
 )
 
 type Basic struct {
-	Page   int     `json:"page"`
-	Num    int     `json:"num"`
-	Query  []Query `json:"query"`
-	Orders Order   `json:"order"`
+	Page        int               `json:"page"`
+	Num         int               `json:"num"`
+	Order       Order             `json:"order"`
+	TableCode   string            `json:"table_code"`
+	Expressions []ExpressionGroup `json:"expressions"`
+	QuickQuery  *QuickQuery       `json:"quick_query"`
 }
 
-type ExpressionType uint8
-
-const (
-	GT ExpressionType = iota + 1
-	LT
-	GTE
-	LTE
-	EQ
-	NE
-	LIKE
-	NOT_LIKE
-	IN
-	NOT_IN
-	IS_NULL
-	IS_NOT_NULL
-)
-
-func (e ExpressionType) Value() (driver.Value, error) {
-	return int(e), nil
+type ExpressionGroup struct {
+	Logic  enum.ExpressionLogic `json:"logic"`  // "and" 或 "or"
+	Rules  []QueryRule          `json:"rules"`  // 基础查询规则
+	Nested []ExpressionGroup    `json:"nested"` // 嵌套的表达式组
 }
 
-type Query struct {
-	Field      string                  `json:"field"`
-	Expression ExpressionType          `json:"expression"`
-	Value      interface{}             `json:"value"`
-	Type       model.SysTableFieldType `json:"type"`
+type QueryRule struct {
+	Field          string                 `json:"field"`
+	ExpressionType enum.ExpressionType    `json:"expression_type"` // 比较器类型，如EQ, LT等
+	Value          interface{}            `json:"value"`
+	Type           enum.SysTableFieldType `json:"type"` // 字段类型
 }
 
 type Order struct {
 	Field string `json:"field"`
 	IsAsc bool   `json:"is_asc"`
+}
+
+type QuickQuery struct {
+	KeyWord string `json:"keyword"`
 }

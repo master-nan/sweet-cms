@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"sweet-cms/cache"
+	"sweet-cms/config"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/global"
@@ -19,17 +20,22 @@ import (
 	"time"
 )
 
-type Basic struct {
+type BasicController struct {
 	TokenGenerator inter.TokenGenerator
+	serverConfig   *config.Server
 }
 
-func NewBasic() *Basic {
-	return &Basic{
+type TokenGenerator interface {
+}
+
+func NewBasicController(serverConfig *config.Server) *BasicController {
+	return &BasicController{
 		TokenGenerator: utils.NewJWTTokenGen(),
+		serverConfig:   serverConfig,
 	}
 }
 
-func (b *Basic) Login(ctx *gin.Context) {
+func (b *BasicController) Login(ctx *gin.Context) {
 	var data request.SignInReq
 	resp := middlewares.NewResponse()
 	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
@@ -50,7 +56,7 @@ func (b *Basic) Login(ctx *gin.Context) {
 		}
 		_, err := logServer.CreateLoginLog(log)
 		user, err := service.NewSysUserService().Get(data.Username)
-		if err != nil || utils.Encryption(data.Password, global.ServerConf.Config.Salt) != user.Password {
+		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password {
 			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
 			return
 		} else {
@@ -60,7 +66,7 @@ func (b *Basic) Login(ctx *gin.Context) {
 			} else {
 				signInRes := response.SignInRes{
 					AccessToken: token,
-					UserInfo:    user,
+					//UserInfo:    user,
 				}
 				resp.SetData(signInRes)
 				return
@@ -69,7 +75,7 @@ func (b *Basic) Login(ctx *gin.Context) {
 	}
 }
 
-func (b *Basic) Captcha(ctx *gin.Context) {
+func (b *BasicController) Captcha(ctx *gin.Context) {
 	l := captcha.DefaultLen
 	w, h := 110, 50
 	captchaId := captcha.NewLen(l)
@@ -83,10 +89,11 @@ func (b *Basic) Captcha(ctx *gin.Context) {
 	http.ServeContent(ctx.Writer, ctx.Request, captchaId+".png", time.Time{}, bytes.NewReader(content.Bytes()))
 }
 
-func (b *Basic) Configure(ctx *gin.Context) {
-	configureCache := cache.NewSysConfigureCache(service.NewConfigureServer(), utils.NewRedisUtil(global.RedisClient))
+func (b *BasicController) Configure(ctx *gin.Context) {
+	configureCache := cache.NewSysConfigureCache(service.NewConfigureService(), utils.NewRedisUtil(global.RedisClient))
 	configUre, err := configureCache.Get("")
 	resp := middlewares.NewResponse()
+	ctx.Set("response", resp)
 	if err != nil {
 		resp.SetMsg(err.Error()).SetCode(http.StatusUnauthorized)
 		return
@@ -95,6 +102,6 @@ func (b *Basic) Configure(ctx *gin.Context) {
 	return
 }
 
-func (b *Basic) Logout(ctx *gin.Context) {
+func (b *BasicController) Logout(ctx *gin.Context) {
 	utils.DeleteSession(ctx, "captcha")
 }

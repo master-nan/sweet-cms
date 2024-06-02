@@ -1,67 +1,83 @@
 package model
 
 import (
-	"encoding/json"
+	"database/sql/driver"
+	"fmt"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"sweet-cms/global"
 	"time"
 )
 
+type CustomTime time.Time
+
+func (t *CustomTime) UnmarshalJSON(data []byte) (err error) {
+	now, err := time.ParseInLocation(`"`+time.DateTime+`"`, string(data), time.Local)
+	*t = CustomTime(now)
+	return
+}
+func (t CustomTime) MarshalJSON() ([]byte, error) {
+	b := make([]byte, 0, len(time.DateTime)+2)
+	b = append(b, '"')
+	b = time.Time(t).AppendFormat(b, time.DateTime)
+	b = append(b, '"')
+	return b, nil
+}
+func (t CustomTime) String() string {
+	return time.Time(t).Format(time.DateTime)
+}
+
+func (t CustomTime) Value() (driver.Value, error) {
+	return time.Time(t), nil
+}
+
+func (t *CustomTime) Scan(value interface{}) error {
+	if value == nil {
+		*t = CustomTime(time.Time{})
+		return nil
+	}
+	switch v := value.(type) {
+	case time.Time:
+		*t = CustomTime(v)
+		return nil
+	case []byte:
+		parsedTime, err := time.Parse(time.DateTime, string(v))
+		if err != nil {
+			return err
+		}
+		*t = CustomTime(parsedTime)
+		return nil
+	case string:
+		parsedTime, err := time.Parse(time.DateTime, v)
+		if err != nil {
+			return err
+		}
+		*t = CustomTime(parsedTime)
+		return nil
+	default:
+		return fmt.Errorf("unsupported scan type for CustomTime: %T", value)
+	}
+}
+
 type Basic struct {
 	ID            int            `gorm:"primaryKey;type:int" json:"id"`
-	GmtCreate     time.Time      `gorm:"type:datetime;autoCreateTime" json:"gmt_create"`
+	GmtCreate     CustomTime     `gorm:"type:datetime;autoCreateTime" json:"gmt_create"`
 	GmtCreateUser int            `json:"gmt_create_user"`
-	GmtModify     time.Time      `gorm:"type:datetime;autoCreateTime;autoUpdateTime" json:"gmt_modify"`
+	GmtModify     CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime" json:"gmt_modify"`
 	GmtModifyUser int            `json:"gmt_modify_user"`
 	GmtDelete     gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
-	GmtDeleteUser int            `json:"gmt_delete_user"`
+	GmtDeleteUser int            `json:"-"`
 	State         bool           `gorm:"default:true" json:"state"`
 }
 
 func (b *Basic) BeforeCreate(tx *gorm.DB) (err error) {
-	//uniqueID, err := global.SF.GenerateUniqueID()
-	//if err != nil {
-	//	zap.S().Errorf("获取id失败：%s", err)
-	//	return err
-	//}
-	//b.ID = int(uniqueID)
+	uniqueID, err := global.SF.GenerateUniqueID()
+	if err != nil {
+		zap.S().Errorf("获取id失败：%s", err)
+		return err
+	}
+	b.ID = int(uniqueID)
 	return
-}
-
-func (b Basic) MarshalJSON() ([]byte, error) {
-	type Alias Basic
-	return json.Marshal(&struct {
-		GmtCreate string `json:"gmt_create"`
-		GmtModify string `json:"gmt_modify"`
-		Alias
-	}{
-		GmtCreate: b.GmtCreate.Format(time.DateTime),
-		GmtModify: b.GmtModify.Format(time.DateTime),
-		Alias:     (Alias)(b),
-	})
-}
-
-func (b *Basic) UnmarshalJSON(data []byte) error {
-	type Alias Basic
-	aux := &struct {
-		GmtCreate string `json:"gmt_create"`
-		GmtModify string `json:"gmt_modify"`
-		*Alias
-	}{
-		Alias: (*Alias)(b),
-	}
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-	var err error
-	b.GmtCreate, err = time.Parse(time.DateTime, aux.GmtCreate)
-	if err != nil {
-		return err
-	}
-	b.GmtModify, err = time.Parse(time.DateTime, aux.GmtModify)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (b *Basic) AfterFind(tx *gorm.DB) (err error) {
