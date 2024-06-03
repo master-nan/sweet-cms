@@ -18,10 +18,10 @@ type SysDictListResult struct {
 type SysDictRepository interface {
 	GetSysDictById(int) (model.SysDict, error)
 	GetSysDictList(request.Basic) (SysDictListResult, error)
-	UpdateSysDict(*model.SysDict) error
-	InsertSysDict(*model.SysDict) error
+	InsertSysDict(model.SysDict) error
+	UpdateSysDict(request.DictUpdateReq) error
 	DeleteSysDictById(int) error
-	GetSysDictByCode(int) (model.SysDict, error)
+	GetSysDictByCode(string) (model.SysDict, error)
 
 	GetSysDictItemById(int) (model.SysDictItem, error)
 	GetSysDictItemsByDictId(int) ([]model.SysDictItem, error)

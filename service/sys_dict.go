@@ -6,18 +6,23 @@
 package service
 
 import (
+	"fmt"
+	"github.com/mitchellh/mapstructure"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
 	"sweet-cms/repository"
+	"sweet-cms/utils"
 )
 
 type SysDictService struct {
 	sysDictRepo repository.SysDictRepository
+	sf          *utils.Snowflake
 }
 
-func NewSysDictService(sysDictRepo repository.SysDictRepository) *SysDictService {
+func NewSysDictService(sysDictRepo repository.SysDictRepository, sf *utils.Snowflake) *SysDictService {
 	return &SysDictService{
-		sysDictRepo: sysDictRepo,
+		sysDictRepo,
+		sf,
 	}
 }
 
@@ -30,12 +35,29 @@ func (s *SysDictService) Query(basic request.Basic) (repository.SysDictListResul
 	return result, err
 }
 
-func (s *SysDictService) Insert(d *model.SysDict) error {
-	err := s.sysDictRepo.InsertSysDict(d)
-	return err
+func (s *SysDictService) Insert(req request.DictCreateReq) error {
+	var data model.SysDict
+	err := mapstructure.Decode(req, &data)
+	if err != nil {
+		fmt.Println("Error during struct mapping:", err)
+		return err
+	}
+	id, err := s.sf.GenerateUniqueID()
+	if err != nil {
+		return err
+	}
+	data.ID = int(id)
+	return s.sysDictRepo.InsertSysDict(data)
+}
+
+func (s *SysDictService) Update(req request.DictUpdateReq) error {
+	return s.sysDictRepo.UpdateSysDict(req)
 }
 
 func (s *SysDictService) Delete(id int) error {
-	err := s.sysDictRepo.DeleteSysDictById(id)
-	return err
+	return s.sysDictRepo.DeleteSysDictById(id)
+}
+
+func (s *SysDictService) GetByCode(code string) (model.SysDict, error) {
+	return s.sysDictRepo.GetSysDictByCode(code)
 }

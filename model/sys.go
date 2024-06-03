@@ -92,17 +92,17 @@ type SysTableField struct {
 
 type SysDict struct {
 	Basic
-	DictName  string        `gorm:"size:128;comment:字典名称" json:"dict_name"`
-	DictCode  string        `gorm:"size:128;comment:字典编码" json:"dict_code"`
-	DictItems []SysDictItem `gorm:"-" json:"dict_items"`
+	DictName  *string        `gorm:"size:128;comment:字典名称" json:"dict_name"`
+	DictCode  *string        `gorm:"size:128;comment:字典编码" json:"dict_code"`
+	DictItems *[]SysDictItem `gorm:"-" json:"dict_items"`
 }
 
 type SysDictItem struct {
 	Basic
-	DictID    int    `gorm:"comment:dict_id" json:"dict_id"`
-	ItemName  string `gorm:"size:128;comment:字典名称" json:"item_name"`
-	ItemCode  string `gorm:"size:128;comment:字典编码" json:"item_code"`
-	ItemValue string `gorm:"size:128;comment:字典值" json:"item_value"`
+	DictID    *int    `gorm:"comment:dict_id" json:"dict_id"`
+	ItemName  *string `gorm:"size:128;comment:字典名称" json:"item_name"`
+	ItemCode  *string `gorm:"size:128;comment:字典编码" json:"item_code"`
+	ItemValue *string `gorm:"size:128;comment:字典值" json:"item_value"`
 }
 
 func (st *SysDict) Value() (driver.Value, error) {

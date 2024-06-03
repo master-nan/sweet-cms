@@ -61,12 +61,35 @@ func (t *DictController) Query(ctx *gin.Context) {
 func (t *DictController) Insert(ctx *gin.Context) {
 	resp := middlewares.NewResponse()
 	ctx.Set("response", resp)
+	var dictCreateReq request.DictCreateReq
+	err := ctx.ShouldBindJSON(&dictCreateReq)
+	if err != nil {
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
+		return
+	}
+	err = t.sysDictService.Insert(dictCreateReq)
+	if err != nil {
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
+		return
+	}
 	return
 }
 
 func (t *DictController) Update(ctx *gin.Context) {
 	resp := middlewares.NewResponse()
 	ctx.Set("response", resp)
+	var dictUpdateReq request.DictUpdateReq
+	err := ctx.ShouldBindJSON(&dictUpdateReq)
+	if err != nil {
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
+		return
+	}
+	err = t.sysDictService.Update(dictUpdateReq)
+	if err != nil {
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
+		return
+	}
+	return
 	return
 
 }

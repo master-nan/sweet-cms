@@ -41,7 +41,7 @@ func InitializeApp() (*App, error) {
 	}
 	jwtTokenGen := utils.NewJWTTokenGen()
 	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl()
-	sysDictService := service.NewSysDictService(sysDictRepositoryImpl)
+	sysDictService := service.NewSysDictService(sysDictRepositoryImpl, snowflake)
 	dictController := controller.NewDictController(sysDictService)
 	sysConfigureRepositoryImpl := impl.NewSysConfigureRepositoryImpl(db)
 	redisUtil := utils.NewRedisUtil(client)
