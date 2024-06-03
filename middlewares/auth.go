@@ -14,7 +14,7 @@ import (
 
 const bearerLength = len("Bearer ")
 
-func Auth() gin.HandlerFunc {
+func Auth(jwt *utils.JWTTokenGen) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
 		resp := NewResponse()
@@ -23,7 +23,7 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 		token := authorization[bearerLength:]
-		id, err := utils.NewJWTTokenGen().ParseToken(token)
+		id, err := jwt.ParseToken(token)
 		if err != nil {
 			resp.SetMsg(err.Error()).SetCode(http.StatusForbidden)
 			return

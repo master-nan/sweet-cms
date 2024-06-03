@@ -20,46 +20,54 @@ import (
 )
 
 type BasicController struct {
-	TokenGenerator    inter.TokenGenerator
+	tokenGenerator    inter.TokenGenerator
 	serverConfig      *config.Server
 	sysConfigureCache *cache.SysConfigureCache
 	logService        *service.LogService
 }
 
-func NewBasicController(serverConfig *config.Server, sysConfigureCache *cache.SysConfigureCache, logService *service.LogService) *BasicController {
+func NewBasicController(tokenGenerator inter.TokenGenerator, serverConfig *config.Server, sysConfigureCache *cache.SysConfigureCache, logService *service.LogService) *BasicController {
 	return &BasicController{
-		TokenGenerator:    utils.NewJWTTokenGen(),
-		serverConfig:      serverConfig,
-		sysConfigureCache: sysConfigureCache,
-		logService:        logService,
+		tokenGenerator,
+		serverConfig,
+		sysConfigureCache,
+		logService,
 	}
 }
 
 func (b *BasicController) Login(ctx *gin.Context) {
 	var data request.SignInReq
 	resp := middlewares.NewResponse()
+	ctx.Set("response", resp)
 	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
 		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
 		return
 	} else {
-		captchaId := utils.GetSessionString(ctx, "captcha")
-		boolean := captcha.VerifyString(captchaId, data.Captcha)
-		if boolean == false {
-			resp.SetMsg("验证码错误").SetCode(http.StatusUnauthorized)
+		configUre, err := b.sysConfigureCache.Get("")
+		if err != nil {
+			resp.SetMsg(err.Error()).SetCode(http.StatusInternalServerError)
 			return
+		}
+		if configUre.EnableCaptcha {
+			captchaId := utils.GetSessionString(ctx, "captcha")
+			boolean := captcha.VerifyString(captchaId, data.Captcha)
+			if boolean == false {
+				resp.SetMsg("验证码错误").SetCode(http.StatusUnauthorized)
+				return
+			}
 		}
 		var log = model.LoginLog{
 			Ip:       ctx.ClientIP(),
 			Locality: "",
 			Username: data.Username,
 		}
-		err := b.logService.CreateLoginLog(log)
+		err = b.logService.CreateLoginLog(log)
 		user, err := service.NewSysUserService().Get(data.Username)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password {
 			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
 			return
 		} else {
-			token, err := b.TokenGenerator.GenerateToken(strconv.Itoa(user.ID))
+			token, err := b.tokenGenerator.GenerateToken(strconv.Itoa(user.ID))
 			if err != nil {
 				resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
 			} else {

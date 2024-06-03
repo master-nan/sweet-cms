@@ -38,13 +38,13 @@ func (c *AuthApi) Login(ctx *gin.Context) {
 	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
 		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
 	} else {
-		logServer := service.NewLogServer(ctx)
+		logServer := service.NewLogServer()
 		var log = model.LoginLog{
 			Ip:       ctx.ClientIP(),
 			Locality: "",
 			Username: data.Username,
 		}
-		_, err := logServer.CreateLoginLog(log)
+		err := logServer.CreateLoginLog(log)
 		user, err := service.NewSysUserService().Get(data.Username)
 		if err != nil || utils.Encryption(data.Password, global.ServerConf.Config.Salt) != user.Password {
 			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
