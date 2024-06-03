@@ -87,7 +87,8 @@ func (t *DictController) Delete(ctx *gin.Context) {
 
 }
 
-type DictItemController struct{}
+type DictItemController struct {
+}
 
 func NewDictItemController() *DictItemController {
 	return &DictItemController{}

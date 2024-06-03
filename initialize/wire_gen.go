@@ -44,12 +44,12 @@ func InitializeApp() (*App, error) {
 	sysDictService := service.NewSysDictService(sysDictRepositoryImpl)
 	dictController := controller.NewDictController(sysDictService)
 	sysConfigureRepositoryImpl := impl.NewSysConfigureRepositoryImpl(db)
-	sysConfigureService := service.NewSysConfigureService(sysConfigureRepositoryImpl)
 	redisUtil := utils.NewRedisUtil(client)
-	sysConfigureCache := cache.NewSysConfigureCache(sysConfigureService, redisUtil)
+	sysConfigureCache := cache.NewSysConfigureCache(redisUtil)
+	sysConfigureService := service.NewSysConfigureService(sysConfigureRepositoryImpl, sysConfigureCache)
 	logRepositoryImpl := impl.NewLogRepositoryImpl(db)
 	logService := service.NewLogServer(logRepositoryImpl, snowflake)
-	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureCache, logService)
+	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureService, logService)
 	app := &App{
 		Config:          server,
 		DB:              db,

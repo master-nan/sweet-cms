@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"net/http"
 	"strconv"
-	"sweet-cms/cache"
 	"sweet-cms/config"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
@@ -20,17 +19,17 @@ import (
 )
 
 type BasicController struct {
-	tokenGenerator    inter.TokenGenerator
-	serverConfig      *config.Server
-	sysConfigureCache *cache.SysConfigureCache
-	logService        *service.LogService
+	tokenGenerator      inter.TokenGenerator
+	serverConfig        *config.Server
+	sysConfigureService *service.SysConfigureService
+	logService          *service.LogService
 }
 
-func NewBasicController(tokenGenerator inter.TokenGenerator, serverConfig *config.Server, sysConfigureCache *cache.SysConfigureCache, logService *service.LogService) *BasicController {
+func NewBasicController(tokenGenerator inter.TokenGenerator, serverConfig *config.Server, sysConfigureService *service.SysConfigureService, logService *service.LogService) *BasicController {
 	return &BasicController{
 		tokenGenerator,
 		serverConfig,
-		sysConfigureCache,
+		sysConfigureService,
 		logService,
 	}
 }
@@ -43,7 +42,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
 		return
 	} else {
-		configUre, err := b.sysConfigureCache.Get("")
+		configUre, err := b.sysConfigureService.Query()
 		if err != nil {
 			resp.SetMsg(err.Error()).SetCode(http.StatusInternalServerError)
 			return
@@ -97,7 +96,7 @@ func (b *BasicController) Captcha(ctx *gin.Context) {
 }
 
 func (b *BasicController) Configure(ctx *gin.Context) {
-	configUre, err := b.sysConfigureCache.Get("")
+	configUre, err := b.sysConfigureService.Query()
 	resp := middlewares.NewResponse()
 	ctx.Set("response", resp)
 	if err != nil {
