@@ -14,10 +14,10 @@ func InitRouter(app *App) *gin.Engine {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	store := cookie.NewStore([]byte(app.Config.Session.Secret))
 	router.
-		Use(middlewares.ErrorHandler()).
+		//Use(middlewares.ErrorHandler()).
 		Use(middlewares.JSONResponse()).
 		Use(middlewares.Cors()).
-		Use(middlewares.AccessLog()).
+		Use(middlewares.AccessLog(app.LogService)).
 		Use(sessions.Sessions("sweet-cms-session", store))
 	//总路由
 	routerGroup := router.Group("/sweet")

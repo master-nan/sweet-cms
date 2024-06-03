@@ -6,31 +6,24 @@
 package service
 
 import (
-	"github.com/gin-gonic/gin"
-	"sweet-cms/global"
 	"sweet-cms/model"
+	"sweet-cms/repository"
 )
 
-type LogServer struct {
-	ctx *gin.Context
+type LogService struct {
+	logRepository repository.LogRepository
 }
 
-func NewLogServer(ctx *gin.Context) *LogServer {
-	return &LogServer{ctx: ctx}
+func NewLogServer(logRepository repository.LogRepository) *LogService {
+	return &LogService{logRepository}
 }
 
-func (s *LogServer) CreateLoginLog(log model.LoginLog) (int, error) {
-	err := global.DB.Omit("gmt_delete").Create(&log).Error
-	if err != nil {
-		return 0, err
-	}
-	return log.ID, err
+func (ls *LogService) CreateLoginLog(log model.LoginLog) (int, error) {
+	id, err := ls.logRepository.CreateLoginLog(log)
+	return id, err
 }
 
-func (s *LogServer) CreateAccessLog(log model.AccessLog) (int, error) {
-	err := global.DB.Omit("gmt_delete").Create(&log).Error
-	if err != nil {
-		return 0, err
-	}
-	return log.ID, err
+func (ls *LogService) CreateAccessLog(log model.AccessLog) (int, error) {
+	id, err := ls.logRepository.CreateAccessLog(log)
+	return id, err
 }

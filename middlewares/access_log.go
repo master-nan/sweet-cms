@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func AccessLog() gin.HandlerFunc {
+func AccessLog(logService *service.LogService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		zap.S().Infof("Access Log start")
 		startTime := time.Now()
@@ -30,8 +30,7 @@ func AccessLog() gin.HandlerFunc {
 			Url:      c.Request.URL.Path,
 			Data:     fmt.Sprintf("body:%v，query:%v", body, query),
 		}
-		logServer := service.NewLogServer(c)
-		_, err := logServer.CreateAccessLog(accessLog)
+		_, err := logService.CreateAccessLog(accessLog)
 		if err != nil {
 			zap.S().Errorf("日志存储异常。。。。%s", err.Error())
 		}

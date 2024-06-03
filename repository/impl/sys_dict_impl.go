@@ -18,7 +18,7 @@ type SysDictRepositoryImpl struct {
 	db *gorm.DB
 }
 
-func NewSysDictRepositoryImpl() repository.SysDictRepository {
+func NewSysDictRepositoryImpl() *SysDictRepositoryImpl {
 	return &SysDictRepositoryImpl{}
 }
 

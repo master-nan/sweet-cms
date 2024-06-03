@@ -5,21 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"sweet-cms/config"
-	"sweet-cms/global"
 )
-
-func Config() {
-	filename := "config-debug.yaml"
-	v := viper.New()
-	v.SetConfigFile(filename)
-
-	if err := v.ReadInConfig(); err != nil {
-		panic(err)
-	}
-	if err := v.Unmarshal(global.ServerConf); err != nil {
-		panic(err)
-	}
-}
 
 func LoadConfig() (*config.Server, error) {
 	environment := os.Getenv("APP_ENV")

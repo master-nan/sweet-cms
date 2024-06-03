@@ -15,25 +15,25 @@ import (
 )
 
 type SysConfigureCache struct {
-	ConfigureServer *service.ConfigureService
-	CacheInterface  inter.CacheInterface
+	configureServer *service.SysConfigureService
+	cacheInterface  inter.CacheInterface
 }
 
 const ConfigureCacheKey = "CONFIGURE_CACHE_KEY_"
 
-func NewSysConfigureCache(configureServer *service.ConfigureService, cacheInterface inter.CacheInterface) *SysConfigureCache {
+func NewSysConfigureCache(configureServer *service.SysConfigureService, cacheInterface inter.CacheInterface) *SysConfigureCache {
 	return &SysConfigureCache{
-		ConfigureServer: configureServer,
-		CacheInterface:  cacheInterface,
+		configureServer: configureServer,
+		cacheInterface:  cacheInterface,
 	}
 }
 
 func (sc *SysConfigureCache) Get(key string) (model.SysConfigure, error) {
 	var sysConfigure model.SysConfigure
-	err := sc.CacheInterface.Get(ConfigureCacheKey+key, &sysConfigure)
+	err := sc.cacheInterface.Get(ConfigureCacheKey+key, &sysConfigure)
 	if err != nil {
 		if errors.Is(err, inter.ErrCacheMiss) {
-			sysConfigure, err := sc.ConfigureServer.Query()
+			sysConfigure, err := sc.configureServer.Query()
 			if err != nil {
 				return model.SysConfigure{}, err
 			}
@@ -50,7 +50,7 @@ func (sc *SysConfigureCache) Get(key string) (model.SysConfigure, error) {
 }
 
 func (sc *SysConfigureCache) Set(key string, value model.SysConfigure) error {
-	err := sc.CacheInterface.Set(ConfigureCacheKey+key, value, 7200*time.Second)
+	err := sc.cacheInterface.Set(ConfigureCacheKey+key, value, 7200*time.Second)
 	if err != nil {
 		return err
 	}

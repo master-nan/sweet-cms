@@ -11,7 +11,6 @@ import (
 	"sweet-cms/config"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
-	"sweet-cms/global"
 	"sweet-cms/inter"
 	"sweet-cms/middlewares"
 	"sweet-cms/model"
@@ -21,17 +20,18 @@ import (
 )
 
 type BasicController struct {
-	TokenGenerator inter.TokenGenerator
-	serverConfig   *config.Server
+	TokenGenerator    inter.TokenGenerator
+	serverConfig      *config.Server
+	sysConfigureCache *cache.SysConfigureCache
+	logService        *service.LogService
 }
 
-type TokenGenerator interface {
-}
-
-func NewBasicController(serverConfig *config.Server) *BasicController {
+func NewBasicController(serverConfig *config.Server, sysConfigureCache *cache.SysConfigureCache, logService *service.LogService) *BasicController {
 	return &BasicController{
-		TokenGenerator: utils.NewJWTTokenGen(),
-		serverConfig:   serverConfig,
+		TokenGenerator:    utils.NewJWTTokenGen(),
+		serverConfig:      serverConfig,
+		sysConfigureCache: sysConfigureCache,
+		logService:        logService,
 	}
 }
 
@@ -48,13 +48,12 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			resp.SetMsg("验证码错误").SetCode(http.StatusUnauthorized)
 			return
 		}
-		logServer := service.NewLogServer(ctx)
 		var log = model.LoginLog{
 			Ip:       ctx.ClientIP(),
 			Locality: "",
 			Username: data.Username,
 		}
-		_, err := logServer.CreateLoginLog(log)
+		_, err := b.logService.CreateLoginLog(log)
 		user, err := service.NewSysUserService().Get(data.Username)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password {
 			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
@@ -90,8 +89,7 @@ func (b *BasicController) Captcha(ctx *gin.Context) {
 }
 
 func (b *BasicController) Configure(ctx *gin.Context) {
-	configureCache := cache.NewSysConfigureCache(service.NewConfigureService(), utils.NewRedisUtil(global.RedisClient))
-	configUre, err := configureCache.Get("")
+	configUre, err := b.sysConfigureCache.Get("")
 	resp := middlewares.NewResponse()
 	ctx.Set("response", resp)
 	if err != nil {

@@ -7,30 +7,29 @@ package service
 
 import (
 	"sweet-cms/form/request"
-	"sweet-cms/global"
 	"sweet-cms/model"
+	"sweet-cms/repository"
 )
 
-type ConfigureService struct {
+type SysConfigureService struct {
+	sysConfigureRepo repository.SysConfigureRepository
 }
 
-func NewConfigureService() *ConfigureService {
-	return &ConfigureService{}
+func NewSysConfigureService(s repository.SysConfigureRepository) *SysConfigureService {
+	return &SysConfigureService{
+		sysConfigureRepo: s,
+	}
 }
 
-func (cs *ConfigureService) Query() (model.SysConfigure, error) {
+func (cs *SysConfigureService) Query() (model.SysConfigure, error) {
 	var data model.SysConfigure
-	err := global.DB.First(&data).Error
-	if err != nil {
-		return model.SysConfigure{}, err
-	}
-	return data, nil
+	data, err := cs.sysConfigureRepo.GetSysConfigure()
+	return data, err
 }
 
-func (cs *ConfigureService) Update(id int, data request.ConfigureUpdateReq) error {
-	err := global.DB.Model(model.SysConfigure{}).Where("id = ？", id).Updates(data).Error
-	if err != nil {
-		return err
-	}
-	return nil
+func (cs *SysConfigureService) Update(id int, data request.ConfigureUpdateReq) error {
+	var d model.SysConfigure
+	d.ID = id
+	err := cs.sysConfigureRepo.UpdateSysConfigure(d)
+	return err
 }
