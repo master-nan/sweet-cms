@@ -23,14 +23,16 @@ type BasicController struct {
 	serverConfig        *config.Server
 	sysConfigureService *service.SysConfigureService
 	logService          *service.LogService
+	sysUserService      *service.SysUserService
 }
 
-func NewBasicController(tokenGenerator inter.TokenGenerator, serverConfig *config.Server, sysConfigureService *service.SysConfigureService, logService *service.LogService) *BasicController {
+func NewBasicController(tokenGenerator inter.TokenGenerator, serverConfig *config.Server, sysConfigureService *service.SysConfigureService, logService *service.LogService, sysUserService *service.SysUserService) *BasicController {
 	return &BasicController{
 		tokenGenerator,
 		serverConfig,
 		sysConfigureService,
 		logService,
+		sysUserService,
 	}
 }
 
@@ -61,7 +63,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			Username: data.Username,
 		}
 		err = b.logService.CreateLoginLog(log)
-		user, err := service.NewSysUserService().Get(data.Username)
+		user, err := b.sysUserService.Get(data.Username)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password {
 			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
 			return

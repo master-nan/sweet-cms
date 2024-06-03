@@ -42,15 +42,19 @@ var Providers = wire.NewSet(
 	impl.NewSysConfigureRepositoryImpl,
 	impl.NewSysDictRepositoryImpl,
 	impl.NewLogRepositoryImpl,
+	impl.NewSysUserRepositoryImpl,
+
 	wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)),
 	wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)),
 	wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)),
 	wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)),
 	wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)),
+	wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)),
 
 	service.NewSysConfigureService,
 	service.NewSysDictService,
 	service.NewLogServer,
+	service.NewSysUserService,
 
 	cache.NewSysConfigureCache,
 	controller.NewDictController,
