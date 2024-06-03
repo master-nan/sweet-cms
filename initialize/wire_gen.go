@@ -22,7 +22,6 @@ import (
 
 // Injectors from wire.go:
 
-// InitializeApp is just declared here, it will be implemented in wire_gen.go
 func InitializeApp() (*App, error) {
 	server, err := LoadConfig()
 	if err != nil {
@@ -36,6 +35,10 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	snowflake, err := InitSnowflake()
+	if err != nil {
+		return nil, err
+	}
 	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl()
 	sysDictService := service.NewSysDictService(sysDictRepositoryImpl)
 	dictController := controller.NewDictController(sysDictService)
@@ -44,12 +47,13 @@ func InitializeApp() (*App, error) {
 	redisUtil := utils.NewRedisUtil(client)
 	sysConfigureCache := cache.NewSysConfigureCache(sysConfigureService, redisUtil)
 	logRepositoryImpl := impl.NewLogRepositoryImpl(db)
-	logService := service.NewLogServer(logRepositoryImpl)
+	logService := service.NewLogServer(logRepositoryImpl, snowflake)
 	basicController := controller.NewBasicController(server, sysConfigureCache, logService)
 	app := &App{
 		Config:          server,
 		DB:              db,
 		Redis:           client,
+		SF:              snowflake,
 		DictController:  dictController,
 		BasicController: basicController,
 		LogService:      logService,
@@ -63,6 +67,7 @@ type App struct {
 	Config          *config.Server
 	DB              *gorm.DB
 	Redis           *redis.Client
+	SF              *utils.Snowflake
 	DictController  *controller.DictController
 	BasicController *controller.BasicController
 	LogService      *service.LogService
@@ -71,5 +76,6 @@ type App struct {
 var Providers = wire.NewSet(
 	LoadConfig,
 	InitDB,
-	InitRedis, utils.NewRedisUtil, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewLogRepositoryImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), service.NewSysConfigureService, service.NewSysDictService, service.NewLogServer, cache.NewSysConfigureCache, controller.NewDictController, controller.NewBasicController, wire.Struct(new(App), "*"),
+	InitRedis,
+	InitSnowflake, utils.NewRedisUtil, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewLogRepositoryImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), service.NewSysConfigureService, service.NewSysDictService, service.NewLogServer, cache.NewSysConfigureCache, controller.NewDictController, controller.NewBasicController, wire.Struct(new(App), "*"),
 )

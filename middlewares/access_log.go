@@ -30,7 +30,7 @@ func AccessLog(logService *service.LogService) gin.HandlerFunc {
 			Url:      c.Request.URL.Path,
 			Data:     fmt.Sprintf("body:%v，query:%v", body, query),
 		}
-		_, err := logService.CreateAccessLog(accessLog)
+		err := logService.CreateAccessLog(accessLog)
 		if err != nil {
 			zap.S().Errorf("日志存储异常。。。。%s", err.Error())
 		}

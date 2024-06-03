@@ -53,7 +53,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			Locality: "",
 			Username: data.Username,
 		}
-		_, err := b.logService.CreateLoginLog(log)
+		err := b.logService.CreateLoginLog(log)
 		user, err := service.NewSysUserService().Get(data.Username)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password {
 			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)

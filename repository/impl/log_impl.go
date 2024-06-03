@@ -20,18 +20,12 @@ func NewLogRepositoryImpl(db *gorm.DB) *LogRepositoryImpl {
 	}
 }
 
-func (lr *LogRepositoryImpl) CreateLoginLog(log model.LoginLog) (int, error) {
+func (lr *LogRepositoryImpl) CreateLoginLog(log model.LoginLog) error {
 	err := lr.db.Omit("gmt_delete").Create(&log).Error
-	if err != nil {
-		return 0, err
-	}
-	return log.ID, err
+	return err
 }
 
-func (lr *LogRepositoryImpl) CreateAccessLog(log model.AccessLog) (int, error) {
+func (lr *LogRepositoryImpl) CreateAccessLog(log model.AccessLog) error {
 	err := lr.db.Omit("gmt_delete").Create(&log).Error
-	if err != nil {
-		return 0, err
-	}
-	return log.ID, err
+	return err
 }

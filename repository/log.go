@@ -8,6 +8,6 @@ package repository
 import "sweet-cms/model"
 
 type LogRepository interface {
-	CreateLoginLog(model.LoginLog) (int, error)
-	CreateAccessLog(model.AccessLog) (int, error)
+	CreateLoginLog(model.LoginLog) error
+	CreateAccessLog(model.AccessLog) error
 }

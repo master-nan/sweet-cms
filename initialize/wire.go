@@ -25,6 +25,7 @@ type App struct {
 	Config          *config.Server
 	DB              *gorm.DB
 	Redis           *redis.Client
+	SF              *utils.Snowflake
 	DictController  *controller.DictController
 	BasicController *controller.BasicController
 	LogService      *service.LogService
@@ -34,7 +35,7 @@ var Providers = wire.NewSet(
 	LoadConfig,
 	InitDB,
 	InitRedis,
-
+	InitSnowflake,
 	utils.NewRedisUtil,
 	impl.NewSysConfigureRepositoryImpl,
 	impl.NewSysDictRepositoryImpl,

@@ -3,9 +3,7 @@ package model
 import (
 	"database/sql/driver"
 	"fmt"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"sweet-cms/global"
 	"time"
 )
 
@@ -71,12 +69,6 @@ type Basic struct {
 }
 
 func (b *Basic) BeforeCreate(tx *gorm.DB) (err error) {
-	uniqueID, err := global.SF.GenerateUniqueID()
-	if err != nil {
-		zap.S().Errorf("获取id失败：%s", err)
-		return err
-	}
-	b.ID = int(uniqueID)
 	return
 }
 

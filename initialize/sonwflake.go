@@ -6,18 +6,9 @@
 package initialize
 
 import (
-	"sweet-cms/global"
 	"sweet-cms/utils"
 )
 
-func SF() {
-	sf, err := utils.NewSnowflake(1)
-	if err != nil {
-		panic(err)
-	}
-	global.SF = sf
-}
-
-func InitSnowflake(nodeId int64) (*utils.Snowflake, error) {
-	return utils.NewSnowflake(nodeId)
+func InitSnowflake() (*utils.Snowflake, error) {
+	return utils.NewSnowflake(1)
 }
