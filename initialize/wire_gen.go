@@ -49,7 +49,8 @@ func InitializeApp() (*App, error) {
 	sysConfigureService := service.NewSysConfigureService(sysConfigureRepositoryImpl, sysConfigureCache)
 	logRepositoryImpl := impl.NewLogRepositoryImpl(db)
 	logService := service.NewLogServer(logRepositoryImpl, snowflake)
-	sysUserService := service.NewSysUserService()
+	sysUserRepositoryImpl := impl.NewSysUserRepositoryImpl(db)
+	sysUserService := service.NewSysUserService(sysUserRepositoryImpl)
 	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureService, logService, sysUserService)
 	app := &App{
 		Config:          server,
@@ -81,5 +82,5 @@ var Providers = wire.NewSet(
 	LoadConfig,
 	InitDB,
 	InitRedis,
-	InitSnowflake, utils.NewJWTTokenGen, utils.NewRedisUtil, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewLogRepositoryImpl, impl.NewSysUserRepositoryImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), service.NewSysConfigureService, service.NewSysDictService, service.NewLogServer, service.NewSysUserService, cache.NewSysConfigureCache, controller.NewDictController, controller.NewBasicController, wire.Struct(new(App), "*"),
+	InitSnowflake, utils.NewJWTTokenGen, utils.NewRedisUtil, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewLogRepositoryImpl, impl.NewSysUserRepositoryImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), cache.NewSysConfigureCache, service.NewSysConfigureService, service.NewSysDictService, service.NewSysUserService, service.NewLogServer, controller.NewDictController, controller.NewBasicController, wire.Struct(new(App), "*"),
 )

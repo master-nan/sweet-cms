@@ -6,20 +6,20 @@
 package service
 
 import (
-	"sweet-cms/global"
 	"sweet-cms/model"
+	"sweet-cms/repository"
 )
 
 type SysUserService struct {
+	sysUserRepo repository.SysUserRepository
 }
 
-func NewSysUserService() *SysUserService {
-	return &SysUserService{}
+func NewSysUserService(sysUserRepo repository.SysUserRepository) *SysUserService {
+	return &SysUserService{sysUserRepo}
 }
 
-// Get 根据username获取用户信息
-func (s *SysUserService) Get(username string) (model.SysUser, error) {
-	var user model.SysUser
-	result := global.DB.Where(&model.SysUser{UserName: username}).First(&user)
-	return user, result.Error
+// GetByUserName 根据username获取用户信息
+func (s *SysUserService) GetByUserName(username string) (model.SysUser, error) {
+	user, err := s.sysUserRepo.GetByUserName(username)
+	return user, err
 }

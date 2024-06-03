@@ -8,5 +8,5 @@ package repository
 import "sweet-cms/model"
 
 type SysUserRepository interface {
-	GetSysUserByUserName(string) (model.SysUser, error)
+	GetByUserName(string) (model.SysUser, error)
 }

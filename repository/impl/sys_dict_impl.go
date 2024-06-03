@@ -8,7 +8,6 @@ package impl
 import (
 	"gorm.io/gorm"
 	"sweet-cms/form/request"
-	"sweet-cms/global"
 	"sweet-cms/model"
 	"sweet-cms/repository"
 	"sweet-cms/utils"
@@ -24,13 +23,13 @@ func NewSysDictRepositoryImpl() *SysDictRepositoryImpl {
 
 func (i *SysDictRepositoryImpl) GetSysDictById(id int) (model.SysDict, error) {
 	var sysDict model.SysDict
-	err := global.DB.Preload("DictItems").Where("id = ?", id).First(&sysDict).Error
+	err := i.db.Preload("DictItems").Where("id = ?", id).First(&sysDict).Error
 	return sysDict, err
 }
 
 func (i *SysDictRepositoryImpl) GetSysDictList(basic request.Basic) (repository.SysDictListResult, error) {
 	var repo repository.SysDictListResult
-	query := utils.BuildQuery(global.DB, basic)
+	query := utils.BuildQuery(i.db, basic)
 	var sysDict []model.SysDict
 	var total int64 = 0
 	err := query.Find(sysDict).Limit(-1).Offset(-1).Count(&total).Error
@@ -44,40 +43,40 @@ func (i *SysDictRepositoryImpl) UpdateSysDict(*model.SysDict) error {
 }
 
 func (i *SysDictRepositoryImpl) InsertSysDict(d *model.SysDict) error {
-	result := global.DB.Create(d)
+	result := i.db.Create(d)
 	return result.Error
 }
 
 func (i *SysDictRepositoryImpl) DeleteSysDictById(id int) error {
-	err := global.DB.Where("id = ?", id).Delete(model.SysDict{}).Error
+	err := i.db.Where("id = ?", id).Delete(model.SysDict{}).Error
 	return err
 }
 
 func (i *SysDictRepositoryImpl) GetSysDictByCode(code int) (model.SysDict, error) {
 	var sysDict model.SysDict
-	err := global.DB.Preload("DictItems").Where("code = ?", code).First(&sysDict).Error
+	err := i.db.Preload("DictItems").Where("code = ?", code).First(&sysDict).Error
 	return sysDict, err
 }
 
 func (i *SysDictRepositoryImpl) GetSysDictItemById(id int) (model.SysDictItem, error) {
 	var item model.SysDictItem
-	err := global.DB.Where("id = ?", id).First(&item).Error
+	err := i.db.Where("id = ?", id).First(&item).Error
 	return item, err
 }
 
 func (i *SysDictRepositoryImpl) GetSysDictItemsByDictId(id int) ([]model.SysDictItem, error) {
 	var items []model.SysDictItem
-	err := global.DB.Where("id = ?", id).Find(&items).Error
+	err := i.db.Where("id = ?", id).Find(&items).Error
 	return items, err
 }
 func (i *SysDictRepositoryImpl) UpdateSysDictItem(*model.SysDictItem) error {
 	return nil
 }
 func (i *SysDictRepositoryImpl) InsertSysDictItem(d *model.SysDictItem) error {
-	result := global.DB.Create(d)
+	result := i.db.Create(d)
 	return result.Error
 }
 func (i *SysDictRepositoryImpl) DeleteSysDictItemById(id int) error {
-	err := global.DB.Where("id = ?", id).Delete(model.SysDictItem{}).Error
+	err := i.db.Where("id = ?", id).Delete(model.SysDictItem{}).Error
 	return err
 }

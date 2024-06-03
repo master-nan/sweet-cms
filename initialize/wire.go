@@ -51,12 +51,13 @@ var Providers = wire.NewSet(
 	wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)),
 	wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)),
 
+	cache.NewSysConfigureCache,
+
 	service.NewSysConfigureService,
 	service.NewSysDictService,
-	service.NewLogServer,
 	service.NewSysUserService,
+	service.NewLogServer,
 
-	cache.NewSysConfigureCache,
 	controller.NewDictController,
 	controller.NewBasicController,
 

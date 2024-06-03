@@ -63,7 +63,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			Username: data.Username,
 		}
 		err = b.logService.CreateLoginLog(log)
-		user, err := b.sysUserService.Get(data.Username)
+		user, err := b.sysUserService.GetByUserName(data.Username)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password {
 			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
 			return
@@ -74,7 +74,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			} else {
 				signInRes := response.SignInRes{
 					AccessToken: token,
-					//UserInfo:    user,
+					UserInfo:    user,
 				}
 				resp.SetData(signInRes)
 				return

@@ -45,7 +45,7 @@ func (c *AuthApi) Login(ctx *gin.Context) {
 			Username: data.Username,
 		}
 		err := logServer.CreateLoginLog(log)
-		user, err := service.NewSysUserService().Get(data.Username)
+		user, err := service.NewSysUserService().GetByUserName(data.Username)
 		if err != nil || utils.Encryption(data.Password, global.ServerConf.Config.Salt) != user.Password {
 			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
 		} else {

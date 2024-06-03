@@ -18,7 +18,7 @@ func NewSysUserRepositoryImpl(db *gorm.DB) *SysUserRepositoryImpl {
 	return &SysUserRepositoryImpl{db}
 }
 
-func (s *SysUserRepositoryImpl) GetSysUserByUserName(username string) (model.SysUser, error) {
+func (s *SysUserRepositoryImpl) GetByUserName(username string) (model.SysUser, error) {
 	var user model.SysUser
 	result := s.db.Where(&model.SysUser{UserName: username}).First(&user)
 	return user, result.Error
