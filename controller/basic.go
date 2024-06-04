@@ -11,7 +11,6 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/inter"
-	"sweet-cms/middlewares"
 	"sweet-cms/model"
 	"sweet-cms/service"
 	"sweet-cms/utils"
@@ -38,7 +37,7 @@ func NewBasicController(tokenGenerator inter.TokenGenerator, serverConfig *confi
 
 func (b *BasicController) Login(ctx *gin.Context) {
 	var data request.SignInReq
-	resp := middlewares.NewResponse()
+	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
 		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
@@ -99,7 +98,7 @@ func (b *BasicController) Captcha(ctx *gin.Context) {
 
 func (b *BasicController) Configure(ctx *gin.Context) {
 	configUre, err := b.sysConfigureService.Query()
-	resp := middlewares.NewResponse()
+	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	if err != nil {
 		resp.SetMsg(err.Error()).SetCode(http.StatusUnauthorized)

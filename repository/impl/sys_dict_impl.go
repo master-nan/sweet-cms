@@ -66,17 +66,20 @@ func (i *SysDictRepositoryImpl) GetSysDictItemById(id int) (model.SysDictItem, e
 
 func (i *SysDictRepositoryImpl) GetSysDictItemsByDictId(id int) ([]model.SysDictItem, error) {
 	var items []model.SysDictItem
-	err := i.db.Where("id = ?", id).Find(&items).Error
+	err := i.db.Where("dict_id = ?", id).Find(&items).Error
 	return items, err
 }
-func (i *SysDictRepositoryImpl) UpdateSysDictItem(d *model.SysDictItem) error {
-	return nil
+
+func (i *SysDictRepositoryImpl) UpdateSysDictItem(d request.DictItemUpdateReq) error {
+	return i.db.Model(model.SysDictItem{}).Updates(&d).Error
 }
-func (i *SysDictRepositoryImpl) InsertSysDictItem(d *model.SysDictItem) error {
-	result := i.db.Create(d)
+
+func (i *SysDictRepositoryImpl) InsertSysDictItem(d model.SysDictItem) error {
+	result := i.db.Create(&d)
 	return result.Error
 }
+
 func (i *SysDictRepositoryImpl) DeleteSysDictItemById(id int) error {
-	err := i.db.Where("id = ?", id).Delete(model.SysDictItem{}).Error
+	err := i.db.Delete(model.SysDictItem{}, id).Error
 	return err
 }

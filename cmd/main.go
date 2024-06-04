@@ -7,6 +7,15 @@ import (
 	"sweet-cms/initialize"
 )
 
+// @title 试验性项目
+// @version 0.1
+// @description 基于gin+gorm的后台管理项目，实现部分低代码
+
+// @contact.name 南
+// @contact.email maxdwy@gmail.com
+
+// @BasePath  /sweet/admin
+
 func main() {
 	initialize.Logger() // 初始化日志
 	app, err := initialize.InitializeApp()

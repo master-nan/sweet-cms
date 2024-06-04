@@ -1,49 +1,37 @@
 package response
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-type RespData struct {
+// Response 返回值参数
+type Response struct {
 	Data  interface{} `json:"data"`
 	Msg   string      `json:"msg"`
 	Total int         `json:"total"`
 	Code  int         `json:"code"`
-	c     *gin.Context
 }
 
-func NewRespData(ctx *gin.Context) *RespData {
-	return &RespData{Msg: "", Code: http.StatusOK, c: ctx}
+func NewResponse() *Response {
+	return &Response{Code: http.StatusOK, Msg: ""}
 }
 
-func (r *RespData) SetData(data any) *RespData {
+func (r *Response) SetData(data interface{}) *Response {
 	r.Data = data
 	return r
 }
 
-func (r *RespData) SetTotal(total int) *RespData {
+func (r *Response) SetTotal(total int) *Response {
 	r.Total = total
 	return r
 }
 
-func (r *RespData) SetMsg(msg string) *RespData {
+func (r *Response) SetMsg(msg string) *Response {
 	r.Msg = msg
 	return r
 }
 
-func (r *RespData) SetCode(code int) *RespData {
+func (r *Response) SetCode(code int) *Response {
 	r.Code = code
 	return r
-}
-
-func (r *RespData) ReturnJson() {
-	r.c.JSON(r.Code, r)
-	return
-}
-
-func (r *RespData) AbortStatusJson() {
-	r.c.Abort()
-	r.c.JSON(r.Code, r)
-	return
 }

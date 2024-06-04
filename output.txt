@@ -1,0 +1,1693 @@
+.
+├── LICENSE
+├── README.md
+├── cache（缓存方法）
+│ └── sys_configure_cache.go-----package cache
+
+                                 import (
+                                 	"github.com/pkg/errors"
+                                 	"go.uber.org/zap"
+                                 	"sweet-cms/inter"
+                                 	"sweet-cms/model"
+                                 	"sweet-cms/service"
+                                 	"time"
+                                 )
+
+                                 type SysConfigureCache struct {
+                                 	ConfigureServer *service.ConfigureService
+                                 	CacheInterface  inter.CacheInterface
+                                 }
+
+                                 const ConfigureCacheKey = "CONFIGURE_CACHE_KEY_"
+
+                                 func NewSysConfigureCache(configureServer *service.ConfigureService, cacheInterface inter.CacheInterface) *SysConfigureCache {
+                                 	return &SysConfigureCache{
+                                 		ConfigureServer: configureServer,
+                                 		CacheInterface:  cacheInterface,
+                                 	}
+                                 }
+
+                                 func (sc *SysConfigureCache) Get(key string) (model.SysConfigure, error) {
+                                 	var sysConfigure model.SysConfigure
+                                 	err := sc.CacheInterface.Get(ConfigureCacheKey+key, &sysConfigure)
+                                 	if err != nil {
+                                 		if errors.Is(err, inter.ErrCacheMiss) {
+                                 			sysConfigure, err := sc.ConfigureServer.Query()
+                                 			if err != nil {
+                                 				return model.SysConfigure{}, err
+                                 			}
+                                 			err = sc.Set(key, sysConfigure)
+                                 			if err != nil {
+                                 				zap.S().Error("Error setting key in cache", zap.String("key", key), zap.Error(err))
+                                 			}
+                                 			return sysConfigure, nil
+                                 		} else {
+                                 			return sysConfigure, err
+                                 		}
+                                 	}
+                                 	return sysConfigure, nil
+                                 }
+
+                                 func (sc *SysConfigureCache) Set(key string, value model.SysConfigure) error {
+                                 	err := sc.CacheInterface.Set(ConfigureCacheKey+key, value, 7200*time.Second)
+                                 	if err != nil {
+                                 		return err
+                                 	}
+                                 	return nil
+                                 }
+├── cmd（启动目录）
+│ └── main.go-------package main
+
+                    import (
+                    	"fmt"
+                    	"go.uber.org/zap"
+                    	"sweet-cms/global"
+                    	"sweet-cms/initialize"
+                    )
+
+                    func init() {
+                    	initialize.Config()      // 初始化配置
+                    	initialize.DB()          // 初始化db
+                    	initialize.RedisClient() //初始化redis
+                    	initialize.Logger()      // 初始化日志
+                    	initialize.SF()
+
+                    }
+                    func main() {
+                    	//initialize.Config()            // 初始化配置
+                    	//initialize.DB()                // 初始化db
+                    	//initialize.Logger()            // 初始化日志
+                    	router := initialize.Routers() //初始化路由
+                    	//templates := initialize.LoadTemplates()
+                    	//router.HTMLRender = templates
+                    	err := router.Run(fmt.Sprintf(":%d", global.ServerConf.Port))
+                    	if err != nil {
+                    		zap.S().Error("项目启动失败……")
+                    	}
+                    }
+
+├── config（配置目录）
+│ └── config.go-----package config
+
+                    type Server struct {
+                    	Name    string  `mapStructure:"name"`
+                    	Version string  `mapStructure:"version"`
+                    	Port    int     `mapStructure:"port"`
+                    	DB      DB      `mapStructure:"db"`
+                    	Redis   Redis   `mapStructure:"redis"`
+                    	Session Session `mapStructure:"session"`
+                    	Config  Config  `mapStructure:"conf"`
+                    }
+
+                    type DB struct {
+                    	Host     string `mapStructure:"host"`
+                    	Port     int    `mapStructure:"port"`
+                    	Name     string `mapStructure:"name"`
+                    	User     string `mapStructure:"user"`
+                    	Password string `mapStructure:"password"`
+                    }
+
+                    type Redis struct {
+                    	Host     string `mapStructure:"host"`
+                    	Port     int    `mapStructure:"port"`
+                    	DB       int    `mapStructure:"db"`
+                    	Password string `mapStructure:"password"`
+                    }
+
+                    type Session struct {
+                    	Secret string `mapStructure:"secret"`
+                    }
+
+                    type Config struct {
+                    	Salt string `mapStructure:"salt"`
+                    }
+├── config-debug.yaml
+├── config-pro.yaml
+├── controller（控制器，里面都是方法用于给路由配置）
+│ ├── basic.go-------package controller
+
+                     import (
+                     	"bytes"
+                     	"github.com/dchest/captcha"
+                     	"github.com/gin-gonic/gin"
+                     	"github.com/gin-gonic/gin/binding"
+                     	"net/http"
+                     	"strconv"
+                     	"sweet-cms/cache"
+                     	"sweet-cms/form/request"
+                     	"sweet-cms/form/response"
+                     	"sweet-cms/global"
+                     	"sweet-cms/inter"
+                     	"sweet-cms/middlewares"
+                     	"sweet-cms/model"
+                     	"sweet-cms/service"
+                     	"sweet-cms/utils"
+                     	"time"
+                     )
+
+                     type Basic struct {
+                     	TokenGenerator inter.TokenGenerator
+                     }
+
+                     func NewBasic() *Basic {
+                     	return &Basic{
+                     		TokenGenerator: utils.NewJWTTokenGen(),
+                     	}
+                     }
+
+                     func (b *Basic) Login(ctx *gin.Context) {
+                     	var data request.SignInReq
+                     	resp := middlewares.NewResponse()
+                     	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
+                     		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
+                     		return
+                     	} else {
+                     		captchaId := utils.GetSessionString(ctx, "captcha")
+                     		boolean := captcha.VerifyString(captchaId, data.Captcha)
+                     		if boolean == false {
+                     			resp.SetMsg("验证码错误").SetCode(http.StatusUnauthorized)
+                     			return
+                     		}
+                     		logServer := service.NewLogServer(ctx)
+                     		var log = model.LoginLog{
+                     			Ip:       ctx.ClientIP(),
+                     			Locality: "",
+                     			Username: data.Username,
+                     		}
+                     		_, err := logServer.CreateLoginLog(log)
+                     		user, err := service.NewSysUserService().Get(data.Username)
+                     		if err != nil || utils.Encryption(data.Password, global.ServerConf.Config.Salt) != user.Password {
+                     			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
+                     			return
+                     		} else {
+                     			token, err := b.TokenGenerator.GenerateToken(strconv.Itoa(user.ID))
+                     			if err != nil {
+                     				resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
+                     			} else {
+                     				signInRes := response.SignInRes{
+                     					AccessToken: token,
+                     					//UserInfo:    user,
+                     				}
+                     				resp.SetData(signInRes)
+                     				return
+                     			}
+                     		}
+                     	}
+                     }
+
+                     func (b *Basic) Captcha(ctx *gin.Context) {
+                     	l := captcha.DefaultLen
+                     	w, h := 110, 50
+                     	captchaId := captcha.NewLen(l)
+                     	utils.SaveSession(ctx, "captcha", captchaId)
+                     	var content bytes.Buffer
+                     	ctx.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+                     	ctx.Writer.Header().Set("Pragma", "no-cache")
+                     	ctx.Writer.Header().Set("Expires", "0")
+                     	ctx.Writer.Header().Set("Content-Type", "image/png")
+                     	_ = captcha.WriteImage(&content, captchaId, w, h)
+                     	http.ServeContent(ctx.Writer, ctx.Request, captchaId+".png", time.Time{}, bytes.NewReader(content.Bytes()))
+                     }
+
+                     func (b *Basic) Configure(ctx *gin.Context) {
+                     	configureCache := cache.NewSysConfigureCache(service.NewConfigureServer(), utils.NewRedisUtil(global.RedisClient))
+                     	configUre, err := configureCache.Get("")
+                     	resp := middlewares.NewResponse()
+                     	ctx.Set("response", resp)
+                     	if err != nil {
+                     		resp.SetMsg(err.Error()).SetCode(http.StatusUnauthorized)
+                     		return
+                     	}
+                     	resp.SetData(configUre)
+                     	return
+                     }
+
+                     func (b *Basic) Logout(ctx *gin.Context) {
+                     	utils.DeleteSession(ctx, "captcha")
+                     }
+│ ├── sys_dict.go------package controller
+
+                       import (
+                       	"github.com/gin-gonic/gin"
+                       	"net/http"
+                       	"strconv"
+                       	"sweet-cms/form/request"
+                       	"sweet-cms/middlewares"
+                       	"sweet-cms/service"
+                       )
+
+                       type DictController struct {
+                       	sysDictService *service.SysDictService
+                       }
+
+                       func NewDictController(sysDictService *service.SysDictService) *DictController {
+                       	return &DictController{
+                       		sysDictService: sysDictService,
+                       	}
+                       }
+
+                       func (t *DictController) Get(ctx *gin.Context) {
+                       	id, err := strconv.Atoi(ctx.Param("id"))
+                       	resp := middlewares.NewResponse()
+                       	ctx.Set("response", resp)
+                       	if err != nil {
+                       		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
+                       		return
+                       	}
+                       	data, err := t.sysDictService.Get(id)
+                       	if err != nil {
+                       		resp.SetMsg(err.Error()).SetCode(http.StatusInternalServerError)
+                       		return
+                       	}
+                       	resp.SetData(data)
+                       	return
+                       }
+
+                       func (t *DictController) Query(ctx *gin.Context) {
+                       	resp := middlewares.NewResponse()
+                       	ctx.Set("response", resp)
+                       	var data request.Basic
+                       	if err := ctx.ShouldBindQuery(&data); err != nil {
+                       		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
+                       		return
+                       	}
+                       	result, err := t.sysDictService.Query(data)
+                       	if err != nil {
+                       		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
+                       		return
+                       	}
+                       	resp.SetData(result.Data).SetTotal(result.Total)
+                       	return
+                       }
+
+                       func (t *DictController) Insert(ctx *gin.Context) {
+                       	resp := middlewares.NewResponse()
+                       	ctx.Set("response", resp)
+                       	return
+                       }
+
+                       func (t *DictController) Update(ctx *gin.Context) {
+                       	resp := middlewares.NewResponse()
+                       	ctx.Set("response", resp)
+                       	return
+
+                       }
+                       func (t *DictController) Delete(ctx *gin.Context) {
+                       	resp := middlewares.NewResponse()
+                       	ctx.Set("response", resp)
+                       	id, err := strconv.Atoi(ctx.Param("id"))
+                       	if err != nil {
+                       		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
+                       		return
+                       	}
+                       	err = t.sysDictService.Delete(id)
+                       	if err != nil {
+                       		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
+                       		return
+                       	}
+                       	return
+
+                       }
+
+                       type DictItemController struct{}
+
+                       func NewDictItemController() *DictItemController {
+                       	return &DictItemController{}
+                       }
+
+                       func (t *DictItemController) Get(ctx *gin.Context) {
+                       	return
+                       }
+
+                       func (t *DictItemController) Query(ctx *gin.Context) {
+                       	return
+                       }
+                       func (t *DictItemController) Insert(ctx *gin.Context) {
+
+                       }
+
+                       func (t *DictItemController) Update(ctx *gin.Context) {
+
+                       }
+                       func (t *DictItemController) Delete(ctx *gin.Context) {
+
+                       }
+│ ├── sys_menu.go
+│ └── sys_table.go
+├── enum（定义的枚举类型）
+│ └── enum.go---------package enum
+
+                      import "database/sql/driver"
+
+                      // DataPermissionsEnum 数据权限字典
+                      type DataPermissionsEnum uint8
+
+                      const (
+                      	WHOLE   DataPermissionsEnum = iota + 1 //全部
+                      	CUSTOM                                 //自定义
+                      	TACITLY                                // 默认
+                      )
+
+                      func (dp DataPermissionsEnum) Value() (driver.Value, error) {
+                      	return int(dp), nil
+                      }
+
+                      type SysMenuBtnPosition uint8
+
+                      const (
+                      	COLUMN SysMenuBtnPosition = iota + 1
+                      	LINE
+                      )
+
+                      func (sbp SysMenuBtnPosition) Value() (driver.Value, error) {
+                      	return int(sbp), nil
+                      }
+
+                      type SysTableType uint8
+
+                      const (
+                      	SYSTEM SysTableType = iota + 1
+                      	VIEW
+                      )
+
+                      func (stt SysTableType) Value() (driver.Value, error) {
+                      	return int(stt), nil
+                      }
+
+                      type SysTableFieldType uint8
+
+                      const (
+                      	INT SysTableFieldType = iota + 1
+                      	FLOAT
+                      	VARCHAR
+                      	TEXT
+                      	BOOLEAN
+                      	DATE
+                      	DATETIME
+                      	TIME
+                      )
+
+                      func (stf SysTableFieldType) Value() (driver.Value, error) {
+                      	return int(stf), nil
+                      }
+
+                      type SysTableFieldInputType uint8
+
+                      const (
+                      	INPUT SysTableFieldInputType = iota + 1
+                      	INPUT_NUMBER
+                      	TEXTAREA
+                      	SELECT
+                      	DATE_PICKER
+                      	DATETIME_PICKER
+                      	TIME_PICKER
+                      	YEAR_PICKER
+                      	YREA_MONTH_PICKER
+                      	FILE_PICKER
+                      )
+
+                      func (s SysTableFieldInputType) Value() (driver.Value, error) {
+                      	return int(s), nil
+                      }
+
+                      type ExpressionType uint8
+
+                      const (
+                      	GT ExpressionType = iota + 1
+                      	LT
+                      	GTE
+                      	LTE
+                      	EQ
+                      	NE
+                      	LIKE
+                      	NOT_LIKE
+                      	IN
+                      	NOT_IN
+                      	IS_NULL
+                      	IS_NOT_NULL
+                      )
+
+                      func (e ExpressionType) Value() (driver.Value, error) {
+                      	return int(e), nil
+                      }
+
+                      type ExpressionLogic uint8
+
+                      const (
+                      	AND ExpressionLogic = iota + 1
+                      	OR
+                      )
+
+                      func (e ExpressionLogic) Value() (driver.Value, error) {
+                      	return int(e), nil
+                      }
+
+                      type ArticleType string
+
+                      const (
+                      	DRAFT   ArticleType = "draft"
+                      	REVIEW  ArticleType = "review"
+                      	RELEASE ArticleType = "release"
+                      	REJECT  ArticleType = "reject"
+                      )
+
+                      func (at ArticleType) Value() (driver.Value, error) {
+                      	return string(at), nil
+                      }
+├── form（用于接收请求参数的结构体和用于返回的结构体）
+│ ├── request
+│ │ ├── basic.go-------package request
+
+                       import (
+                       	"sweet-cms/enum"
+                       )
+
+                       type Basic struct {
+                       	Page        int               `json:"page"`
+                       	Num         int               `json:"num"`
+                       	Order       Order             `json:"order"`
+                       	TableCode   string            `json:"table_code"`
+                       	Expressions []ExpressionGroup `json:"expressions"`
+                       	QuickQuery  *QuickQuery       `json:"quick_query"`
+                       }
+
+                       type ExpressionGroup struct {
+                       	Logic  enum.ExpressionLogic `json:"logic"`  // "and" 或 "or"
+                       	Rules  []QueryRule          `json:"rules"`  // 基础查询规则
+                       	Nested []ExpressionGroup    `json:"nested"` // 嵌套的表达式组
+                       }
+
+                       type QueryRule struct {
+                       	Field          string                 `json:"field"`
+                       	ExpressionType enum.ExpressionType    `json:"expression_type"` // 比较器类型，如EQ, LT等
+                       	Value          interface{}            `json:"value"`
+                       	Type           enum.SysTableFieldType `json:"type"` // 字段类型
+                       }
+
+                       type Order struct {
+                       	Field string `json:"field"`
+                       	IsAsc bool   `json:"is_asc"`
+                       }
+
+                       type QuickQuery struct {
+                       	KeyWord string `json:"keyword"`
+                       }
+│ │ ├── signin_req.go------package request
+
+                           type SignInReq struct {
+                           	Username string `json:"username"`
+                           	Password string `json:"password"`
+                           	Captcha  string `json:"captcha"`
+                           }
+│ │ ├── sys_configure_req.go
+│ │ └── sys_table_req.go
+│ └── response
+│     ├── base_res.go----package response
+
+                         import (
+                         	"github.com/gin-gonic/gin"
+                         	"net/http"
+                         )
+
+                         type RespData struct {
+                         	Data  interface{} `json:"data"`
+                         	Msg   string      `json:"msg"`
+                         	Total int         `json:"total"`
+                         	Code  int         `json:"code"`
+                         	c     *gin.Context
+                         }
+
+                         func NewRespData(ctx *gin.Context) *RespData {
+                         	return &RespData{Msg: "", Code: http.StatusOK, c: ctx}
+                         }
+
+                         func (r *RespData) SetData(data any) *RespData {
+                         	r.Data = data
+                         	return r
+                         }
+
+                         func (r *RespData) SetTotal(total int) *RespData {
+                         	r.Total = total
+                         	return r
+                         }
+
+                         func (r *RespData) SetMsg(msg string) *RespData {
+                         	r.Msg = msg
+                         	return r
+                         }
+
+                         func (r *RespData) SetCode(code int) *RespData {
+                         	r.Code = code
+                         	return r
+                         }
+
+                         func (r *RespData) ReturnJson() {
+                         	r.c.JSON(r.Code, r)
+                         	return
+                         }
+
+                         func (r *RespData) AbortStatusJson() {
+                         	r.c.Abort()
+                         	r.c.JSON(r.Code, r)
+                         	return
+                         }
+
+│     └── singin_res.go-----package response
+
+                            type SignInRes struct {
+                            	AccessToken string `json:"access_token"`
+                            	//UserInfo    model.SysUser `json:"user_info"`
+                            }
+├── global（全局变量）
+│ └── global.go-------package global
+
+                      import (
+                      	"github.com/go-redis/redis/v8"
+                      	"gorm.io/gorm"
+                      	"sweet-cms/config"
+                      	"sweet-cms/utils"
+                      )
+
+                      var (
+                      	ServerConf  = &config.Server{}
+                      	DB          *gorm.DB
+                      	RedisClient *redis.Client
+                      	SF          *utils.Snowflake
+                      )
+├── go.mod
+├── go.sum
+├── initialize（所有初始化的函数）
+│ ├── config.go---package initialize
+
+                  import (
+                  	"github.com/spf13/viper"
+                  	"sweet-cms/global"
+                  )
+
+                  func Config() {
+                  	filename := "config-debug.yaml"
+                  	v := viper.New()
+                  	v.SetConfigFile(filename)
+
+                  	if err := v.ReadInConfig(); err != nil {
+                  		panic(err)
+                  	}
+                  	if err := v.Unmarshal(global.ServerConf); err != nil {
+                  		panic(err)
+                  	}
+                  }
+│ ├── db.go-------package initialize
+
+                  import (
+                  	"fmt"
+                  	"gorm.io/driver/mysql"
+                  	"gorm.io/gorm"
+                  	"gorm.io/gorm/logger"
+                  	"gorm.io/gorm/schema"
+                  	"log"
+                  	"os"
+                  	"sweet-cms/global"
+                  	"time"
+                  )
+
+                  func DB() {
+                  	conf := global.ServerConf.DB
+                  	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", conf.User, conf.Password, conf.Host, conf.Port, conf.Name)
+                  	dbLogger := logger.New(
+                  		log.New(os.Stdout, "\r\n", log.LstdFlags),
+                  		logger.Config{
+                  			//SlowThreshold:             time.Second,
+                  			Colorful:                  false,
+                  			IgnoreRecordNotFoundError: true,
+                  			LogLevel:                  logger.Info,
+                  		},
+                  	)
+                  	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+                  		NamingStrategy: schema.NamingStrategy{
+                  			TablePrefix:   "cms_",
+                  			SingularTable: true,
+                  		},
+                  		Logger: dbLogger,
+                  	})
+                  	if err != nil {
+                  		panic(err)
+                  	}
+                  	sqlDB, err := db.DB()
+                  	if err != nil {
+                  		panic(err)
+                  	}
+                  	sqlDB.SetMaxIdleConns(10)
+                  	sqlDB.SetMaxOpenConns(100)
+                  	sqlDB.SetConnMaxLifetime(time.Hour)
+                  	global.DB = db
+                  }
+│ ├── redis.go------package initialize
+
+                    import (
+                    	"context"
+                    	"fmt"
+                    	"github.com/go-redis/redis/v8"
+                    	"log"
+                    	"sweet-cms/global"
+                    	"time"
+                    )
+
+                    func RedisClient() {
+                    	conf := global.ServerConf.Redis
+                    	dsn := fmt.Sprintf("%s:%d", conf.Host, conf.Port)
+                    	options := &redis.Options{
+                    		Addr:     dsn,
+                    		Password: conf.Password,
+                    		DB:       conf.DB,
+                    	}
+
+                    	client := redis.NewClient(options)
+
+                    	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+                    	defer cancel()
+
+                    	err := client.Ping(ctx).Err()
+                    	if err != nil {
+                    		log.Fatalf("Failed to connect to Redis: %v", err)
+                    		panic(err)
+                    	}
+                    	client.Options().PoolSize = 10
+                    	client.Options().MinIdleConns = 5
+                    	client.Options().MaxConnAge = time.Hour
+                    	global.RedisClient = client
+                    	fmt.Println("Successfully connected to Redis")
+                    }
+│ ├── router.go------package initialize
+
+                     import (
+                     	"github.com/gin-contrib/sessions"
+                     	"github.com/gin-contrib/sessions/cookie"
+                     	"github.com/gin-gonic/gin"
+                     	"sweet-cms/global"
+                     	"sweet-cms/middlewares"
+                     	"sweet-cms/router/admin"
+                     )
+
+                     func Routers() *gin.Engine {
+                     	router := gin.Default()
+                     	store := cookie.NewStore([]byte(global.ServerConf.Session.Secret))
+                     	router.
+                     		Use(middlewares.JSONResponse()).
+                     		Use(middlewares.Cors()).
+                     		Use(middlewares.AccessLog()).
+                     		Use(sessions.Sessions("sweet-cms-session", store))
+                     	// 总路由
+                     	routerGroup := router.Group("/sweet")
+                     	// 后台非验证路由
+                     	adminBaseGroup := routerGroup.Group("/admin")
+                     	admin.InitBasicRouter(adminBaseGroup)
+
+                     	// 后台验证路由
+                     	adminGroup := routerGroup.Group("/admin")
+                     	//adminGroup.Use(middlewares.Auth())
+                     	admin.InitIndex(adminGroup)
+                     	admin.InitDictRouter(adminGroup)
+                     	//apiBaseV1 := routerGroup.Group("/api/v1")
+                     	//v1.InitBase(apiBaseV1)
+                     	// api接口
+                     	//apiV1 := routerGroup.Group("/api/v1")
+                     	//v1.InitArticle(apiV1)
+                     	//v1.InitQuestionnaire(apiV1)
+
+                     	return router
+                     }
+│ ├── sonwflake.go----package initialize
+
+                      import (
+                      	"sweet-cms/global"
+                      	"sweet-cms/utils"
+                      )
+
+                      func SF() {
+                      	sf, err := utils.NewSnowflake(1)
+                      	if err != nil {
+                      		panic(err)
+                      	}
+                      	global.SF = sf
+                      }
+├── inter（接口）
+│ ├── cache.go-----package inter
+
+                   import (
+                   	"github.com/pkg/errors"
+                   	"time"
+                   )
+
+                   var (
+                   	ErrCacheMiss = errors.New("cache miss")
+                   )
+
+                   type CacheInterface interface {
+                   	Get(key string, value interface{}) error
+                   	Set(key string, value interface{}, expiration time.Duration) error
+                   	Del(key string) error
+                   	Exists(keys ...string) (int64, error)
+                   	Expire(key string, expiration time.Duration) (bool, error)
+                   }
+│ └── token_generator.go-------package inter
+
+                               type TokenGenerator interface {
+                               	GenerateToken(id string) (string, error)
+                               }
+├── middlewares（中间件）
+│ ├── access_log.go-------package middlewares
+
+                          import (
+                          	"fmt"
+                          	"github.com/gin-gonic/gin"
+                          	"github.com/gin-gonic/gin/binding"
+                          	"go.uber.org/zap"
+                          	"sweet-cms/model"
+                          	"sweet-cms/service"
+                          	"time"
+                          )
+
+                          func AccessLog() gin.HandlerFunc {
+                          	return func(c *gin.Context) {
+                          		zap.S().Infof("Access Log start")
+                          		startTime := time.Now()
+                          		var body any
+                          		var query = c.Request.URL.Query()
+                          		_ = c.ShouldBindBodyWith(&body, binding.JSON)
+                          		var accessLog = model.AccessLog{
+                          			Basic:    model.Basic{},
+                          			Method:   c.Request.Method,
+                          			Ip:       c.ClientIP(),
+                          			Locality: "",
+                          			Url:      c.Request.URL.Path,
+                          			Data:     fmt.Sprintf("body:%v，query:%v", body, query),
+                          		}
+                          		logServer := service.NewLogServer(c)
+                          		_, err := logServer.CreateAccessLog(accessLog)
+                          		if err != nil {
+                          			zap.S().Errorf("日志存储异常。。。。%s", err.Error())
+                          		}
+                          		c.Next()
+                          		duration := time.Since(startTime)
+                          		zap.S().Infof("用户访问日志:", zap.String("uri", c.Request.URL.Path), zap.Any("method", c.Request.Method), zap.Any("queryParaList", c.Request.URL.Query()), zap.String("ip", c.ClientIP()), zap.Any("duration", duration))
+                          		zap.S().Infof("Access Log end")
+                          	}
+                          }
+│ ├── auth.go-------package middlewares
+
+                    import (
+                    	"fmt"
+                    	"github.com/gin-gonic/gin"
+                    	"net/http"
+                    	"sweet-cms/utils"
+                    )
+
+                    const bearerLength = len("Bearer ")
+
+                    func Auth() gin.HandlerFunc {
+                    	return func(c *gin.Context) {
+                    		authorization := c.GetHeader("Authorization")
+                    		resp := NewResponse()
+                    		if len(authorization) < bearerLength {
+                    			resp.SetMsg("请先登录").SetCode(http.StatusUnauthorized)
+                    			return
+                    		}
+                    		token := authorization[bearerLength:]
+                    		id, err := utils.NewJWTTokenGen().ParseToken(token)
+                    		if err != nil {
+                    			resp.SetMsg(err.Error()).SetCode(http.StatusForbidden)
+                    			return
+                    		}
+                    		fmt.Println(id)
+                    		c.Next()
+                    	}
+                    }
+│ └── response.go-----package middlewares
+
+                      import (
+                      	"github.com/gin-gonic/gin"
+                      	"net/http"
+                      )
+
+                      type Response struct {
+                      	Data  interface{} `json:"data"`
+                      	Msg   string      `json:"msg"`
+                      	Total int         `json:"total"`
+                      	Code  int         `json:"code"`
+                      }
+
+                      func JSONResponse() gin.HandlerFunc {
+                      	return func(c *gin.Context) {
+                      		c.Next()
+                      		if resp, exists := c.Get("response"); exists {
+                      			response := resp.(*Response)
+                      			c.JSON(response.Code, resp)
+                      			c.Abort()
+                      		}
+                      	}
+                      }
+
+                      func NewResponse() *Response {
+                      	return &Response{Code: http.StatusOK, Msg: ""}
+                      }
+
+                      func (r *Response) SetData(data interface{}) *Response {
+                      	r.Data = data
+                      	return r
+                      }
+
+                      func (r *Response) SetTotal(total int) *Response {
+                      	r.Total = total
+                      	return r
+                      }
+
+                      func (r *Response) SetMsg(msg string) *Response {
+                      	r.Msg = msg
+                      	return r
+                      }
+
+                      func (r *Response) SetCode(code int) *Response {
+                      	r.Code = code
+                      	return r
+                      }
+├── model（模型）
+│ ├── basic.go-----package model
+
+                   import (
+                   	"database/sql/driver"
+                   	"fmt"
+                   	"go.uber.org/zap"
+                   	"gorm.io/gorm"
+                   	"sweet-cms/global"
+                   	"time"
+                   )
+
+                   type CustomTime time.Time
+
+                   func (t *CustomTime) UnmarshalJSON(data []byte) (err error) {
+                   	now, err := time.ParseInLocation(`"`+time.DateTime+`"`, string(data), time.Local)
+                   	*t = CustomTime(now)
+                   	return
+                   }
+                   func (t CustomTime) MarshalJSON() ([]byte, error) {
+                   	b := make([]byte, 0, len(time.DateTime)+2)
+                   	b = append(b, '"')
+                   	b = time.Time(t).AppendFormat(b, time.DateTime)
+                   	b = append(b, '"')
+                   	return b, nil
+                   }
+                   func (t CustomTime) String() string {
+                   	return time.Time(t).Format(time.DateTime)
+                   }
+
+                   func (t CustomTime) Value() (driver.Value, error) {
+                   	return time.Time(t), nil
+                   }
+
+                   func (t *CustomTime) Scan(value interface{}) error {
+                   	if value == nil {
+                   		*t = CustomTime(time.Time{})
+                   		return nil
+                   	}
+                   	switch v := value.(type) {
+                   	case time.Time:
+                   		*t = CustomTime(v)
+                   		return nil
+                   	case []byte:
+                   		parsedTime, err := time.Parse(time.DateTime, string(v))
+                   		if err != nil {
+                   			return err
+                   		}
+                   		*t = CustomTime(parsedTime)
+                   		return nil
+                   	case string:
+                   		parsedTime, err := time.Parse(time.DateTime, v)
+                   		if err != nil {
+                   			return err
+                   		}
+                   		*t = CustomTime(parsedTime)
+                   		return nil
+                   	default:
+                   		return fmt.Errorf("unsupported scan type for CustomTime: %T", value)
+                   	}
+                   }
+
+                   type Basic struct {
+                   	ID            int            `gorm:"primaryKey;type:int" json:"id"`
+                   	GmtCreate     CustomTime     `gorm:"type:datetime;autoCreateTime" json:"gmt_create"`
+                   	GmtCreateUser int            `json:"gmt_create_user"`
+                   	GmtModify     CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime" json:"gmt_modify"`
+                   	GmtModifyUser int            `json:"gmt_modify_user"`
+                   	GmtDelete     gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
+                   	GmtDeleteUser int            `json:"-"`
+                   	State         bool           `gorm:"default:true" json:"state"`
+                   }
+
+                   func (b *Basic) BeforeCreate(tx *gorm.DB) (err error) {
+                   	uniqueID, err := global.SF.GenerateUniqueID()
+                   	if err != nil {
+                   		zap.S().Errorf("获取id失败：%s", err)
+                   		return err
+                   	}
+                   	b.ID = int(uniqueID)
+                   	return
+                   }
+
+                   func (b *Basic) AfterFind(tx *gorm.DB) (err error) {
+                   	return
+                   }
+│ ├── log.go-------package model
+
+                   type AccessLog struct {
+                   	Basic
+                   	Method   string `json:"method"`
+                   	Ip       string `json:"ip"`
+                   	Locality string `json:"locality"`
+                   	Url      string `json:"url"`
+                   	Data     string `json:"data"`
+                   }
+
+                   type LoginLog struct {
+                   	Basic
+                   	Ip       string `json:"ip"`
+                   	Locality string `json:"locality"`
+                   	Username string `json:"username"`
+                   }
+│ └── sys.go-------package model
+
+                   import (
+                   	"database/sql/driver"
+                   	"encoding/json"
+                   	"github.com/pkg/errors"
+                   	"sweet-cms/enum"
+                   )
+
+                   type SysConfigure struct {
+                   	Basic
+                   	EnableCaptcha bool `gorm:"comment:登录验证码" json:"enable_captcha"`
+                   }
+
+                   type SysMenu struct {
+                   	Basic
+                   	PID       int    `gorm:"type:int" json:"pid"`
+                   	Name      string `gorm:"size:32;comment:路由" json:"name"`
+                   	Path      string `gorm:"size:128;comment:路径" json:"path"`
+                   	Component string `gorm:"size:64;comment:路由主体" json:"component"`
+                   	Title     string `gorm:"size:64;comment:显示标题" json:"title"`
+                   	IsHidden  bool   `gorm:"comment:是否隐藏" json:"isHidden"`
+                   	Sequence  uint8  `gorm:"comment:排序" gorm:"type:tinyint" json:"sequence"`
+                   	Option    string `gorm:"size:64;comment:排序" json:"option"`
+                   	Icon      string `gorm:"size:32;comment:图标" json:"icon"`
+                   	Redirect  string `gorm:"size:128;comment:重定向地址" json:"redirect"`
+                   	IsUnfold  bool   `gorm:"comment:默认展开" json:"isUnfold"`
+                   }
+
+                   type SysMenuBtn struct {
+                   	Basic
+                   	Name     string                  `gorm:"size:128;comment:按钮名称" json:"name"`
+                   	Code     string                  `gorm:"size:128;comment:按钮编码" json:"code"`
+                   	Memo     string                  `gorm:"size:128;comment:备注" json:"memo"`
+                   	Position enum.SysMenuBtnPosition `gorm:"size:128;comment:位置" json:"position"`
+                   }
+
+                   type SysRole struct {
+                   	Basic
+                   	Name string `json:"name"`
+                   	Rs   string `json:"rs"`
+                   	Memo string `json:"memo"`
+                   }
+
+                   type SysUser struct {
+                   	Basic
+                   	UserName string `json:"username"`
+                   	RoleId   string `json:"roleId"`
+                   	Password string `json:"-"`
+                   }
+
+                   type SysTable struct {
+                   	Basic
+                   	TableName   string            `gorm:"size:128;comment:表名" json:"table_name"`
+                   	TableCode   string            `gorm:"size:128;comment:数据库中表名" json:"table_code"`
+                   	TableType   enum.SysTableType `gorm:"default:1" json:"table_type"`
+                   	ParentID    int               `gorm:"type:int" json:"parent_id"`
+                   	TableFields []SysTableField   `gorm:"-" json:"table_fields"`
+                   }
+
+                   func (st *SysTable) Value() (driver.Value, error) {
+                   	return json.Marshal(st.TableFields)
+                   }
+
+                   func (st *SysTable) Scan(value interface{}) error {
+                   	bytes, ok := value.([]byte)
+                   	if !ok {
+                   		return errors.New("Scan source is not []byte")
+                   	}
+                   	return json.Unmarshal(bytes, &st.TableFields)
+                   }
+
+                   type SysTableField struct {
+                   	Basic
+                   	TableID            int                         `gorm:"comment:table_id" json:"table_id" binding:"required"`
+                   	FieldName          string                      `gorm:"size:128;comment:列名" json:"field_name"`
+                   	FieldCode          string                      `gorm:"size:128;comment:数据库中字段名" json:"field_code"`
+                   	FieldType          enum.SysTableFieldType      `gorm:"default:1;comment:字段类型" json:"type"`
+                   	FieldLength        int                         `gorm:"comment:字段长度" json:"field_length"`
+                   	FieldDecimalLength int                         `gorm:"comment:小数位数" json:"field_decimal_length"`
+                   	InputType          enum.SysTableFieldInputType `gorm:"default:1;comment:输入类型" json:"input_type"`
+                   	DefaultValue       string                      `gorm:"size:128;comment:默认值" json:"default_value"`
+                   	DictCode           string                      `gorm:"size:128;comment:所用字典" json:"dict_code"`
+                   	IsPrimaryKey       bool                        `gorm:"default:false;comment:是否主键" json:"is_primary_key"`
+                   	IsIndex            bool                        `gorm:"default:false;comment:是否索引" json:"is_index"`
+                   	IsQuickSearch      bool                        `gorm:"default:false;comment:是否快捷搜索" json:"is_quick_search"`
+                   	IsAdvancedSearch   bool                        `gorm:"default:false;comment:是否高级搜索" json:"is_advanced_search"`
+                   	IsSort             bool                        `gorm:"default:false;comment:是否可排序" json:"is_sort"`
+                   	IsNull             bool                        `gorm:"default:true;comment:是否可空" json:"is_null"`
+                   	OriginalFieldID    int                         `gorm:"comment:原字段ID" json:"original_field_id"`
+                   }
+
+                   type SysDict struct {
+                   	Basic
+                   	DictName  string        `gorm:"size:128;comment:字典名称" json:"dict_name"`
+                   	DictCode  string        `gorm:"size:128;comment:字典编码" json:"dict_code"`
+                   	DictItems []SysDictItem `gorm:"-" json:"dict_items"`
+                   }
+
+                   type SysDictItem struct {
+                   	Basic
+                   	DictID    int    `gorm:"comment:dict_id" json:"dict_id"`
+                   	ItemName  string `gorm:"size:128;comment:字典名称" json:"item_name"`
+                   	ItemCode  string `gorm:"size:128;comment:字典编码" json:"item_code"`
+                   	ItemValue string `gorm:"size:128;comment:字典值" json:"item_value"`
+                   }
+
+                   func (st *SysDict) Value() (driver.Value, error) {
+                   	return json.Marshal(st.DictItems)
+                   }
+
+                   func (st *SysDict) Scan(value interface{}) error {
+                   	bytes, ok := value.([]byte)
+                   	if !ok {
+                   		return errors.New("Scan source is not []byte")
+                   	}
+                   	return json.Unmarshal(bytes, &st.DictItems)
+                   }
+├── repository（用于和数据库交互的数据层）
+│ ├── impl
+│ │ └── sys_dict_impl.go（实现类）-------package impl
+
+                                    import (
+                                    	"sweet-cms/form/request"
+                                    	"sweet-cms/global"
+                                    	"sweet-cms/model"
+                                    	"sweet-cms/repository"
+                                    	"sweet-cms/utils"
+                                    )
+
+                                    type SysDictRepositoryImpl struct {
+                                    }
+
+                                    func NewSysDictRepositoryImpl() *SysDictRepositoryImpl {
+                                    	return &SysDictRepositoryImpl{}
+                                    }
+
+                                    func (i *SysDictRepositoryImpl) GetSysDictById(id int) (model.SysDict, error) {
+                                    	var sysDict model.SysDict
+                                    	err := global.DB.Preload("DictItems").Where("id = ?", id).First(&sysDict).Error
+                                    	return sysDict, err
+                                    }
+
+                                    func (i *SysDictRepositoryImpl) GetSysDictList(basic request.Basic) (repository.SysDictListResult, error) {
+                                    	var repo repository.SysDictListResult
+                                    	query := utils.BuildQuery(global.DB, basic)
+                                    	var sysDict []model.SysDict
+                                    	var total int64 = 0
+                                    	err := query.Find(sysDict).Limit(-1).Offset(-1).Count(&total).Error
+                                    	repo.Data = sysDict
+                                    	repo.Total = int(total)
+                                    	return repo, err
+                                    }
+
+                                    func (i *SysDictRepositoryImpl) UpdateSysDict(*model.SysDict) error {
+                                    	return nil
+                                    }
+
+                                    func (i *SysDictRepositoryImpl) InsertSysDict(d *model.SysDict) error {
+                                    	result := global.DB.Create(d)
+                                    	return result.Error
+                                    }
+
+                                    func (i *SysDictRepositoryImpl) DeleteSysDictById(id int) error {
+                                    	err := global.DB.Where("id = ?", id).Delete(model.SysDict{}).Error
+                                    	return err
+                                    }
+
+                                    func (i *SysDictRepositoryImpl) GetSysDictByCode(code int) (model.SysDict, error) {
+                                    	var sysDict model.SysDict
+                                    	err := global.DB.Preload("DictItems").Where("code = ?", code).First(&sysDict).Error
+                                    	return sysDict, err
+                                    }
+
+                                    func (i *SysDictRepositoryImpl) GetSysDictItemById(id int) (model.SysDictItem, error) {
+                                    	var item model.SysDictItem
+                                    	err := global.DB.Where("id = ?", id).First(&item).Error
+                                    	return item, err
+                                    }
+
+                                    func (i *SysDictRepositoryImpl) GetSysDictItemsByDictId(id int) ([]model.SysDictItem, error) {
+                                    	var items []model.SysDictItem
+                                    	err := global.DB.Where("id = ?", id).Find(&items).Error
+                                    	return items, err
+                                    }
+                                    func (i *SysDictRepositoryImpl) UpdateSysDictItem(*model.SysDictItem) error {
+                                    	return nil
+                                    }
+                                    func (i *SysDictRepositoryImpl) InsertSysDictItem(d *model.SysDictItem) error {
+                                    	result := global.DB.Create(d)
+                                    	return result.Error
+                                    }
+                                    func (i *SysDictRepositoryImpl) DeleteSysDictItemById(id int) error {
+                                    	err := global.DB.Where("id = ?", id).Delete(model.SysDictItem{}).Error
+                                    	return err
+                                    }
+│ └── sys_dict.go（接口）-----------package repository
+
+                                import (
+                                	"sweet-cms/form/request"
+                                	"sweet-cms/model"
+                                )
+
+                                type SysDictListResult struct {
+                                	Data  []model.SysDict `json:"data"`
+                                	Total int             `json:"total"`
+                                }
+
+                                type SysDictRepository interface {
+                                	GetSysDictById(int) (model.SysDict, error)
+                                	GetSysDictList(request.Basic) (SysDictListResult, error)
+                                	UpdateSysDict(*model.SysDict) error
+                                	InsertSysDict(*model.SysDict) error
+                                	DeleteSysDictById(int) error
+                                	GetSysDictByCode(int) (model.SysDict, error)
+
+                                	GetSysDictItemById(int) (model.SysDictItem, error)
+                                	GetSysDictItemsByDictId(int) ([]model.SysDictItem, error)
+                                	UpdateSysDictItem(*model.SysDictItem) error
+                                	InsertSysDictItem(*model.SysDictItem) error
+                                	DeleteSysDictItemById(int) error
+                                }
+├── router（定义外部访问的路由）
+│ ├── admin
+│ │ ├── basic_router.go------func InitBasicRouter(router *gin.RouterGroup) {
+                             	router.GET("captcha", controller.NewBasic().Captcha)
+                             	router.GET("login", controller.NewBasic().Login)
+                             	router.GET("configure", controller.NewBasic().Configure)
+                             	router.POST("login", controller.NewBasic().Login)
+                             }
+│ │ ├── index.go
+│ │ └── sys_dict_router.go------package admin
+
+                                import (
+                                	"github.com/gin-gonic/gin"
+                                	"sweet-cms/controller"
+                                	"sweet-cms/repository/impl"
+                                	"sweet-cms/service"
+                                )
+
+                                func InitDictRouter(router *gin.RouterGroup) {
+                                	sysDictRepoImpl := impl.NewSysDictRepositoryImpl()
+                                	sysDictService := service.NewSysDictServer(sysDictRepoImpl)
+                                	dictController := controller.NewDictController(sysDictService)
+                                	router.GET("dict/{id}", dictController.Get)
+                                	router.GET("dict/query", dictController.Query)
+                                	router.POST("dict", dictController.Insert)
+                                	router.PUT("dict/{id}", dictController.Update)
+                                	router.DELETE("dict/{id}", dictController.Delete)
+                                }
+├── service（服务层，里面调用数据层）
+│ ├── log.go
+│ ├── sys_configure.go
+│ ├── sys_dict.go-----package service
+
+                      import (
+                      	"sweet-cms/form/request"
+                      	"sweet-cms/model"
+                      	"sweet-cms/repository"
+                      )
+
+                      type SysDictService struct {
+                      	sysDictRepo repository.SysDictRepository
+                      }
+
+                      func NewSysDictServer(sysDictRepo repository.SysDictRepository) *SysDictService {
+                      	return &SysDictService{
+                      		sysDictRepo: sysDictRepo,
+                      	}
+                      }
+
+                      func (s *SysDictService) Get(id int) (model.SysDict, error) {
+                      	return s.sysDictRepo.GetSysDictById(id)
+                      }
+
+                      func (s *SysDictService) Query(basic request.Basic) (repository.SysDictListResult, error) {
+                      	result, err := s.sysDictRepo.GetSysDictList(basic)
+                      	return result, err
+                      }
+
+                      func (s *SysDictService) Insert(d *model.SysDict) error {
+                      	err := s.sysDictRepo.InsertSysDict(d)
+                      	return err
+                      }
+
+                      func (s *SysDictService) Delete(id int) error {
+                      	err := s.sysDictRepo.DeleteSysDictById(id)
+                      	return err
+                      }
+└── utils（一些公共的函数方法）
+    ├── jwt.go---------package utils
+
+                       import (
+                       	"errors"
+                       	"fmt"
+                       	"github.com/golang-jwt/jwt/v4"
+                       	"time"
+                       )
+
+                       type JWTTokenGen struct {
+                       	privateKey []byte
+                       	issuer     string
+                       }
+
+                       func NewJWTTokenGen() *JWTTokenGen {
+                       	return &JWTTokenGen{issuer: "master-nan", privateKey: []byte("123455")}
+                       }
+
+                       func (t *JWTTokenGen) GenerateToken(accountID string) (string, error) {
+                       	nowSec := time.Now()
+                       	tkn := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.RegisteredClaims{
+                       		Issuer:    t.issuer,
+                       		IssuedAt:  jwt.NewNumericDate(nowSec),
+                       		ExpiresAt: jwt.NewNumericDate(nowSec.Add(3 * time.Hour * time.Duration(1))),
+                       		NotBefore: jwt.NewNumericDate(nowSec),
+                       		Subject:   accountID,
+                       	})
+
+                       	return tkn.SignedString(t.privateKey)
+                       }
+
+                       func (t *JWTTokenGen) ParseToken(token string) (string, error) {
+                       	res, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+                       		return t.privateKey, nil
+                       	})
+
+                       	if err != nil {
+                       		var ve *jwt.ValidationError
+                       		if errors.As(err, &ve) {
+                       			if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+                       				return "", errors.New("token 错误")
+                       			} else if ve.Errors&jwt.ValidationErrorExpired != 0 {
+                       				// Token is expired
+                       				return "", errors.New("token已过期")
+                       			} else if ve.Errors&jwt.ValidationErrorNotValidYet != 0 {
+                       				return "", errors.New("token未激活")
+                       			} else {
+                       				return "", errors.New("token 错误")
+                       			}
+                       		}
+                       	}
+                       	if !res.Valid {
+                       		return "", fmt.Errorf("token not valid")
+                       	}
+                       	if claims, ok := res.Claims.(jwt.MapClaims); ok {
+                       		return claims["sub"].(string), nil
+                       	} else {
+                       		return "", errors.New("token 错误")
+
+                       	}
+                       }
+    ├── query.go-------package utils
+
+                       import (
+                       	"gorm.io/gorm"
+                       	"sweet-cms/enum"
+                       	"sweet-cms/form/request"
+                       	"time"
+                       )
+
+                       func parseValue(value interface{}, valueType enum.SysTableFieldType) interface{} {
+                       	switch valueType {
+                       	case enum.INT:
+                       		return value.(int)
+                       	case enum.FLOAT:
+                       		return value.(float64)
+                       	case enum.VARCHAR:
+                       		return value.(string)
+                       	case enum.BOOLEAN:
+                       		return value.(bool)
+                       	case enum.TEXT:
+                       		return value.(string)
+                       	case enum.DATE:
+                       		t, _ := time.Parse(time.DateOnly, value.(string))
+                       		return t
+                       	case enum.DATETIME:
+                       		t, _ := time.Parse(time.DateTime, value.(string))
+                       		return t
+                       	case enum.TIME:
+                       		t, _ := time.Parse(time.TimeOnly, value.(string))
+                       		return t
+                       	default:
+                       		return value
+                       	}
+                       }
+
+                       func BuildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
+                       	query := db
+                       	// 构建查询条件
+                       	for _, exprGroup := range basic.Expressions {
+                       		var subQuery *gorm.DB
+                       		for _, rule := range exprGroup.Rules {
+                       			value := parseValue(rule.Value, rule.Type)
+                       			switch rule.ExpressionType {
+                       			case enum.GT:
+                       				subQuery = query.Where(rule.Field+" > ?", value)
+                       			case enum.LT:
+                       				subQuery = query.Where(rule.Field+" < ?", value)
+                       			case enum.GTE:
+                       				subQuery = query.Where(rule.Field+" >= ?", value)
+                       			case enum.LTE:
+                       				subQuery = query.Where(rule.Field+" <= ?", value)
+                       			case enum.EQ:
+                       				subQuery = query.Where(rule.Field+" = ?", value)
+                       			case enum.NE:
+                       				subQuery = query.Where(rule.Field+" != ?", value)
+                       			case enum.LIKE:
+                       				subQuery = query.Where(rule.Field+" LIKE %?%", value)
+                       			case enum.NOT_LIKE:
+                       				subQuery = query.Where(rule.Field+" NOT LIKE %?%", value)
+                       			case enum.IN:
+                       				subQuery = query.Where(rule.Field+" IN (?)", value)
+                       			case enum.NOT_IN:
+                       				subQuery = query.Where(rule.Field+" NOT IN (?)", value)
+                       			case enum.IS_NULL:
+                       				subQuery = query.Where(rule.Field + " IS NULL")
+                       			case enum.IS_NOT_NULL:
+                       				subQuery = query.Where(rule.Field + " IS NOT NULL")
+                       			default:
+                       				continue
+                       			}
+                       		}
+
+                       		// 处理嵌套表达式
+                       		for _, nestedExpr := range exprGroup.Nested {
+                       			nestedQuery := BuildQuery(db, request.Basic{Expressions: []request.ExpressionGroup{nestedExpr}}) // 递归处理嵌套表达式
+                       			switch exprGroup.Logic {
+                       			case enum.OR:
+                       				if subQuery == nil {
+                       					subQuery = nestedQuery
+                       				} else {
+                       					subQuery = subQuery.Or(nestedQuery)
+                       				}
+                       			case enum.AND:
+                       				if subQuery == nil {
+                       					subQuery = nestedQuery
+                       				} else {
+                       					subQuery = subQuery.Where(nestedQuery)
+                       				}
+                       			}
+                       		}
+
+                       		// 应用当前表达式组的逻辑
+                       		if subQuery != nil {
+                       			switch exprGroup.Logic {
+                       			case enum.AND:
+                       				query = query.Where(subQuery)
+                       			case enum.OR:
+                       				query = query.Or(subQuery)
+                       			default:
+                       				continue
+                       			}
+                       		}
+                       	}
+
+                       	// 添加排序
+                       	if basic.Order.Field != "" {
+                       		order := basic.Order.Field
+                       		if !basic.Order.IsAsc {
+                       			order += " desc"
+                       		}
+                       		query = query.Order(order)
+                       	}
+
+                       	// 设置 Page 和 Num 的默认值
+                       	if basic.Page <= 0 {
+                       		basic.Page = 1 // 默认页码为 1
+                       	}
+                       	if basic.Num <= 0 {
+                       		basic.Num = 10 // 默认每页数量为 10
+                       	}
+                       	// 设置 Num 的上限
+                       	const maxNum = 5000
+                       	if basic.Num > maxNum {
+                       		basic.Num = maxNum
+                       	}
+                       	// 添加分页
+                       	if basic.Page > 0 && basic.Num > 0 {
+                       		query = query.Limit(basic.Num).Offset((basic.Page - 1) * basic.Num)
+                       	}
+
+                       	return query
+                       }
+    ├── redis.go------package utils
+
+                      import (
+                      	"context"
+                      	"encoding/json"
+                      	"fmt"
+                      	"github.com/go-redis/redis/v8"
+                      	"github.com/pkg/errors"
+                      	"go.uber.org/zap"
+                      	"strconv"
+                      	"sweet-cms/inter"
+                      	"time"
+                      )
+
+                      type RedisUtil struct {
+                      	client *redis.Client
+                      }
+
+                      func NewRedisUtil(client *redis.Client) *RedisUtil {
+                      	return &RedisUtil{
+                      		client: client,
+                      	}
+                      }
+
+                      func withTimeout(duration time.Duration) (context.Context, context.CancelFunc) {
+                      	return context.WithTimeout(context.Background(), 200*duration)
+                      }
+
+                      func (r *RedisUtil) Set(key string, value interface{}, expiration time.Duration) error {
+                      	ctx, cancel := withTimeout(200 * time.Second)
+                      	defer cancel()
+                      	var str string
+                      	switch value.(type) {
+                      	case string:
+                      		str = value.(string)
+                      	case []byte:
+                      		str = string(value.([]byte))
+                      	case int:
+                      		str = strconv.FormatInt(int64(value.(int)), 10)
+                      	default:
+                      		b, err := json.Marshal(value)
+                      		if err != nil {
+                      			zap.S().Errorf("json marshal value %s: %v", value, err)
+                      			return err
+                      		}
+                      		str = string(b)
+                      	}
+                      	err := r.client.Set(ctx, key, str, expiration).Err()
+                      	if err != nil {
+                      		zap.S().Errorf("failed to set key %s: %v", key, err)
+                      		return err
+                      	}
+                      	return nil
+                      }
+
+                      func (r *RedisUtil) Get(key string, value interface{}) error {
+                      	ctx, cancel := withTimeout(2 * time.Second)
+                      	defer cancel()
+                      	val, err := r.client.Get(ctx, key).Bytes()
+                      	if err != nil {
+                      		if errors.Is(err, redis.Nil) {
+                      			return inter.ErrCacheMiss
+                      		}
+                      		zap.S().Errorf("failed to get key %s: %v", key, err)
+                      		return err
+                      	}
+                      	switch v := value.(type) {
+                      	case *string:
+                      		*v = string(val)
+                      	case *int:
+                      		iv, err := strconv.Atoi(string(val))
+                      		if err != nil {
+                      			zap.S().Errorf("failed to convert string to int for key %s: %v", key, err)
+                      			return err
+                      		}
+                      		*v = iv
+                      	case *float64:
+                      		fv, err := strconv.ParseFloat(string(val), 64)
+                      		if err != nil {
+                      			zap.S().Errorf("failed to convert string to float64 for key %s: %v", key, err)
+                      			return err
+                      		}
+                      		*v = fv
+                      	default:
+                      		err := json.Unmarshal(val, value)
+                      		if err != nil {
+                      			zap.S().Errorf("failed to unmarshal value for key %s: %v", key, err)
+                      			return err
+                      		}
+                      	}
+                      	return nil
+                      }
+
+                      func (r *RedisUtil) Del(key string) error {
+                      	ctx, cancel := withTimeout(2 * time.Second)
+                      	defer cancel()
+                      	err := r.client.Del(ctx, key).Err()
+                      	if err != nil {
+                      		if errors.Is(err, redis.Nil) {
+                      			return inter.ErrCacheMiss
+                      		}
+                      		zap.S().Errorf("failed to delete key %s: %v", key, err)
+                      		return err
+                      	}
+                      	return nil
+                      }
+
+                      func (r *RedisUtil) Exists(keys ...string) (int64, error) {
+                      	ctx, cancel := withTimeout(2 * time.Second)
+                      	defer cancel()
+                      	val, err := r.client.Exists(ctx, keys...).Result()
+                      	if err != nil {
+                      		return 0, fmt.Errorf("failed to check if keys exist: %v", err)
+                      	}
+                      	return val, nil
+                      }
+
+                      func (r *RedisUtil) Expire(key string, expiration time.Duration) (bool, error) {
+                      	ctx, cancel := withTimeout(2 * time.Second)
+                      	defer cancel()
+                      	val, err := r.client.Expire(ctx, key, expiration).Result()
+                      	if err != nil {
+                      		return false, fmt.Errorf("failed to set expiration for key %s: %v", key, err)
+                      	}
+                      	return val, nil
+                      }
+
+                      func (r *RedisUtil) HSet(key, field string, value interface{}) error {
+                      	ctx, cancel := withTimeout(2 * time.Second)
+                      	defer cancel()
+                      	err := r.client.HSet(ctx, key, field, value).Err()
+                      	if err != nil {
+                      		return fmt.Errorf("failed to hset key %s: %v", key, err)
+                      	}
+                      	return nil
+                      }
+
+                      func (r *RedisUtil) HGet(key, field string) (string, error) {
+                      	ctx, cancel := withTimeout(2 * time.Second)
+                      	defer cancel()
+                      	val, err := r.client.HGet(ctx, key, field).Result()
+                      	if err != nil {
+                      		return "", fmt.Errorf("failed to hget key %s: %v", key, err)
+                      	}
+                      	return val, nil
+                      }
+
+                      func (r *RedisUtil) HDel(key string, fields ...string) (int64, error) {
+                      	ctx, cancel := withTimeout(2 * time.Second)
+                      	defer cancel()
+                      	val, err := r.client.HDel(ctx, key, fields...).Result()
+                      	if err != nil {
+                      		return 0, fmt.Errorf("failed to hdel key %s: %v", key, err)
+                      	}
+                      	return val, nil
+                      }
+    └── uniqueid.go-----package utils
+
+                        import (
+                        	"fmt"
+                        	"sync"
+                        	"time"
+                        )
+
+                        const (
+                        	workerIDBits = 5
+                        	sequenceBits = 12
+                        	maxWorkerID  = -1 ^ (-1 << workerIDBits)
+                        	maxSequence  = -1 ^ (-1 << sequenceBits)
+                        	epoch        = 1693497600000 // 2023-09-01 00:00:00 的毫秒时间戳
+                        )
+
+                        // Snowflake 结构体用于保存 Snowflake ID 的状态
+                        type Snowflake struct {
+                        	mu            sync.Mutex
+                        	workerID      int64
+                        	sequence      int64
+                        	lastTimestamp int64
+                        }
+
+                        // NewSnowflake 创建一个新的 Snowflake 实例
+                        func NewSnowflake(workerID int64) (*Snowflake, error) {
+                        	if workerID < 0 || workerID > maxWorkerID {
+                        		return nil, fmt.Errorf("Worker ID 超出范围")
+                        	}
+
+                        	return &Snowflake{
+                        		workerID: workerID,
+                        	}, nil
+                        }
+
+                        // GenerateUniqueID 生成唯一 ID
+                        func (s *Snowflake) GenerateUniqueID() (int64, error) {
+                        	s.mu.Lock()
+                        	defer s.mu.Unlock()
+
+                        	// 获取当前时间戳（毫秒级）
+                        	timestamp := time.Now().UnixNano() / 1e6
+
+                        	// 如果当前时间小于上一次生成的时间戳，等待时钟追赶上来
+                        	if timestamp < s.lastTimestamp {
+                        		return 0, fmt.Errorf("时钟回拨，无法生成唯一 ID")
+                        	}
+
+                        	// 如果是同一毫秒内生成的 ID，递增序列号
+                        	if timestamp == s.lastTimestamp {
+                        		s.sequence = (s.sequence + 1) & maxSequence
+                        		if s.sequence == 0 {
+                        			// 序列号溢出，等待下一毫秒
+                        			timestamp = s.waitNextMillisecond(s.lastTimestamp)
+                        		}
+                        	} else {
+                        		// 不同毫秒内生成的 ID，重置序列号
+                        		s.sequence = 0
+                        	}
+
+                        	// 更新上一次生成 ID 的时间戳
+                        	s.lastTimestamp = timestamp
+
+                        	// 构建唯一 ID
+                        	uniqueID := ((timestamp - epoch) << (workerIDBits + sequenceBits)) |
+                        		(s.workerID << sequenceBits) |
+                        		s.sequence
+
+                        	return uniqueID, nil
+                        }
+
+                        // 等待下一毫秒的函数
+                        func (s *Snowflake) waitNextMillisecond(lastTimestamp int64) int64 {
+                        	timestamp := time.Now().UnixNano() / 1e6
+                        	for timestamp <= lastTimestamp {
+                        		timestamp = time.Now().UnixNano() / 1e6
+                        	}
+                        	return timestamp
+                        }

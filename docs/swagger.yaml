@@ -1,0 +1,67 @@
+basePath: /sweet/admin
+definitions:
+  middlewares.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+      total:
+        type: integer
+    type: object
+info:
+  contact:
+    email: maxdwy@gmail.com
+    name: 南
+  description: 基于gin+gorm的后台管理项目，实现部分低代码
+  title: 试验性项目
+  version: "0.1"
+paths:
+  /dist/code/{code}:
+    get:
+      description: 根据ID获取字典详情
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        type: string
+      - description: 字典CODE
+        in: path
+        name: code
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 请求成功
+          schema:
+            $ref: '#/definitions/middlewares.Response'
+      summary: 字典详情
+      tags:
+      - 字典
+  /dist/id/{id}:
+    get:
+      description: 根据ID获取字典详情
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        type: string
+      - description: 字典ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 请求成功
+          schema:
+            $ref: '#/definitions/middlewares.Response'
+      summary: 字典详情
+      tags:
+      - 字典
+swagger: "2.0"

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"sweet-cms/form/response"
 	"sweet-cms/utils"
 )
 
@@ -17,7 +18,8 @@ const bearerLength = len("Bearer ")
 func Auth(jwt *utils.JWTTokenGen) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
-		resp := NewResponse()
+		resp := response.NewResponse()
+		c.Set("response", resp)
 		if len(authorization) < bearerLength {
 			resp.SetMsg("请先登录").SetCode(http.StatusUnauthorized)
 			return

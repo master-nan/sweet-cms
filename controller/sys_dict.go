@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"sweet-cms/form/request"
-	"sweet-cms/middlewares"
+	"sweet-cms/form/response"
 	"sweet-cms/service"
 )
 
@@ -24,15 +24,24 @@ func NewDictController(sysDictService *service.SysDictService) *DictController {
 	}
 }
 
-func (t *DictController) Get(ctx *gin.Context) {
+// GetSysDictById 根据ID获取字典详情
+// @Summary 字典详情
+// @Description 根据ID获取字典详情
+// @Tags 字典
+// @Produce application/json
+// @Param Authorization header string false "Bearer 用户令牌"
+// @Param id path int true "字典ID"
+// @Success 200 {object} middlewares.Response "请求成功"
+// @Router /dist/id/{id} [get]
+func (t *DictController) GetSysDictById(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
-	resp := middlewares.NewResponse()
+	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	if err != nil {
 		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
 		return
 	}
-	data, err := t.sysDictService.Get(id)
+	data, err := t.sysDictService.GetSysDictById(id)
 	if err != nil {
 		resp.SetMsg(err.Error()).SetCode(http.StatusInternalServerError)
 		return
@@ -41,15 +50,37 @@ func (t *DictController) Get(ctx *gin.Context) {
 	return
 }
 
-func (t *DictController) Query(ctx *gin.Context) {
-	resp := middlewares.NewResponse()
+// GetSysDictByCode 根据CODE获取字典详情
+// @Summary 字典详情
+// @Description 根据CODE获取字典详情
+// @Tags 字典
+// @Produce application/json
+// @Param Authorization header string false "Bearer 用户令牌"
+// @Param code path string true "字典CODE"
+// @Success 200 {object} middlewares.Response "请求成功"
+// @Router /dist/code/{code} [get]
+func (t *DictController) GetSysDictByCode(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	code := ctx.Param("code")
+	data, err := t.sysDictService.GetSysDictByCode(code)
+	if err != nil {
+		resp.SetMsg(err.Error()).SetCode(http.StatusInternalServerError)
+		return
+	}
+	resp.SetData(data)
+	return
+}
+
+func (t *DictController) QuerySysDict(ctx *gin.Context) {
+	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.Basic
 	if err := ctx.ShouldBindQuery(&data); err != nil {
 		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
 		return
 	}
-	result, err := t.sysDictService.Query(data)
+	result, err := t.sysDictService.GetSysDictList(data)
 	if err != nil {
 		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
 		return
@@ -58,8 +89,8 @@ func (t *DictController) Query(ctx *gin.Context) {
 	return
 }
 
-func (t *DictController) Insert(ctx *gin.Context) {
-	resp := middlewares.NewResponse()
+func (t *DictController) InsertSysDict(ctx *gin.Context) {
+	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var dictCreateReq request.DictCreateReq
 	err := ctx.ShouldBindJSON(&dictCreateReq)
@@ -67,7 +98,7 @@ func (t *DictController) Insert(ctx *gin.Context) {
 		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
 		return
 	}
-	err = t.sysDictService.Insert(dictCreateReq)
+	err = t.sysDictService.InsertSysDict(dictCreateReq)
 	if err != nil {
 		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
 		return
@@ -75,8 +106,8 @@ func (t *DictController) Insert(ctx *gin.Context) {
 	return
 }
 
-func (t *DictController) Update(ctx *gin.Context) {
-	resp := middlewares.NewResponse()
+func (t *DictController) UpdateSysDict(ctx *gin.Context) {
+	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var dictUpdateReq request.DictUpdateReq
 	err := ctx.ShouldBindJSON(&dictUpdateReq)
@@ -84,24 +115,23 @@ func (t *DictController) Update(ctx *gin.Context) {
 		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
 		return
 	}
-	err = t.sysDictService.Update(dictUpdateReq)
+	err = t.sysDictService.UpdateSysDict(dictUpdateReq)
 	if err != nil {
 		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
 		return
 	}
 	return
-	return
-
 }
-func (t *DictController) Delete(ctx *gin.Context) {
-	resp := middlewares.NewResponse()
+
+func (t *DictController) DeleteSysDictById(ctx *gin.Context) {
+	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
 		return
 	}
-	err = t.sysDictService.Delete(id)
+	err = t.sysDictService.DeleteSysDictById(id)
 	if err != nil {
 		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
 		return
@@ -110,27 +140,86 @@ func (t *DictController) Delete(ctx *gin.Context) {
 
 }
 
-type DictItemController struct {
-}
-
-func NewDictItemController() *DictItemController {
-	return &DictItemController{}
-}
-
-func (t *DictItemController) Get(ctx *gin.Context) {
+func (t *DictController) GetSysDictItemById(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	if err != nil {
+		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
+		return
+	}
+	data, err := t.sysDictService.GetSysDictItemById(id)
+	if err != nil {
+		resp.SetMsg(err.Error()).SetCode(http.StatusInternalServerError)
+		return
+	}
+	resp.SetData(data)
 	return
 }
 
-func (t *DictItemController) Query(ctx *gin.Context) {
+func (t *DictController) GetSysDictItemsByDictId(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
+		return
+	}
+	result, err := t.sysDictService.GetSysDictItemsByDictId(id)
+	if err != nil {
+		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
+		return
+	}
+	resp.SetData(result)
 	return
 }
-func (t *DictItemController) Insert(ctx *gin.Context) {
 
+func (t *DictController) InsertSysDictItem(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	var dictItemCreateReq request.DictItemCreateReq
+	err := ctx.ShouldBindJSON(&dictItemCreateReq)
+	if err != nil {
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
+		return
+	}
+	err = t.sysDictService.InsertSysDictItem(dictItemCreateReq)
+	if err != nil {
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
+		return
+	}
+	return
 }
 
-func (t *DictItemController) Update(ctx *gin.Context) {
-
+func (t *DictController) UpdateSysDictItem(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	var dictItemUpdateReq request.DictItemUpdateReq
+	err := ctx.ShouldBindJSON(&dictItemUpdateReq)
+	if err != nil {
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
+		return
+	}
+	err = t.sysDictService.UpdateSysDictItem(dictItemUpdateReq)
+	if err != nil {
+		resp.SetCode(http.StatusBadRequest).SetMsg(err.Error())
+		return
+	}
+	return
 }
-func (t *DictItemController) Delete(ctx *gin.Context) {
 
+func (t *DictController) DeleteSysDictItemById(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
+		return
+	}
+	err = t.sysDictService.DeleteSysDictItemById(id)
+	if err != nil {
+		resp.SetCode(http.StatusInternalServerError).SetMsg(err.Error())
+		return
+	}
+	return
 }

@@ -1,0 +1,102 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "基于gin+gorm的后台管理项目，实现部分低代码",
+        "title": "试验性项目",
+        "contact": {
+            "name": "南",
+            "email": "maxdwy@gmail.com"
+        },
+        "version": "0.1"
+    },
+    "basePath": "/sweet/admin",
+    "paths": {
+        "/dist/code/{code}": {
+            "get": {
+                "description": "根据ID获取字典详情",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "字典"
+                ],
+                "summary": "字典详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "字典CODE",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "请求成功",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/dist/id/{id}": {
+            "get": {
+                "description": "根据ID获取字典详情",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "字典"
+                ],
+                "summary": "字典详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "字典ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "请求成功",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "middlewares.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "msg": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "sweet-cms/docs"
 	"sweet-cms/middlewares"
 )
 
@@ -34,11 +35,12 @@ func InitRouter(app *App) *gin.Engine {
 	adminGroup := routerGroup.Group("/admin")
 	//adminGroup.Use(middlewares.Auth(app.JWT))
 	{
-		adminGroup.GET("dict/{id}", app.DictController.Get)
-		adminGroup.GET("dict/query", app.DictController.Query)
-		adminGroup.POST("dict", app.DictController.Insert)
-		adminGroup.PUT("dict/{id}", app.DictController.Update)
-		adminGroup.DELETE("dict/{id}", app.DictController.Delete)
+		adminGroup.GET("dict/id/{id}", app.DictController.GetSysDictById)
+		adminGroup.GET("dict/code/{code}", app.DictController.GetSysDictByCode)
+		adminGroup.GET("dict/query", app.DictController.QuerySysDict)
+		adminGroup.POST("dict", app.DictController.InsertSysDict)
+		adminGroup.PUT("dict/{id}", app.DictController.UpdateSysDict)
+		adminGroup.DELETE("dict/{id}", app.DictController.DeleteSysDictById)
 	}
 	//apiBaseV1 := routerGroup.Group("/api/v1")
 	//v1.InitBase(apiBaseV1)
