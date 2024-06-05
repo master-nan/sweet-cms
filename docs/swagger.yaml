@@ -1,12 +1,14 @@
 basePath: /sweet/admin
 definitions:
-  middlewares.Response:
+  sweet-cms_form_response.Response:
     properties:
-      code:
-        type: integer
       data: {}
-      msg:
+      error_code:
+        type: integer
+      error_message:
         type: string
+      success:
+        type: boolean
       total:
         type: integer
     type: object
@@ -18,9 +20,9 @@ info:
   title: 试验性项目
   version: "0.1"
 paths:
-  /dist/code/{code}:
+  /dict/code/{code}:
     get:
-      description: 根据ID获取字典详情
+      description: 根据CODE获取字典详情
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -30,18 +32,18 @@ paths:
         in: path
         name: code
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: 请求成功
           schema:
-            $ref: '#/definitions/middlewares.Response'
+            $ref: '#/definitions/sweet-cms_form_response.Response'
       summary: 字典详情
       tags:
       - 字典
-  /dist/id/{id}:
+  /dict/id/{id}:
     get:
       description: 根据ID获取字典详情
       parameters:
@@ -60,7 +62,7 @@ paths:
         "200":
           description: 请求成功
           schema:
-            $ref: '#/definitions/middlewares.Response'
+            $ref: '#/definitions/sweet-cms_form_response.Response'
       summary: 字典详情
       tags:
       - 字典

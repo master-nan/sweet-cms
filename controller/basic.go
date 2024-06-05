@@ -40,19 +40,19 @@ func (b *BasicController) Login(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
+		resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusBadRequest)
 		return
 	} else {
 		configUre, err := b.sysConfigureService.Query()
 		if err != nil {
-			resp.SetMsg(err.Error()).SetCode(http.StatusInternalServerError)
+			resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusInternalServerError)
 			return
 		}
 		if configUre.EnableCaptcha {
 			captchaId := utils.GetSessionString(ctx, "captcha")
 			boolean := captcha.VerifyString(captchaId, data.Captcha)
 			if boolean == false {
-				resp.SetMsg("验证码错误").SetCode(http.StatusUnauthorized)
+				resp.SetErrorMessage("验证码错误").SetErrorCode(http.StatusUnauthorized)
 				return
 			}
 		}
@@ -64,12 +64,12 @@ func (b *BasicController) Login(ctx *gin.Context) {
 		err = b.logService.CreateLoginLog(log)
 		user, err := b.sysUserService.GetByUserName(data.Username)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password {
-			resp.SetMsg("用户名或密码错误").SetCode(http.StatusBadRequest)
+			resp.SetErrorMessage("用户名或密码错误").SetErrorCode(http.StatusBadRequest)
 			return
 		} else {
 			token, err := b.tokenGenerator.GenerateToken(strconv.Itoa(user.ID))
 			if err != nil {
-				resp.SetMsg(err.Error()).SetCode(http.StatusBadRequest)
+				resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusBadRequest)
 			} else {
 				signInRes := response.SignInRes{
 					AccessToken: token,
@@ -101,7 +101,7 @@ func (b *BasicController) Configure(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	if err != nil {
-		resp.SetMsg(err.Error()).SetCode(http.StatusUnauthorized)
+		resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusUnauthorized)
 		return
 	}
 	resp.SetData(configUre)

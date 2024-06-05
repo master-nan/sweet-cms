@@ -58,7 +58,7 @@ func (s *SysDictService) DeleteSysDictById(id int) error {
 	return s.sysDictRepo.DeleteSysDictById(id)
 }
 
-func (s *SysDictService) GetSysDictByCode(code string) (model.SysDict, error) {
+func (s *SysDictService) GetSysDictByCode(code string) (*model.SysDict, error) {
 	return s.sysDictRepo.GetSysDictByCode(code)
 }
 

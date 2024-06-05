@@ -1,19 +1,16 @@
 package response
 
-import (
-	"net/http"
-)
-
 // Response 返回值参数
 type Response struct {
-	Data  interface{} `json:"data"`
-	Msg   string      `json:"msg"`
-	Total int         `json:"total"`
-	Code  int         `json:"code"`
+	Success      bool        `json:"success"`
+	Data         interface{} `json:"data,omitempty"`
+	ErrorMessage string      `json:"error_message,omitempty"`
+	ErrorCode    int         `json:"error_code,omitempty"`
+	Total        int         `json:"total"`
 }
 
 func NewResponse() *Response {
-	return &Response{Code: http.StatusOK, Msg: ""}
+	return &Response{}
 }
 
 func (r *Response) SetData(data interface{}) *Response {
@@ -26,12 +23,12 @@ func (r *Response) SetTotal(total int) *Response {
 	return r
 }
 
-func (r *Response) SetMsg(msg string) *Response {
-	r.Msg = msg
+func (r *Response) SetErrorMessage(msg string) *Response {
+	r.ErrorMessage = msg
 	return r
 }
 
-func (r *Response) SetCode(code int) *Response {
-	r.Code = code
+func (r *Response) SetErrorCode(code int) *Response {
+	r.ErrorCode = code
 	return r
 }

@@ -7,48 +7,24 @@ package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
-	"sweet-cms/form/response"
+	"net/http"
 )
 
-//// Response 返回值参数
-//type Response struct {
-//	Data  interface{} `json:"data"`
-//	Msg   string      `json:"msg"`
-//	Total int         `json:"total"`
-//	Code  int         `json:"code"`
-//}
-
-func JSONResponse() gin.HandlerFunc {
+func ResponseHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
+		if len(c.Errors) > 0 {
+			// 这里你可以根据错误的类型或内容定制不同的响应
+			err := c.Errors.Last().Err
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   true,
+				"message": err.Error(),
+			})
+			c.Abort()
+		}
 		if resp, exists := c.Get("response"); exists {
-			response := resp.(*response.Response)
-			c.JSON(response.Code, resp)
+			c.JSON(http.StatusOK, resp)
 			c.Abort()
 		}
 	}
 }
-
-//func NewResponse() *Response {
-//	return &Response{Code: http.StatusOK, Msg: ""}
-//}
-//
-//func (r *Response) SetData(data interface{}) *Response {
-//	r.Data = data
-//	return r
-//}
-//
-//func (r *Response) SetTotal(total int) *Response {
-//	r.Total = total
-//	return r
-//}
-//
-//func (r *Response) SetMsg(msg string) *Response {
-//	r.Msg = msg
-//	return r
-//}
-//
-//func (r *Response) SetCode(code int) *Response {
-//	r.Code = code
-//	return r
-//}

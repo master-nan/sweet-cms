@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func AccessLog(logService *service.LogService) gin.HandlerFunc {
+func LogHandler(logService *service.LogService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		zap.S().Infof("Access Log start")
 		startTime := time.Now()

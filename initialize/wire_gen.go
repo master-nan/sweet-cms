@@ -20,6 +20,10 @@ import (
 	"sweet-cms/utils"
 )
 
+import (
+	_ "sweet-cms/docs"
+)
+
 // Injectors from wire.go:
 
 func InitializeApp() (*App, error) {
@@ -40,7 +44,7 @@ func InitializeApp() (*App, error) {
 		return nil, err
 	}
 	jwtTokenGen := utils.NewJWTTokenGen()
-	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl()
+	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl(db)
 	sysDictService := service.NewSysDictService(sysDictRepositoryImpl, snowflake)
 	dictController := controller.NewDictController(sysDictService)
 	sysConfigureRepositoryImpl := impl.NewSysConfigureRepositoryImpl(db)

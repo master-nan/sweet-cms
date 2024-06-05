@@ -15,19 +15,19 @@ import (
 
 const bearerLength = len("Bearer ")
 
-func Auth(jwt *utils.JWTTokenGen) gin.HandlerFunc {
+func AuthHandler(jwt *utils.JWTTokenGen) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
 		resp := response.NewResponse()
 		c.Set("response", resp)
 		if len(authorization) < bearerLength {
-			resp.SetMsg("请先登录").SetCode(http.StatusUnauthorized)
+			resp.SetErrorMessage("请先登录").SetErrorCode(http.StatusUnauthorized)
 			return
 		}
 		token := authorization[bearerLength:]
 		id, err := jwt.ParseToken(token)
 		if err != nil {
-			resp.SetMsg(err.Error()).SetCode(http.StatusForbidden)
+			resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusForbidden)
 			return
 		}
 		fmt.Println(id)

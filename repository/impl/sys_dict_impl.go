@@ -6,6 +6,7 @@
 package impl
 
 import (
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
@@ -17,8 +18,10 @@ type SysDictRepositoryImpl struct {
 	db *gorm.DB
 }
 
-func NewSysDictRepositoryImpl() *SysDictRepositoryImpl {
-	return &SysDictRepositoryImpl{}
+func NewSysDictRepositoryImpl(db *gorm.DB) *SysDictRepositoryImpl {
+	return &SysDictRepositoryImpl{
+		db,
+	}
 }
 
 func (i *SysDictRepositoryImpl) GetSysDictById(id int) (model.SysDict, error) {
@@ -52,10 +55,15 @@ func (i *SysDictRepositoryImpl) DeleteSysDictById(id int) error {
 	return err
 }
 
-func (i *SysDictRepositoryImpl) GetSysDictByCode(code string) (model.SysDict, error) {
+func (i *SysDictRepositoryImpl) GetSysDictByCode(code string) (*model.SysDict, error) {
 	var sysDict model.SysDict
-	err := i.db.Preload("DictItems").Where("code = ?", code).First(&sysDict).Error
-	return sysDict, err
+	err := i.db.Preload("DictItems").Where("dict_code = ?", code).First(&sysDict).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+	}
+	return &sysDict, err
 }
 
 func (i *SysDictRepositoryImpl) GetSysDictItemById(id int) (model.SysDictItem, error) {

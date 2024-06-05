@@ -18,9 +18,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/dist/code/{code}": {
+        "/dict/code/{code}": {
             "get": {
-                "description": "根据ID获取字典详情",
+                "description": "根据CODE获取字典详情",
                 "produces": [
                     "application/json"
                 ],
@@ -36,7 +36,7 @@ const docTemplate = `{
                         "in": "header"
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "字典CODE",
                         "name": "code",
                         "in": "path",
@@ -47,13 +47,13 @@ const docTemplate = `{
                     "200": {
                         "description": "请求成功",
                         "schema": {
-                            "$ref": "#/definitions/middlewares.Response"
+                            "$ref": "#/definitions/sweet-cms_form_response.Response"
                         }
                     }
                 }
             }
         },
-        "/dist/id/{id}": {
+        "/dict/id/{id}": {
             "get": {
                 "description": "根据ID获取字典详情",
                 "produces": [
@@ -82,7 +82,7 @@ const docTemplate = `{
                     "200": {
                         "description": "请求成功",
                         "schema": {
-                            "$ref": "#/definitions/middlewares.Response"
+                            "$ref": "#/definitions/sweet-cms_form_response.Response"
                         }
                     }
                 }
@@ -90,15 +90,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "middlewares.Response": {
+        "sweet-cms_form_response.Response": {
             "type": "object",
             "properties": {
-                "code": {
+                "data": {},
+                "error_code": {
                     "type": "integer"
                 },
-                "data": {},
-                "msg": {
+                "error_message": {
                     "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 },
                 "total": {
                     "type": "integer"
