@@ -72,6 +72,17 @@ func (t *DictController) GetSysDictByCode(ctx *gin.Context) {
 	return
 }
 
+// QuerySysDict 字典列表
+// @Summary 字典列表
+// @Description 根据查询条件查询字段列表
+// @Tags 字典
+// @Produce application/json
+// @Param Authorization header string false "Bearer 用户令牌"
+// @Param q query request.Basic false "请求参数"
+// @Success 200 {object} response.Response "请求成功"
+// @Failure 400 {object} response.Response "参数错误"
+// @Failure 500 {object} response.Response  "内部错误"
+// @Router /dict/query [get]
 func (t *DictController) QuerySysDict(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
@@ -106,11 +117,28 @@ func (t *DictController) InsertSysDict(ctx *gin.Context) {
 	return
 }
 
+// UpdateSysDict 更新字典
+// @Summary 更新字典
+// @Description 根据ID更新字典信息
+// @Tags 字典
+// @Produce application/json
+// @Param Authorization header string false "Bearer 用户令牌"
+// @Param id path int true "字典ID"
+// @Success 200 {object} response.Response "请求成功"
+// @Failure 400 {object} response.Response "请求错误"
+// @Failure 500 {object} response.Response "内部错误"
+// @Router /dict/{id} [put]
 func (t *DictController) UpdateSysDict(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
+		return
+	}
 	var dictUpdateReq request.DictUpdateReq
-	err := ctx.ShouldBindJSON(&dictUpdateReq)
+	dictUpdateReq.ID = id
+	err = ctx.ShouldBindJSON(&dictUpdateReq)
 	if err != nil {
 		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
 		return

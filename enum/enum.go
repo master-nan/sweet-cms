@@ -78,12 +78,13 @@ func (s SysTableFieldInputType) Value() (driver.Value, error) {
 	return int(s), nil
 }
 
+// ExpressionType 表达式
 type ExpressionType uint8
 
 const (
-	GT ExpressionType = iota + 1
-	LT
-	GTE
+	GT  ExpressionType = iota + 1 // GT
+	LT                            // LT
+	GTE                           // GTE
 	LTE
 	EQ
 	NE

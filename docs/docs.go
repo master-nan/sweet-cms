@@ -87,9 +87,258 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/dict/query": {
+            "get": {
+                "description": "根据查询条件查询字段列表",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "字典"
+                ],
+                "summary": "字典列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "name": "num",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "sys_dict",
+                        "name": "table_code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "请求成功",
+                        "schema": {
+                            "$ref": "#/definitions/sweet-cms_form_response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/sweet-cms_form_response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/sweet-cms_form_response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/dict/{id}": {
+            "put": {
+                "description": "根据ID更新字典信息",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "字典"
+                ],
+                "summary": "更新字典",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "字典ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "请求成功",
+                        "schema": {
+                            "$ref": "#/definitions/sweet-cms_form_response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求错误",
+                        "schema": {
+                            "$ref": "#/definitions/sweet-cms_form_response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/sweet-cms_form_response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "enum.ExpressionLogic": {
+            "type": "integer",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "AND",
+                "OR"
+            ]
+        },
+        "enum.ExpressionType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12
+            ],
+            "x-enum-comments": {
+                "GT": "GT",
+                "GTE": "GTE",
+                "LT": "LT"
+            },
+            "x-enum-varnames": [
+                "GT",
+                "LT",
+                "GTE",
+                "LTE",
+                "EQ",
+                "NE",
+                "LIKE",
+                "NOT_LIKE",
+                "IN",
+                "NOT_IN",
+                "IS_NULL",
+                "IS_NOT_NULL"
+            ]
+        },
+        "enum.SysTableFieldType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+            ],
+            "x-enum-varnames": [
+                "INT",
+                "FLOAT",
+                "VARCHAR",
+                "TEXT",
+                "BOOLEAN",
+                "DATE",
+                "DATETIME",
+                "TIME"
+            ]
+        },
+        "sweet-cms_form_request.ExpressionGroup": {
+            "type": "object",
+            "properties": {
+                "logic": {
+                    "description": "\"and\" 或 \"or\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.ExpressionLogic"
+                        }
+                    ]
+                },
+                "nested": {
+                    "description": "嵌套的表达式组",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sweet-cms_form_request.ExpressionGroup"
+                    }
+                },
+                "rules": {
+                    "description": "基础查询规则",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sweet-cms_form_request.QueryRule"
+                    }
+                }
+            }
+        },
+        "sweet-cms_form_request.Order": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "is_asc": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "sweet-cms_form_request.QueryRule": {
+            "type": "object",
+            "properties": {
+                "expression_type": {
+                    "description": "比较器类型，如EQ, LT等",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.ExpressionType"
+                        }
+                    ]
+                },
+                "field": {
+                    "description": "字段",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "字段类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.SysTableFieldType"
+                        }
+                    ]
+                },
+                "value": {
+                    "description": "值"
+                }
+            }
+        },
+        "sweet-cms_form_request.QuickQuery": {
+            "type": "object",
+            "properties": {
+                "keyword": {
+                    "type": "string"
+                }
+            }
+        },
         "sweet-cms_form_response.Response": {
             "type": "object",
             "properties": {

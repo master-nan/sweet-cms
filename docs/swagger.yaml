@@ -1,5 +1,110 @@
 basePath: /sweet/admin
 definitions:
+  enum.ExpressionLogic:
+    enum:
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - AND
+    - OR
+  enum.ExpressionType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    type: integer
+    x-enum-comments:
+      GT: GT
+      GTE: GTE
+      LT: LT
+    x-enum-varnames:
+    - GT
+    - LT
+    - GTE
+    - LTE
+    - EQ
+    - NE
+    - LIKE
+    - NOT_LIKE
+    - IN
+    - NOT_IN
+    - IS_NULL
+    - IS_NOT_NULL
+  enum.SysTableFieldType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    type: integer
+    x-enum-varnames:
+    - INT
+    - FLOAT
+    - VARCHAR
+    - TEXT
+    - BOOLEAN
+    - DATE
+    - DATETIME
+    - TIME
+  sweet-cms_form_request.ExpressionGroup:
+    properties:
+      logic:
+        allOf:
+        - $ref: '#/definitions/enum.ExpressionLogic'
+        description: '"and" 或 "or"'
+      nested:
+        description: 嵌套的表达式组
+        items:
+          $ref: '#/definitions/sweet-cms_form_request.ExpressionGroup'
+        type: array
+      rules:
+        description: 基础查询规则
+        items:
+          $ref: '#/definitions/sweet-cms_form_request.QueryRule'
+        type: array
+    type: object
+  sweet-cms_form_request.Order:
+    properties:
+      field:
+        type: string
+      is_asc:
+        type: boolean
+    type: object
+  sweet-cms_form_request.QueryRule:
+    properties:
+      expression_type:
+        allOf:
+        - $ref: '#/definitions/enum.ExpressionType'
+        description: 比较器类型，如EQ, LT等
+      field:
+        description: 字段
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/enum.SysTableFieldType'
+        description: 字段类型
+      value:
+        description: 值
+    type: object
+  sweet-cms_form_request.QuickQuery:
+    properties:
+      keyword:
+        type: string
+    type: object
   sweet-cms_form_response.Response:
     properties:
       data: {}
@@ -20,6 +125,37 @@ info:
   title: 试验性项目
   version: "0.1"
 paths:
+  /dict/{id}:
+    put:
+      description: 根据ID更新字典信息
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        type: string
+      - description: 字典ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 请求成功
+          schema:
+            $ref: '#/definitions/sweet-cms_form_response.Response'
+        "400":
+          description: 请求错误
+          schema:
+            $ref: '#/definitions/sweet-cms_form_response.Response'
+        "500":
+          description: 内部错误
+          schema:
+            $ref: '#/definitions/sweet-cms_form_response.Response'
+      summary: 更新字典
+      tags:
+      - 字典
   /dict/code/{code}:
     get:
       description: 根据CODE获取字典详情
@@ -64,6 +200,44 @@ paths:
           schema:
             $ref: '#/definitions/sweet-cms_form_response.Response'
       summary: 字典详情
+      tags:
+      - 字典
+  /dict/query:
+    get:
+      description: 根据查询条件查询字段列表
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        type: string
+      - example: 10
+        in: query
+        name: num
+        type: integer
+      - example: 1
+        in: query
+        name: page
+        type: integer
+      - example: sys_dict
+        in: query
+        name: table_code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 请求成功
+          schema:
+            $ref: '#/definitions/sweet-cms_form_response.Response'
+        "400":
+          description: 参数错误
+          schema:
+            $ref: '#/definitions/sweet-cms_form_response.Response'
+        "500":
+          description: 内部错误
+          schema:
+            $ref: '#/definitions/sweet-cms_form_response.Response'
+      summary: 字典列表
       tags:
       - 字典
 swagger: "2.0"
