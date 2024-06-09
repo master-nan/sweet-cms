@@ -5,7 +5,14 @@
 
 package controller
 
+import (
+	ut "github.com/go-playground/universal-translator"
+	"sweet-cms/service"
+)
+
 type TableController struct {
+	sysTableService *service.SysTableService
+	translators     map[string]ut.Translator
 }
 
 func NewTableController() *TableController {

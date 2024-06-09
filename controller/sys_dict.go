@@ -96,18 +96,29 @@ func (t *DictController) QuerySysDict(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.Basic
 	if err := ctx.ShouldBindQuery(&data); err != nil {
-		resp.SetErrorCode(http.StatusInternalServerError).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	result, err := t.sysDictService.GetSysDictList(data)
 	if err != nil {
-		resp.SetErrorCode(http.StatusInternalServerError).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	resp.SetData(result.Data).SetTotal(result.Total)
 	return
 }
 
+// InsertSysDict 新增字典
+// @Summary 新增字典
+// @Description 新增字典主体
+// @Tags 字典
+// @Produce application/json
+// @Param Authorization header string false "Bearer 用户令牌"
+// @Param b body request.DictCreateReq  true "请求参数"
+// @Success 200 {object} response.Response "请求成功"
+// @Failure 400 {object} response.Response "参数错误"
+// @Failure 500 {object} response.Response  "内部错误"
+// @Router /dict [post]
 func (t *DictController) InsertSysDict(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
@@ -171,14 +182,39 @@ func (t *DictController) UpdateSysDict(ctx *gin.Context) {
 	}
 	var dictUpdateReq request.DictUpdateReq
 	dictUpdateReq.ID = id
-	err = ctx.ShouldBindJSON(&dictUpdateReq)
+	err = ctx.ShouldBindBodyWith(&dictUpdateReq, binding.JSON)
+	translator, _ := t.translators["zh"]
 	if err != nil {
-		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
+		if err == io.EOF {
+			// 客户端请求体为空
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数数据",
+			}
+			ctx.Error(e)
+			return
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			// 如果是验证错误，则翻译错误信息
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			ctx.Error(e)
+			return
+		}
+		ctx.Error(err)
 		return
 	}
 	err = t.sysDictService.UpdateSysDict(dictUpdateReq)
 	if err != nil {
-		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	return
@@ -189,12 +225,12 @@ func (t *DictController) DeleteSysDictById(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		resp.SetErrorCode(http.StatusInternalServerError).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	err = t.sysDictService.DeleteSysDictById(id)
 	if err != nil {
-		resp.SetErrorCode(http.StatusInternalServerError).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	return
@@ -206,12 +242,12 @@ func (t *DictController) GetSysDictItemById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	if err != nil {
-		resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusBadRequest)
+		ctx.Error(err)
 		return
 	}
 	data, err := t.sysDictService.GetSysDictItemById(id)
 	if err != nil {
-		resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusInternalServerError)
+		ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -223,12 +259,12 @@ func (t *DictController) GetSysDictItemsByDictId(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusBadRequest)
+		ctx.Error(err)
 		return
 	}
 	result, err := t.sysDictService.GetSysDictItemsByDictId(id)
 	if err != nil {
-		resp.SetErrorCode(http.StatusInternalServerError).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	resp.SetData(result)
@@ -239,14 +275,39 @@ func (t *DictController) InsertSysDictItem(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var dictItemCreateReq request.DictItemCreateReq
-	err := ctx.ShouldBindJSON(&dictItemCreateReq)
+	err := ctx.ShouldBindBodyWith(&dictItemCreateReq, binding.JSON)
+	translator, _ := t.translators["zh"]
 	if err != nil {
-		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
+		if err == io.EOF {
+			// 客户端请求体为空
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数数据",
+			}
+			ctx.Error(e)
+			return
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			// 如果是验证错误，则翻译错误信息
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			ctx.Error(e)
+			return
+		}
+		ctx.Error(err)
 		return
 	}
 	err = t.sysDictService.InsertSysDictItem(dictItemCreateReq)
 	if err != nil {
-		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	return
@@ -256,14 +317,39 @@ func (t *DictController) UpdateSysDictItem(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var dictItemUpdateReq request.DictItemUpdateReq
-	err := ctx.ShouldBindJSON(&dictItemUpdateReq)
+	err := ctx.ShouldBindBodyWith(&dictItemUpdateReq, binding.JSON)
+	translator, _ := t.translators["zh"]
 	if err != nil {
-		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
+		if err == io.EOF {
+			// 客户端请求体为空
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数数据",
+			}
+			ctx.Error(e)
+			return
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			// 如果是验证错误，则翻译错误信息
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			ctx.Error(e)
+			return
+		}
+		ctx.Error(err)
 		return
 	}
 	err = t.sysDictService.UpdateSysDictItem(dictItemUpdateReq)
 	if err != nil {
-		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	return
@@ -274,12 +360,12 @@ func (t *DictController) DeleteSysDictItemById(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		resp.SetErrorCode(http.StatusInternalServerError).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	err = t.sysDictService.DeleteSysDictItemById(id)
 	if err != nil {
-		resp.SetErrorCode(http.StatusInternalServerError).SetErrorMessage(err.Error())
+		ctx.Error(err)
 		return
 	}
 	return
