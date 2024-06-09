@@ -12,6 +12,7 @@ type AccessLog struct {
 	Locality string `json:"locality"`
 	Url      string `json:"url"`
 	Data     string `json:"data"`
+	Response string `json:"response"`
 }
 
 type LoginLog struct {

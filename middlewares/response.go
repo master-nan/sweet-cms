@@ -8,12 +8,14 @@ package middlewares
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"net/http"
 	"sweet-cms/form/response"
 )
 
 func ResponseHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		zap.L().Info("ResponseHandler start")
 		c.Next()
 		if len(c.Errors) > 0 {
 			for _, e := range c.Errors {
@@ -34,13 +36,12 @@ func ResponseHandler() gin.HandlerFunc {
 						"errorMessage": e.Error(),
 					})
 				}
-				c.Abort()
-				return
+			}
+		} else {
+			if resp, exists := c.Get("response"); exists {
+				c.JSON(http.StatusOK, resp)
 			}
 		}
-		if resp, exists := c.Get("response"); exists {
-			c.JSON(http.StatusOK, resp)
-			c.Abort()
-		}
+		zap.L().Info("ResponseHandler end")
 	}
 }

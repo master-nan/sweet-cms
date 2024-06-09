@@ -1,6 +1,10 @@
 package response
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
 type AdminError struct {
 	Code    int    `json:"code"`
@@ -9,6 +13,21 @@ type AdminError struct {
 
 func (e *AdminError) Error() string {
 	return fmt.Sprintf("Code: %d, Message: %s", e.Code, e.Message)
+}
+
+type BufferedResponseWriter struct {
+	gin.ResponseWriter
+	Body *bytes.Buffer
+}
+
+func (w *BufferedResponseWriter) Write(b []byte) (int, error) {
+	w.Body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
+
+func (w *BufferedResponseWriter) WriteString(s string) (int, error) {
+	w.Body.WriteString(s)
+	return w.ResponseWriter.WriteString(s)
 }
 
 // Response 返回值参数

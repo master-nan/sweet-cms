@@ -45,14 +45,18 @@ func (r *RedisUtil) Set(key string, value interface{}, expiration time.Duration)
 	default:
 		b, err := json.Marshal(value)
 		if err != nil {
-			zap.S().Errorf("json marshal value %s: %v", value, err)
+			zap.L().Error("json marshalling failed",
+				zap.String("value", fmt.Sprintf("%s", value)), // 将 value 格式化为字符串
+				zap.Error(err))
 			return err
 		}
 		str = string(b)
 	}
 	err := r.client.Set(ctx, key, str, expiration).Err()
 	if err != nil {
-		zap.S().Errorf("failed to set key %s: %v", key, err)
+		zap.L().Error("failed to set key %s: %v",
+			zap.String("value", fmt.Sprintf("%s", key)),
+			zap.Error(err))
 		return err
 	}
 	return nil
@@ -66,7 +70,9 @@ func (r *RedisUtil) Get(key string, value interface{}) error {
 		if errors.Is(err, redis.Nil) {
 			return inter.ErrCacheMiss
 		}
-		zap.S().Errorf("failed to get key %s: %v", key, err)
+		zap.L().Error("failed to set key %s: %v",
+			zap.String("value", fmt.Sprintf("%s", key)),
+			zap.Error(err))
 		return err
 	}
 	switch v := value.(type) {
@@ -75,21 +81,27 @@ func (r *RedisUtil) Get(key string, value interface{}) error {
 	case *int:
 		iv, err := strconv.Atoi(string(val))
 		if err != nil {
-			zap.S().Errorf("failed to convert string to int for key %s: %v", key, err)
+			zap.L().Error("failed to convert string to int for key %s: %v",
+				zap.String("value", fmt.Sprintf("%s", key)),
+				zap.Error(err))
 			return err
 		}
 		*v = iv
 	case *float64:
 		fv, err := strconv.ParseFloat(string(val), 64)
 		if err != nil {
-			zap.S().Errorf("failed to convert string to float64 for key %s: %v", key, err)
+			zap.L().Error("failed to convert string to float64 for key %s: %v",
+				zap.String("value", fmt.Sprintf("%s", key)),
+				zap.Error(err))
 			return err
 		}
 		*v = fv
 	default:
 		err := json.Unmarshal(val, value)
 		if err != nil {
-			zap.S().Errorf("failed to unmarshal value for key %s: %v", key, err)
+			zap.L().Error("failed to unmarshal value for key %s: %v",
+				zap.String("value", fmt.Sprintf("%s", key)),
+				zap.Error(err))
 			return err
 		}
 	}
@@ -104,7 +116,9 @@ func (r *RedisUtil) Del(key string) error {
 		if errors.Is(err, redis.Nil) {
 			return inter.ErrCacheMiss
 		}
-		zap.S().Errorf("failed to delete key %s: %v", key, err)
+		zap.L().Error("failed to delete key %s: %v",
+			zap.String("value", fmt.Sprintf("%s", key)),
+			zap.Error(err))
 		return err
 	}
 	return nil

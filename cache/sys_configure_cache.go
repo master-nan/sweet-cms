@@ -28,7 +28,7 @@ func (sc *SysConfigureCache) Get(key string) (model.SysConfigure, error) {
 	var sysConfigure model.SysConfigure
 	err := sc.cacheInterface.Get(ConfigureCacheKey+key, &sysConfigure)
 	if err != nil {
-		zap.S().Error("Error setting key in cache", zap.String("key", key), zap.Error(err))
+		zap.L().Error("Error setting key in cache", zap.String("key", key), zap.Error(err))
 		return sysConfigure, err
 	}
 	return sysConfigure, nil

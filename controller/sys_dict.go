@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -111,10 +112,18 @@ func (t *DictController) InsertSysDict(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var dictCreateReq request.DictCreateReq
-	//err := ctx.ShouldBindJSON(&dictCreateReq)
 	err := ctx.ShouldBindBodyWith(&dictCreateReq, binding.JSON)
 	translator, _ := t.translators["zh"]
 	if err != nil {
+		if err == io.EOF {
+			// 客户端请求体为空
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数数据",
+			}
+			ctx.Error(e)
+			return
+		}
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
 			// 如果是验证错误，则翻译错误信息
@@ -124,7 +133,7 @@ func (t *DictController) InsertSysDict(ctx *gin.Context) {
 				errorMessages = append(errorMessages, errMsg)
 			}
 			e := &response.AdminError{
-				Code:    400,
+				Code:    http.StatusBadRequest,
 				Message: strings.Join(errorMessages, ","),
 			}
 			ctx.Error(e)

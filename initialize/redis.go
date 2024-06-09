@@ -27,7 +27,7 @@ func InitRedis(serverConfig *config.Server) (*redis.Client, error) {
 
 	ctx := context.Background()
 	if _, err := client.Ping(ctx).Result(); err != nil {
-		zap.S().Errorf("Failed to connect to Redis: %v", err)
+		zap.L().Error("Failed to connect to Redis: %v", zap.Error(err))
 		return nil, err
 	}
 	return client, nil
