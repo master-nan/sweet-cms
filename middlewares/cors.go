@@ -7,7 +7,9 @@ package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
 )
 
@@ -23,6 +25,20 @@ func CorsHandler() gin.HandlerFunc {
 		//放行所有OPTIONS方法
 		if method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
+		} else {
+			if method == "POST" || method == "PUT" {
+				var m interface{}
+				err := c.ShouldBindBodyWith(&m, binding.JSON)
+				if err == io.EOF {
+					// 客户端请求体为空
+					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+						"success":      false,
+						"errorCode":    http.StatusBadRequest,
+						"errorMessage": "请求参数数据",
+					})
+					return
+				}
+			}
 		}
 		// 处理请求
 		c.Next()

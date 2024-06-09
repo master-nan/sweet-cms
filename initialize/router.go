@@ -16,8 +16,8 @@ func InitRouter(app *App) *gin.Engine {
 	store := cookie.NewStore([]byte(app.Config.Session.Secret))
 	router.
 		Use(middlewares.CorsHandler()).
-		Use(middlewares.ResponseHandler()).
 		Use(middlewares.LogHandler(app.LogService)).
+		Use(middlewares.ResponseHandler()).
 		Use(sessions.Sessions("sweet-cms-session", store))
 	//总路由
 	routerGroup := router.Group("/sweet")

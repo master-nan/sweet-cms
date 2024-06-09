@@ -1,5 +1,16 @@
 package response
 
+import "fmt"
+
+type AdminError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+func (e *AdminError) Error() string {
+	return fmt.Sprintf("Code: %d, Message: %s", e.Code, e.Message)
+}
+
 // Response 返回值参数
 type Response struct {
 	Success      bool        `json:"success"`

@@ -7,20 +7,36 @@ package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"net/http"
+	"sweet-cms/form/response"
 )
 
 func ResponseHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 		if len(c.Errors) > 0 {
-			// 这里你可以根据错误的类型或内容定制不同的响应
-			err := c.Errors.Last().Err
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   true,
-				"message": err.Error(),
-			})
-			c.Abort()
+			for _, e := range c.Errors {
+				var err *response.AdminError
+				switch {
+				case errors.As(e.Err, &err):
+					// 处理自定义API错误
+					c.JSON(err.Code, gin.H{
+						"success":      false,
+						"errorCode":    err.Code,
+						"errorMessage": err.Message,
+					})
+				default:
+					// 处理未知错误
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"success":      false,
+						"errorCode":    http.StatusInternalServerError,
+						"errorMessage": e.Error(),
+					})
+				}
+				c.Abort()
+				return
+			}
 		}
 		if resp, exists := c.Get("response"); exists {
 			c.JSON(http.StatusOK, resp)

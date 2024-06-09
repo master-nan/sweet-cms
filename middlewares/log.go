@@ -19,7 +19,7 @@ func LogHandler(logService *service.LogService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		zap.S().Infof("Access Log start")
 		startTime := time.Now()
-		var body any
+		var body interface{}
 		var query = c.Request.URL.Query()
 		_ = c.ShouldBindBodyWith(&body, binding.JSON)
 		var accessLog = model.AccessLog{

@@ -37,6 +37,7 @@ var Providers = wire.NewSet(
 	InitDB,
 	InitRedis,
 	InitSnowflake,
+	InitValidators,
 	utils.NewJWTTokenGen,
 	utils.NewRedisUtil,
 	impl.NewSysConfigureRepositoryImpl,

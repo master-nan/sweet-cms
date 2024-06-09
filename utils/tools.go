@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/gin-contrib/sessions"
+	"github.com/go-playground/validator/v10"
 	"math/rand"
 	"time"
 
@@ -125,4 +126,14 @@ func isZero(v reflect.Value) bool {
 	zero := reflect.Zero(v.Type()).Interface()
 	current := v.Interface()
 	return reflect.DeepEqual(current, zero)
+}
+
+func TranslateError(err validator.FieldError) string {
+	// 你可以根据err.Tag()来判断是哪种验证错误，然后返回不同的错误信息
+	switch err.Tag() {
+	case "required":
+		return fmt.Sprintf("%s 是必填项", err.Field())
+	default:
+		return fmt.Sprintf("%s 验证错误", err.Field())
+	}
 }
