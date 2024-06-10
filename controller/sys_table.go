@@ -6,6 +6,7 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
 	"sweet-cms/service"
 )
@@ -19,34 +20,31 @@ func NewTableController() *TableController {
 	return &TableController{}
 }
 
-func (t *TableController) Get() {
+func (t *TableController) GetSysTableByID(c *gin.Context) {
 
 }
 
-func (t *TableController) Query() {
+func (t *TableController) GetSysTableByCode(c *gin.Context) {
 
 }
 
-func (t *TableController) Insert() {
+func (t *TableController) QuerySysTable(c *gin.Context) {
 
 }
 
-func (t *TableController) Update() {
-
-}
-func (t *TableController) Delete() {
+func (t *TableController) InsertSysTable(c *gin.Context) {
 
 }
 
-type TableFieldController struct {
+func (t *TableController) UpdateSysTable(c *gin.Context) {
+
+}
+func (t *TableController) DeleteSysTableById(c *gin.Context) {
+
 }
 
-func NewTableFieldController() *TableFieldController {
-	return &TableFieldController{}
-}
-
-func (t *TableFieldController) Get()    {}
-func (t *TableFieldController) Query()  {}
-func (t *TableFieldController) Insert() {}
-func (t *TableFieldController) Update() {}
-func (t *TableFieldController) Delete() {}
+func (t *TableController) GetSysTableFieldById(c *gin.Context)       {}
+func (t *TableController) GetSysTableFieldsByTableId(c *gin.Context) {}
+func (t *TableController) InsertSysTableField(c *gin.Context)        {}
+func (t *TableController) UpdateSysTableField(c *gin.Context)        {}
+func (t *TableController) DeleteSysTableFieldById(c *gin.Context)    {}

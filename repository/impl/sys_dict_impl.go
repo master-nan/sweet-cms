@@ -33,10 +33,10 @@ func (i *SysDictRepositoryImpl) GetSysDictById(id int) (model.SysDict, error) {
 func (i *SysDictRepositoryImpl) GetSysDictList(basic request.Basic) (repository.SysDictListResult, error) {
 	var repo repository.SysDictListResult
 	query := utils.BuildQuery(i.db, basic)
-	var sysDict []model.SysDict
+	var sysDictList []model.SysDict
 	var total int64 = 0
-	err := query.Find(sysDict).Limit(-1).Offset(-1).Count(&total).Error
-	repo.Data = sysDict
+	err := query.Find(&sysDictList).Limit(-1).Offset(-1).Count(&total).Error
+	repo.Data = sysDictList
 	repo.Total = int(total)
 	return repo, err
 }

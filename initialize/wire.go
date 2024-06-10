@@ -29,6 +29,7 @@ type App struct {
 	JWT             *utils.JWTTokenGen
 	DictController  *controller.DictController
 	BasicController *controller.BasicController
+	TableController *controller.TableController
 	LogService      *service.LogService
 }
 
@@ -40,9 +41,10 @@ var Providers = wire.NewSet(
 	InitValidators,
 	utils.NewJWTTokenGen,
 	utils.NewRedisUtil,
+	impl.NewLogRepositoryImpl,
 	impl.NewSysConfigureRepositoryImpl,
 	impl.NewSysDictRepositoryImpl,
-	impl.NewLogRepositoryImpl,
+	impl.NewSysTableRepositoryImpl,
 	impl.NewSysUserRepositoryImpl,
 
 	wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)),
@@ -50,16 +52,19 @@ var Providers = wire.NewSet(
 	wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)),
 	wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)),
 	wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)),
+	wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)),
 	wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)),
 
 	cache.NewSysConfigureCache,
 
+	service.NewLogServer,
 	service.NewSysConfigureService,
 	service.NewSysDictService,
+	service.NewSysTableService,
 	service.NewSysUserService,
-	service.NewLogServer,
 
 	controller.NewDictController,
+	controller.NewTableController,
 	controller.NewBasicController,
 
 	wire.Struct(new(App), "*"),
