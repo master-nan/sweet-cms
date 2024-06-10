@@ -24,22 +24,32 @@ func InitRouter(app *App) *gin.Engine {
 	//后台非验证路由
 	adminBaseGroup := routerGroup.Group("/admin")
 	{
-		adminBaseGroup.GET("captcha", app.BasicController.Captcha)
-		adminBaseGroup.GET("login", app.BasicController.Login)
-		adminBaseGroup.GET("configure", app.BasicController.Configure)
-		adminBaseGroup.POST("login", app.BasicController.Login)
+		adminBaseGroup.GET("/captcha", app.BasicController.Captcha)
+		adminBaseGroup.GET("/login", app.BasicController.Login)
+		adminBaseGroup.GET("/configure", app.BasicController.Configure)
+		adminBaseGroup.POST("/login", app.BasicController.Login)
 	}
 
 	//后台验证路由
 	adminGroup := routerGroup.Group("/admin")
 	//adminGroup.Use(middlewares.AuthHandler(app.JWT))
 	{
-		adminGroup.GET("dict/id/:id", app.DictController.GetSysDictById)
-		adminGroup.GET("dict/code/:code", app.DictController.GetSysDictByCode)
-		adminGroup.GET("dict/query", app.DictController.QuerySysDict)
-		adminGroup.POST("dict", app.DictController.InsertSysDict)
-		adminGroup.PUT("dict/:id", app.DictController.UpdateSysDict)
-		adminGroup.DELETE("dict/:id", app.DictController.DeleteSysDictById)
+		// dict
+		adminGroup.GET("/dict/id/:id", app.DictController.GetSysDictById)
+		adminGroup.GET("/dict/code/:code", app.DictController.GetSysDictByCode)
+		adminGroup.GET("/dict/query", app.DictController.QuerySysDict)
+		adminGroup.POST("/dict", app.DictController.InsertSysDict)
+		adminGroup.PUT("/dict/:id", app.DictController.UpdateSysDict)
+		adminGroup.DELETE("/dict/:id", app.DictController.DeleteSysDictById)
+
+		// table
+		adminGroup.GET("/table/id/:id", app.TableController.GetSysTableByID)
+		adminGroup.GET("/table/code/:code", app.TableController.GetSysTableByCode)
+		adminGroup.GET("/table/query", app.TableController.QuerySysTable)
+		adminGroup.POST("/table", app.TableController.InsertSysTable)
+		adminGroup.PUT("/table/:id", app.TableController.UpdateSysTable)
+		adminGroup.DELETE("/table/:id", app.TableController.DeleteSysTableById)
+
 	}
 	return router
 }
