@@ -46,12 +46,12 @@ func (t *DictController) GetSysDictById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	if err != nil {
-		resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusBadRequest)
+		ctx.Error(err)
 		return
 	}
 	data, err := t.sysDictService.GetSysDictById(id)
 	if err != nil {
-		resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusInternalServerError)
+		ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -73,7 +73,11 @@ func (t *DictController) GetSysDictByCode(ctx *gin.Context) {
 	code := ctx.Param("code")
 	data, err := t.sysDictService.GetSysDictByCode(code)
 	if err != nil {
-		resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusInternalServerError)
+		e := &response.AdminError{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		}
+		ctx.Error(e)
 		return
 	}
 	resp.SetData(data)
@@ -96,7 +100,11 @@ func (t *DictController) QuerySysDict(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.Basic
 	if err := ctx.ShouldBindQuery(&data); err != nil {
-		ctx.Error(err)
+		e := &response.AdminError{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		}
+		ctx.Error(e)
 		return
 	}
 	result, err := t.sysDictService.GetSysDictList(data)
@@ -177,7 +185,11 @@ func (t *DictController) UpdateSysDict(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		resp.SetErrorCode(http.StatusBadRequest).SetErrorMessage(err.Error())
+		e := &response.AdminError{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		}
+		ctx.Error(e)
 		return
 	}
 	var dictUpdateReq request.DictUpdateReq
@@ -316,9 +328,9 @@ func (t *DictController) InsertSysDictItem(ctx *gin.Context) {
 func (t *DictController) UpdateSysDictItem(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	translator, _ := t.translators["zh"]
 	var dictItemUpdateReq request.DictItemUpdateReq
 	err := ctx.ShouldBindBodyWith(&dictItemUpdateReq, binding.JSON)
-	translator, _ := t.translators["zh"]
 	if err != nil {
 		if err == io.EOF {
 			// 客户端请求体为空

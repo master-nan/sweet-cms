@@ -40,6 +40,8 @@ func ResponseHandler() gin.HandlerFunc {
 		} else {
 			if resp, exists := c.Get("response"); exists {
 				c.JSON(http.StatusOK, resp)
+			} else {
+				c.JSON(http.StatusOK, gin.H{})
 			}
 		}
 		zap.L().Info("ResponseHandler end")

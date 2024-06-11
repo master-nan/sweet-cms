@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type AdminError struct {
@@ -34,13 +35,24 @@ func (w *BufferedResponseWriter) WriteString(s string) (int, error) {
 type Response struct {
 	Success      bool        `json:"success"`
 	Data         interface{} `json:"data,omitempty"`
+	Message      string      `json:"message,omitempty"`
+	Code         int         `json:"code,omitempty"`
 	ErrorMessage string      `json:"error_message,omitempty"`
 	ErrorCode    int         `json:"error_code,omitempty"`
 	Total        int         `json:"total"`
 }
 
 func NewResponse() *Response {
-	return &Response{}
+	return &Response{
+		Success: true,
+		Code:    http.StatusOK,
+		Message: "操作成功",
+	}
+}
+
+func (r *Response) SetSuccess(success bool) *Response {
+	r.Success = success
+	return r
 }
 
 func (r *Response) SetData(data interface{}) *Response {
@@ -53,12 +65,12 @@ func (r *Response) SetTotal(total int) *Response {
 	return r
 }
 
-func (r *Response) SetErrorMessage(msg string) *Response {
-	r.ErrorMessage = msg
+func (r *Response) SetMessage(msg string) *Response {
+	r.Message = msg
 	return r
 }
 
-func (r *Response) SetErrorCode(code int) *Response {
-	r.ErrorCode = code
+func (r *Response) SetCode(code int) *Response {
+	r.Code = code
 	return r
 }

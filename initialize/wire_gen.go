@@ -59,8 +59,10 @@ func InitializeApp() (*App, error) {
 	logService := service.NewLogServer(logRepositoryImpl, snowflake)
 	sysUserRepositoryImpl := impl.NewSysUserRepositoryImpl(db)
 	sysUserService := service.NewSysUserService(sysUserRepositoryImpl)
-	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureService, logService, sysUserService)
-	tableController := controller.NewTableController()
+	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureService, logService, sysUserService, v)
+	sysTableRepositoryImpl := impl.NewSysTableRepositoryImpl(db)
+	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake)
+	tableController := controller.NewTableController(sysTableService, v)
 	app := &App{
 		Config:          server,
 		DB:              db,

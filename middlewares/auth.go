@@ -21,13 +21,21 @@ func AuthHandler(jwt *utils.JWTTokenGen) gin.HandlerFunc {
 		resp := response.NewResponse()
 		c.Set("response", resp)
 		if len(authorization) < bearerLength {
-			resp.SetErrorMessage("请先登录").SetErrorCode(http.StatusUnauthorized)
+			e := &response.AdminError{
+				Code:    http.StatusUnauthorized,
+				Message: "请先登录",
+			}
+			c.Error(e)
 			return
 		}
 		token := authorization[bearerLength:]
 		id, err := jwt.ParseToken(token)
 		if err != nil {
-			resp.SetErrorMessage(err.Error()).SetErrorCode(http.StatusForbidden)
+			e := &response.AdminError{
+				Code:    http.StatusForbidden,
+				Message: err.Error(),
+			}
+			c.Error(e)
 			return
 		}
 		fmt.Println(id)
