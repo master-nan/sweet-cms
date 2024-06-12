@@ -56,6 +56,8 @@ var Providers = wire.NewSet(
 	wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)),
 
 	cache.NewSysConfigureCache,
+	cache.NewSysDictCache,
+	cache.NewSysTableCache,
 
 	service.NewLogServer,
 	service.NewSysConfigureService,

@@ -7,14 +7,12 @@ package cache
 
 import (
 	"sweet-cms/inter"
-	"sweet-cms/repository"
 )
 
 type SysDictCache struct {
-	sysDictRepo    *repository.SysDictRepository
 	cacheInterface inter.CacheInterface
 }
 
-func NewSysDictCache(sysDictRepo *repository.SysDictRepository, cacheInterface inter.CacheInterface) *SysDictCache {
-	return &SysDictCache{sysDictRepo, cacheInterface}
+func NewSysDictCache(cacheInterface inter.CacheInterface) *SysDictCache {
+	return &SysDictCache{cacheInterface}
 }

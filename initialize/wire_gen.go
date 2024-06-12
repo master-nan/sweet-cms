@@ -45,14 +45,15 @@ func InitializeApp() (*App, error) {
 	}
 	jwtTokenGen := utils.NewJWTTokenGen()
 	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl(db)
-	sysDictService := service.NewSysDictService(sysDictRepositoryImpl, snowflake)
+	redisUtil := utils.NewRedisUtil(client)
+	sysDictCache := cache.NewSysDictCache(redisUtil)
+	sysDictService := service.NewSysDictService(sysDictRepositoryImpl, snowflake, sysDictCache)
 	v, err := InitValidators()
 	if err != nil {
 		return nil, err
 	}
 	dictController := controller.NewDictController(sysDictService, v)
 	sysConfigureRepositoryImpl := impl.NewSysConfigureRepositoryImpl(db)
-	redisUtil := utils.NewRedisUtil(client)
 	sysConfigureCache := cache.NewSysConfigureCache(redisUtil)
 	sysConfigureService := service.NewSysConfigureService(sysConfigureRepositoryImpl, sysConfigureCache)
 	logRepositoryImpl := impl.NewLogRepositoryImpl(db)
@@ -61,7 +62,8 @@ func InitializeApp() (*App, error) {
 	sysUserService := service.NewSysUserService(sysUserRepositoryImpl)
 	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureService, logService, sysUserService, v)
 	sysTableRepositoryImpl := impl.NewSysTableRepositoryImpl(db)
-	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake)
+	sysTableCache := cache.NewSysTableCache(redisUtil)
+	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake, sysTableCache)
 	tableController := controller.NewTableController(sysTableService, v)
 	app := &App{
 		Config:          server,
@@ -96,5 +98,5 @@ var Providers = wire.NewSet(
 	InitDB,
 	InitRedis,
 	InitSnowflake,
-	InitValidators, utils.NewJWTTokenGen, utils.NewRedisUtil, impl.NewLogRepositoryImpl, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewSysTableRepositoryImpl, impl.NewSysUserRepositoryImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), cache.NewSysConfigureCache, service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysTableService, service.NewSysUserService, controller.NewDictController, controller.NewTableController, controller.NewBasicController, wire.Struct(new(App), "*"),
+	InitValidators, utils.NewJWTTokenGen, utils.NewRedisUtil, impl.NewLogRepositoryImpl, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewSysTableRepositoryImpl, impl.NewSysUserRepositoryImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), cache.NewSysConfigureCache, cache.NewSysDictCache, cache.NewSysTableCache, service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysTableService, service.NewSysUserService, controller.NewDictController, controller.NewTableController, controller.NewBasicController, wire.Struct(new(App), "*"),
 )

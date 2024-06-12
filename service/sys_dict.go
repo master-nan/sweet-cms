@@ -8,6 +8,7 @@ package service
 import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
+	"sweet-cms/cache"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
 	"sweet-cms/repository"
@@ -15,14 +16,16 @@ import (
 )
 
 type SysDictService struct {
-	sysDictRepo repository.SysDictRepository
-	sf          *utils.Snowflake
+	sysDictRepo  repository.SysDictRepository
+	sf           *utils.Snowflake
+	sysDictCache *cache.SysDictCache
 }
 
-func NewSysDictService(sysDictRepo repository.SysDictRepository, sf *utils.Snowflake) *SysDictService {
+func NewSysDictService(sysDictRepo repository.SysDictRepository, sf *utils.Snowflake, sysDictCache *cache.SysDictCache) *SysDictService {
 	return &SysDictService{
 		sysDictRepo,
 		sf,
+		sysDictCache,
 	}
 }
 

@@ -8,6 +8,7 @@ package service
 import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
+	"sweet-cms/cache"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
 	"sweet-cms/repository"
@@ -17,12 +18,14 @@ import (
 type SysTableService struct {
 	sysTableRepo repository.SysTableRepository
 	sf           *utils.Snowflake
+	sysTableCode *cache.SysTableCache
 }
 
-func NewSysTableService(sysTableRepo repository.SysTableRepository, sf *utils.Snowflake) *SysTableService {
+func NewSysTableService(sysTableRepo repository.SysTableRepository, sf *utils.Snowflake, sysTableCode *cache.SysTableCache) *SysTableService {
 	return &SysTableService{
 		sysTableRepo,
 		sf,
+		sysTableCode,
 	}
 }
 
@@ -60,4 +63,24 @@ func (s *SysTableService) UpdateTable(req request.TableUpdateReq) error {
 
 func (s *SysTableService) DeleteTableById(id int) error {
 	return s.sysTableRepo.DeleteTableById(id)
+}
+
+func (s *SysTableService) GetTableFieldById(id int) (model.SysTableField, error) {
+	return s.sysTableRepo.GetTableFieldById(id)
+}
+
+func (s *SysTableService) GetTableFieldsByTableId(tableId int) ([]model.SysTableField, error) {
+	return s.sysTableRepo.GetTableFieldsByTableId(tableId)
+}
+
+func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) error {
+	return s.sysTableRepo.UpdateTableField(req)
+}
+
+func (s *SysTableService) DeleteTableFieldById(id int) error {
+	return s.sysTableRepo.DeleteTableFieldById(id)
+}
+
+func (s *SysTableService) InsertTableField(data model.SysTableField) error {
+	return s.sysTableRepo.InsertTableField(data)
 }
