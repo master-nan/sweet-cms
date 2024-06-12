@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"strconv"
 	"sweet-cms/cache"
@@ -168,13 +169,68 @@ func (s *SysTableService) GetTableFieldsByTableId(tableId int) ([]model.SysTable
 }
 
 func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) error {
-	return s.sysTableRepo.UpdateTableField(req)
+	err := s.sysTableRepo.UpdateTableField(req)
+	if err != nil {
+		return err
+	}
+	table, err := s.GetTableById(req.ID)
+	if err != nil {
+		return err
+	}
+	if table.ID != 0 {
+		s.sysTableCache.Delete(strconv.Itoa(table.ID))
+		s.sysTableCache.Delete(table.TableCode)
+	}
+	s.sysTableFieldCache.Delete(strconv.Itoa(req.ID))
+	return nil
 }
 
 func (s *SysTableService) DeleteTableFieldById(id int) error {
-	return s.sysTableRepo.DeleteTableFieldById(id)
+	err := s.sysTableRepo.DeleteTableFieldById(id)
+	if err != nil {
+		return err
+	}
+	fields, err := s.GetTableFieldById(id)
+	if err != nil {
+		return err
+	}
+	if fields.ID != 0 {
+		s.sysTableFieldCache.Delete(strconv.Itoa(fields.ID))
+		table, err := s.GetTableById(fields.TableID)
+		if err != nil {
+			return err
+		}
+		if table.ID != 0 {
+			s.sysTableCache.Delete(strconv.Itoa(table.ID))
+			s.sysTableCache.Delete(table.TableCode)
+		}
+	}
+	return nil
 }
 
-func (s *SysTableService) InsertTableField(data model.SysTableField) error {
-	return s.sysTableRepo.InsertTableField(data)
+func (s *SysTableService) InsertTableField(req request.TableFieldUpdateReq) error {
+	var data model.SysTableField
+	err := mapstructure.Decode(req, &data)
+	if err != nil {
+		zap.L().Error("Error during struct mapping:", zap.Error(err))
+		return err
+	}
+	id, err := s.sf.GenerateUniqueID()
+	if err != nil {
+		return err
+	}
+	data.ID = int(id)
+	err = s.sysTableRepo.InsertTableField(data)
+	if err != nil {
+		return err
+	}
+	table, err := s.GetTableById(data.TableID)
+	if err != nil {
+		return err
+	}
+	if table.ID != 0 {
+		s.sysTableCache.Delete(strconv.Itoa(table.ID))
+		s.sysTableCache.Delete(table.TableCode)
+	}
+	return nil
 }
