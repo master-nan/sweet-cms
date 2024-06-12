@@ -23,3 +23,9 @@ func (s *SysUserService) GetByUserName(username string) (model.SysUser, error) {
 	user, err := s.sysUserRepo.GetByUserName(username)
 	return user, err
 }
+
+// GetByUserId 根据id获取用户信息
+func (s *SysUserService) GetByUserId(id int) (model.SysUser, error) {
+	user, err := s.sysUserRepo.GetByUserId(id)
+	return user, err
+}

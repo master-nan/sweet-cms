@@ -101,31 +101,40 @@ func Encryption(password string, salt string) string {
 }
 
 func IsEmpty(s interface{}) bool {
-	val := reflect.ValueOf(s)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	if !val.IsValid() {
+	v := reflect.ValueOf(s)
+	if v.Kind() == reflect.Ptr && v.IsNil() {
 		return true
 	}
-	for i := 0; i < val.NumField(); i++ {
-		if !isZero(val.Field(i)) {
-			return false
-		}
-	}
-	return true
+	return isZero(v)
 }
 
 func isZero(v reflect.Value) bool {
 	switch v.Kind() {
-	case reflect.Array, reflect.Slice:
-		return v.Len() == 0
-	case reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+	case reflect.Func, reflect.Map, reflect.Slice, reflect.Interface, reflect.Ptr, reflect.Chan:
 		return v.IsNil()
+	case reflect.Array, reflect.String:
+		return v.Len() == 0
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			if !isZero(v.Field(i)) {
+				return false
+			}
+		}
+		return true
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Complex64, reflect.Complex128:
+		return v.Complex() == 0
+	default:
+		// 未处理的类型
+		return false
 	}
-	zero := reflect.Zero(v.Type()).Interface()
-	current := v.Interface()
-	return reflect.DeepEqual(current, zero)
 }
 
 func TranslateError(err validator.FieldError) string {

@@ -6,7 +6,6 @@
 package impl
 
 import (
-	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
@@ -55,15 +54,10 @@ func (i *SysDictRepositoryImpl) DeleteSysDictById(id int) error {
 	return err
 }
 
-func (i *SysDictRepositoryImpl) GetSysDictByCode(code string) (*model.SysDict, error) {
+func (i *SysDictRepositoryImpl) GetSysDictByCode(code string) (model.SysDict, error) {
 	var sysDict model.SysDict
 	err := i.db.Preload("DictItems").Where("dict_code = ?", code).First(&sysDict).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-	}
-	return &sysDict, err
+	return sysDict, err
 }
 
 func (i *SysDictRepositoryImpl) GetSysDictItemById(id int) (model.SysDictItem, error) {

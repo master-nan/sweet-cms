@@ -23,3 +23,9 @@ func (s *SysUserRepositoryImpl) GetByUserName(username string) (model.SysUser, e
 	result := s.db.Where(&model.SysUser{UserName: username}).First(&user)
 	return user, result.Error
 }
+
+func (s *SysUserRepositoryImpl) GetByUserId(id int) (model.SysUser, error) {
+	var user model.SysUser
+	result := s.db.Where("id = ?", id).First(&user)
+	return user, result.Error
+}

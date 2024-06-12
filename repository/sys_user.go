@@ -9,4 +9,5 @@ import "sweet-cms/model"
 
 type SysUserRepository interface {
 	GetByUserName(string) (model.SysUser, error)
+	GetByUserId(id int) (model.SysUser, error)
 }

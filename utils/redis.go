@@ -9,8 +9,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"strconv"
 	"sweet-cms/inter"
@@ -32,7 +32,7 @@ func withTimeout(duration time.Duration) (context.Context, context.CancelFunc) {
 }
 
 func (r *RedisUtil) Set(key string, value interface{}, expiration time.Duration) error {
-	ctx, cancel := withTimeout(200 * time.Second)
+	ctx, cancel := withTimeout(2 * time.Second)
 	defer cancel()
 	var str string
 	switch value.(type) {

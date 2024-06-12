@@ -21,7 +21,7 @@ type SysDictRepository interface {
 	InsertSysDict(model.SysDict) error
 	UpdateSysDict(request.DictUpdateReq) error
 	DeleteSysDictById(int) error
-	GetSysDictByCode(string) (*model.SysDict, error)
+	GetSysDictByCode(string) (model.SysDict, error)
 
 	GetSysDictItemById(int) (model.SysDictItem, error)
 	GetSysDictItemsByDictId(int) ([]model.SysDictItem, error)

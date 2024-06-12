@@ -94,7 +94,7 @@ type SysDict struct {
 	Basic
 	DictName  *string        `gorm:"size:128;comment:字典名称" json:"dict_name"`
 	DictCode  *string        `gorm:"size:128;comment:字典编码" json:"dict_code"`
-	DictItems *[]SysDictItem `gorm:"-" json:"dict_items"`
+	DictItems *[]SysDictItem `gorm:"foreignKey:DictID;references:ID" json:"dict_items"`
 }
 
 type SysDictItem struct {
@@ -105,14 +105,14 @@ type SysDictItem struct {
 	ItemValue *string `gorm:"size:128;comment:字典值" json:"item_value"`
 }
 
-func (st *SysDict) Value() (driver.Value, error) {
-	return json.Marshal(st.DictItems)
-}
-
-func (st *SysDict) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("Scan source is not []byte")
-	}
-	return json.Unmarshal(bytes, &st.DictItems)
-}
+//func (st *SysDict) Value() (driver.Value, error) {
+//	return json.Marshal(st.DictItems)
+//}
+//
+//func (st *SysDict) Scan(value interface{}) error {
+//	bytes, ok := value.([]byte)
+//	if !ok {
+//		return errors.New("Scan source is not []byte")
+//	}
+//	return json.Unmarshal(bytes, &st.DictItems)
+//}

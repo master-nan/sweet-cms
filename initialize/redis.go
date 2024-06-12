@@ -8,7 +8,7 @@ package initialize
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"sweet-cms/config"
 	"time"
@@ -17,12 +17,12 @@ import (
 func InitRedis(serverConfig *config.Server) (*redis.Client, error) {
 	cfg := serverConfig.Redis
 	client := redis.NewClient(&redis.Options{
-		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		Password:     cfg.Password,
-		DB:           cfg.DB,
-		PoolSize:     cfg.PoolSize,
-		MinIdleConns: cfg.MinIdleConns,
-		MaxConnAge:   time.Duration(cfg.MaxConnAge) * time.Second,
+		Addr:            fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Password:        cfg.Password,
+		DB:              cfg.DB,
+		PoolSize:        cfg.PoolSize,
+		MinIdleConns:    cfg.MinIdleConns,
+		ConnMaxIdleTime: time.Duration(cfg.ConnMaxIdleTime) * time.Second,
 	})
 
 	ctx := context.Background()

@@ -6,9 +6,11 @@
 package service
 
 import (
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"sweet-cms/cache"
 	"sweet-cms/form/request"
+	"sweet-cms/inter"
 	"sweet-cms/model"
 	"sweet-cms/repository"
 )
@@ -33,9 +35,11 @@ func (cs *SysConfigureService) Query() (model.SysConfigure, error) {
 		if err != nil {
 			return data, err
 		}
-		err = cs.sysConfigureCache.Set("", data)
-		if err != nil {
-			zap.L().Error("Failed to cache sysConfigure set: %s", zap.Error(err))
+		if errors.As(err, inter.ErrCacheMiss) {
+			err = cs.sysConfigureCache.Set("", data)
+			if err != nil {
+				zap.L().Error("Failed to cache sysConfigure set: %s", zap.Error(err))
+			}
 		}
 	}
 	return data, err
