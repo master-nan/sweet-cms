@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
@@ -37,20 +38,22 @@ func NewSysDictService(sysDictRepo repository.SysDictRepository, sf *utils.Snowf
 
 func (s *SysDictService) GetSysDictById(id int) (model.SysDict, error) {
 	data, err := s.sysDictCache.Get(strconv.Itoa(id))
-	if err != nil {
-		d, e := s.sysDictRepo.GetSysDictById(id)
-		if e != nil {
-			if errors.Is(e, gorm.ErrRecordNotFound) {
-				return d, nil
-			}
-			return d, e
-		}
-		if errors.As(err, inter.ErrCacheMiss) {
-			s.sysDictCache.Set(strconv.Itoa(id), data)
-		}
+	if err == nil {
 		return data, nil
 	}
-	return data, nil
+	if !errors.Is(err, inter.ErrCacheMiss) {
+		return model.SysDict{}, err
+	}
+	// 尝试从数据库获取
+	dict, err := s.sysDictRepo.GetSysDictById(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.SysDict{}, nil
+		}
+		return model.SysDict{}, err
+	}
+	s.sysDictCache.Set(strconv.Itoa(id), dict)
+	return dict, nil
 }
 
 func (s *SysDictService) GetSysDictList(basic request.Basic) (repository.SysDictListResult, error) {
@@ -107,11 +110,18 @@ func (s *SysDictService) InsertSysDict(req request.DictCreateReq) error {
 
 func (s *SysDictService) UpdateSysDict(req request.DictUpdateReq) error {
 	err := s.sysDictRepo.UpdateSysDict(req)
-	if err == nil {
-		s.sysDictCache.Delete(strconv.Itoa(req.ID))
-		s.sysDictCache.Delete(req.DictCode)
+	if err != nil {
+		return err
 	}
-	return err
+	data, err := s.GetSysDictById(req.ID)
+	if err != nil {
+		return err
+	}
+	if data.ID != 0 {
+		s.sysDictCache.Delete(strconv.Itoa(data.ID))
+		s.sysDictCache.Delete(data.DictCode)
+	}
+	return nil
 }
 
 func (s *SysDictService) DeleteSysDictById(id int) error {
@@ -136,7 +146,7 @@ func (s *SysDictService) InsertSysDictItem(req request.DictItemCreateReq) error 
 	var data model.SysDictItem
 	err := mapstructure.Decode(req, &data)
 	if err != nil {
-		fmt.Println("Error during struct mapping:", err)
+		zap.L().Error("Error during struct mapping:", zap.Error(err))
 		return err
 	}
 	id, err := s.sf.GenerateUniqueID()
@@ -145,30 +155,64 @@ func (s *SysDictService) InsertSysDictItem(req request.DictItemCreateReq) error 
 	}
 	data.ID = int(id)
 	err = s.sysDictRepo.InsertSysDictItem(data)
-	if err == nil {
-		s.sysDictCache.Delete(strconv.Itoa(req.DictID))
+	if err != nil {
+		zap.L().Error("InsertSysDictItem err:", zap.Error(err))
+		return err
 	}
-	return err
+	dict, err := s.GetSysDictById(req.DictID)
+	if err != nil {
+		zap.L().Error("InsertSysDictItem err:", zap.Error(err))
+		return err
+	}
+	if dict.ID != 0 {
+		s.sysDictCache.Delete(strconv.Itoa(dict.ID))
+		s.sysDictCache.Delete(dict.DictCode)
+	}
+	return nil
 }
 
 func (s *SysDictService) UpdateSysDictItem(req request.DictItemUpdateReq) error {
 	err := s.sysDictRepo.UpdateSysDictItem(req)
-	if err == nil {
-		dictItem, e := s.GetSysDictItemById(req.ID)
-		if e == nil {
-			s.sysDictCache.Delete(strconv.Itoa(*dictItem.DictID))
-		}
+	if err != nil {
+		zap.L().Error("UpdateSysDictItem err:", zap.Error(err))
+		return err
 	}
-	return err
+	dictItem, err := s.GetSysDictItemById(req.ID)
+	if err != nil {
+		zap.L().Error("UpdateSysDictItem err:", zap.Error(err))
+		return err
+	}
+	dict, err := s.GetSysDictById(dictItem.DictID)
+	if err != nil {
+		zap.L().Error("UpdateSysDictItem err:", zap.Error(err))
+		return err
+	}
+	if dict.ID != 0 {
+		s.sysDictCache.Delete(strconv.Itoa(dict.ID))
+		s.sysDictCache.Delete(dict.DictCode)
+	}
+	return nil
 }
 
 func (s *SysDictService) DeleteSysDictItemById(id int) error {
 	err := s.sysDictRepo.DeleteSysDictItemById(id)
-	if err == nil {
-		dictItem, e := s.GetSysDictItemById(id)
-		if e == nil {
-			s.sysDictCache.Delete(strconv.Itoa(*dictItem.DictID))
-		}
+	if err != nil {
+		zap.L().Error("DeleteSysDictItemById err:", zap.Error(err))
+		return err
 	}
-	return err
+	dictItem, err := s.GetSysDictItemById(id)
+	if err != nil {
+		zap.L().Error("DeleteSysDictItemById err:", zap.Error(err))
+		return err
+	}
+	dict, err := s.GetSysDictById(dictItem.DictID)
+	if err != nil {
+		zap.L().Error("DeleteSysDictItemById err:", zap.Error(err))
+		return err
+	}
+	if dict.ID != 0 {
+		s.sysDictCache.Delete(strconv.Itoa(dict.ID))
+		s.sysDictCache.Delete(dict.DictCode)
+	}
+	return nil
 }

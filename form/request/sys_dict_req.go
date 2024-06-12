@@ -15,7 +15,6 @@ type DictCreateReq struct {
 type DictUpdateReq struct {
 	ID       int    `json:"id" binding:"required"`
 	DictName string `json:"dict_name" binding:"required"`
-	DictCode string `json:"dict_code" binding:"required"`
 }
 
 // DictItemCreateReq 新增字典明细
