@@ -66,7 +66,23 @@ func (t *TableController) QuerySysTable(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.Basic
+	translator, _ := t.translators["zh"]
 	if err := ctx.ShouldBindQuery(&data); err != nil {
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			// 如果是验证错误，则翻译错误信息
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			ctx.Error(e)
+			return
+		}
 		e := &response.AdminError{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),

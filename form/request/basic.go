@@ -14,7 +14,7 @@ type Basic struct {
 	Page        int               `json:"page" example:"1"`
 	Num         int               `json:"num" example:"10"`
 	Order       Order             `json:"order" example:"\{\"field\":\"name\",\"is_asc\":true\}"`
-	TableCode   string            `json:"table_code" example:"sys_dict"`
+	TableCode   string            `json:"table_code" example:"sys_dict" binding:"required"`
 	Expressions []ExpressionGroup `json:"expressions"`
 	QuickQuery  *QuickQuery       `json:"quick_query" example:"\{'keyword':'search'\}"`
 }

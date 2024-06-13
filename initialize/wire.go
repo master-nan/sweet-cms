@@ -46,6 +46,7 @@ var Providers = wire.NewSet(
 	impl.NewSysDictRepositoryImpl,
 	impl.NewSysTableRepositoryImpl,
 	impl.NewSysUserRepositoryImpl,
+	impl.NewGeneralizationRepositoryImpl,
 
 	wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)),
 	wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)),
@@ -54,6 +55,7 @@ var Providers = wire.NewSet(
 	wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)),
 	wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)),
 	wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)),
+	wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)),
 
 	cache.NewSysConfigureCache,
 	cache.NewSysDictCache,
@@ -66,9 +68,12 @@ var Providers = wire.NewSet(
 	service.NewSysTableService,
 	service.NewSysUserService,
 
+	service.NewGeneralizationService,
+
 	controller.NewDictController,
 	controller.NewTableController,
 	controller.NewBasicController,
+	controller.NewGeneralizationController,
 
 	wire.Struct(new(App), "*"),
 )

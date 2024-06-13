@@ -37,9 +37,7 @@ type Response struct {
 	Data    interface{} `json:"data,omitempty"`
 	Message string      `json:"message,omitempty"`
 	Code    int         `json:"code,omitempty"`
-	//ErrorMessage string      `json:"error_message,omitempty"`
-	//ErrorCode    int         `json:"error_code,omitempty"`
-	Total int `json:"total"`
+	Total   int         `json:"total"`
 }
 
 func NewResponse() *Response {
