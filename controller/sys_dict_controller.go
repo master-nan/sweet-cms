@@ -131,14 +131,14 @@ func (t *DictController) InsertSysDict(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var dictCreateReq request.DictCreateReq
-	err := ctx.ShouldBindBodyWith(&dictCreateReq, binding.JSON)
 	translator, _ := t.translators["zh"]
+	err := ctx.ShouldBindBodyWith(&dictCreateReq, binding.JSON)
 	if err != nil {
 		if err == io.EOF {
 			// 客户端请求体为空
 			e := &response.AdminError{
 				Code:    http.StatusBadRequest,
-				Message: "请求参数数据",
+				Message: "请求参数错误",
 			}
 			ctx.Error(e)
 			return
@@ -201,7 +201,7 @@ func (t *DictController) UpdateSysDict(ctx *gin.Context) {
 			// 客户端请求体为空
 			e := &response.AdminError{
 				Code:    http.StatusBadRequest,
-				Message: "请求参数数据",
+				Message: "请求参数错误",
 			}
 			ctx.Error(e)
 			return
@@ -294,7 +294,7 @@ func (t *DictController) InsertSysDictItem(ctx *gin.Context) {
 			// 客户端请求体为空
 			e := &response.AdminError{
 				Code:    http.StatusBadRequest,
-				Message: "请求参数数据",
+				Message: "请求参数错误",
 			}
 			ctx.Error(e)
 			return
@@ -336,7 +336,7 @@ func (t *DictController) UpdateSysDictItem(ctx *gin.Context) {
 			// 客户端请求体为空
 			e := &response.AdminError{
 				Code:    http.StatusBadRequest,
-				Message: "请求参数数据",
+				Message: "请求参数错误",
 			}
 			ctx.Error(e)
 			return

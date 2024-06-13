@@ -208,7 +208,7 @@ func (s *SysTableService) DeleteTableFieldById(id int) error {
 	return nil
 }
 
-func (s *SysTableService) InsertTableField(req request.TableFieldUpdateReq) error {
+func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) error {
 	var data model.SysTableField
 	err := mapstructure.Decode(req, &data)
 	if err != nil {
