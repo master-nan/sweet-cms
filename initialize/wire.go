@@ -22,15 +22,16 @@ import (
 )
 
 type App struct {
-	Config          *config.Server
-	DB              *gorm.DB
-	Redis           *redis.Client
-	SF              *utils.Snowflake
-	JWT             *utils.JWTTokenGen
-	DictController  *controller.DictController
-	BasicController *controller.BasicController
-	TableController *controller.TableController
-	LogService      *service.LogService
+	Config                   *config.Server
+	DB                       *gorm.DB
+	Redis                    *redis.Client
+	SF                       *utils.Snowflake
+	JWT                      *utils.JWTTokenGen
+	DictController           *controller.DictController
+	BasicController          *controller.BasicController
+	TableController          *controller.TableController
+	GeneralizationController *controller.GeneralizationController
+	LogService               *service.LogService
 }
 
 var Providers = wire.NewSet(

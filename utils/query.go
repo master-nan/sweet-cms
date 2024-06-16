@@ -6,9 +6,13 @@
 package utils
 
 import (
+	"fmt"
 	"gorm.io/gorm"
+	"reflect"
 	"sweet-cms/enum"
 	"sweet-cms/form/request"
+	"sweet-cms/model"
+	"sweet-cms/repository"
 	"time"
 )
 
@@ -134,4 +138,72 @@ func BuildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 	}
 
 	return query
+}
+
+// 动态生成结构体并进行查询
+func DynamicQuery(db *gorm.DB, basic request.Basic, table model.SysTable) (repository.GeneralizationListResult, error) {
+	var result repository.GeneralizationListResult
+	// 创建动态结构体
+	modelType := createDynamicStruct(table.TableFields)
+
+	// 构建查询
+	query := BuildQuery(db.Table(table.TableCode), basic)
+
+	// 查询结果
+	results := reflect.New(reflect.SliceOf(modelType)).Elem()
+	err := query.Find(results.Addr().Interface()).Error
+	if err != nil {
+		return result, err
+	}
+	// 转换结果为更通用的格式
+	records := make([]map[string]interface{}, results.Len())
+	for i := 0; i < results.Len(); i++ {
+		record := make(map[string]interface{})
+		val := results.Index(i)
+		for _, field := range table.TableFields {
+			fieldValue := val.FieldByName(field.FieldCode)
+			if fieldValue.IsValid() {
+				record[field.FieldCode] = fieldValue.Interface()
+			}
+		}
+		records[i] = record
+	}
+	// 总数查询
+	var total int64
+	db.Table(table.TableCode).Count(&total)
+	result.Data = records
+	result.Total = int(total)
+	return result, nil
+}
+
+// 根据表元数据创建动态结构体
+func createDynamicStruct(fields []model.SysTableField) reflect.Type {
+	var fieldsList []reflect.StructField
+	for _, field := range fields {
+		var fieldType reflect.Type
+		switch field.FieldType {
+		case enum.INT:
+			fieldType = reflect.TypeOf(0)
+		case enum.FLOAT:
+			fieldType = reflect.TypeOf(float64(0.0))
+		case enum.VARCHAR:
+			fieldType = reflect.TypeOf("")
+		case enum.TEXT:
+			fieldType = reflect.TypeOf("")
+		case enum.BOOLEAN:
+			fieldType = reflect.TypeOf(false)
+		case enum.DATE:
+			fieldType = reflect.TypeOf(time.Time{})
+		case enum.DATETIME:
+			fieldType = reflect.TypeOf(time.Time{})
+		case enum.TIME:
+			fieldType = reflect.TypeOf(time.Time{})
+		}
+		fieldsList = append(fieldsList, reflect.StructField{
+			Name: field.FieldName,
+			Type: fieldType,
+			Tag:  reflect.StructTag(fmt.Sprintf(`gorm:"column:%s" json:"%s"`, field.FieldCode, field.FieldName)),
+		})
+	}
+	return reflect.StructOf(fieldsList)
 }

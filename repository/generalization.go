@@ -7,6 +7,7 @@ package repository
 
 import (
 	"sweet-cms/form/request"
+	"sweet-cms/model"
 )
 
 type GeneralizationListResult struct {
@@ -15,5 +16,5 @@ type GeneralizationListResult struct {
 }
 
 type GeneralizationRepository interface {
-	Query(basic request.Basic) (GeneralizationListResult, error)
+	Query(request.Basic, model.SysTable) (GeneralizationListResult, error)
 }

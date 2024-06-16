@@ -50,6 +50,8 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.PUT("/table/:id", app.TableController.UpdateSysTable)
 		adminGroup.DELETE("/table/:id", app.TableController.DeleteSysTableById)
 
+		adminGroup.GET("/generalization/query/:id", app.GeneralizationController.Query)
+
 	}
 	return router
 }

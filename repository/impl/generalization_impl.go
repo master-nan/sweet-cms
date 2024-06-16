@@ -8,7 +8,9 @@ package impl
 import (
 	"gorm.io/gorm"
 	"sweet-cms/form/request"
+	"sweet-cms/model"
 	"sweet-cms/repository"
+	"sweet-cms/utils"
 )
 
 type GeneralizationRepositoryImpl struct {
@@ -19,7 +21,10 @@ func NewGeneralizationRepositoryImpl(db *gorm.DB) *GeneralizationRepositoryImpl 
 	return &GeneralizationRepositoryImpl{db}
 }
 
-func (g GeneralizationRepositoryImpl) Query(basic request.Basic) (repository.GeneralizationListResult, error) {
-	//TODO implement me
-	panic("implement me")
+func (g GeneralizationRepositoryImpl) Query(basic request.Basic, table model.SysTable) (repository.GeneralizationListResult, error) {
+	result, err := utils.DynamicQuery(g.db, basic, table)
+	if err != nil {
+		return repository.GeneralizationListResult{}, err
+	}
+	return result, nil
 }

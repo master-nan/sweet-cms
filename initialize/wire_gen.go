@@ -66,16 +66,20 @@ func InitializeApp() (*App, error) {
 	sysTableFieldCache := cache.NewSysTableFieldCache(redisUtil)
 	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake, sysTableCache, sysTableFieldCache)
 	tableController := controller.NewTableController(sysTableService, v)
+	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db)
+	generalizationService := service.NewGeneralizationService(generalizationRepositoryImpl)
+	generalizationController := controller.NewGeneralizationController(generalizationService, sysTableService)
 	app := &App{
-		Config:          server,
-		DB:              db,
-		Redis:           client,
-		SF:              snowflake,
-		JWT:             jwtTokenGen,
-		DictController:  dictController,
-		BasicController: basicController,
-		TableController: tableController,
-		LogService:      logService,
+		Config:                   server,
+		DB:                       db,
+		Redis:                    client,
+		SF:                       snowflake,
+		JWT:                      jwtTokenGen,
+		DictController:           dictController,
+		BasicController:          basicController,
+		TableController:          tableController,
+		GeneralizationController: generalizationController,
+		LogService:               logService,
 	}
 	return app, nil
 }
@@ -83,15 +87,16 @@ func InitializeApp() (*App, error) {
 // wire.go:
 
 type App struct {
-	Config          *config.Server
-	DB              *gorm.DB
-	Redis           *redis.Client
-	SF              *utils.Snowflake
-	JWT             *utils.JWTTokenGen
-	DictController  *controller.DictController
-	BasicController *controller.BasicController
-	TableController *controller.TableController
-	LogService      *service.LogService
+	Config                   *config.Server
+	DB                       *gorm.DB
+	Redis                    *redis.Client
+	SF                       *utils.Snowflake
+	JWT                      *utils.JWTTokenGen
+	DictController           *controller.DictController
+	BasicController          *controller.BasicController
+	TableController          *controller.TableController
+	GeneralizationController *controller.GeneralizationController
+	LogService               *service.LogService
 }
 
 var Providers = wire.NewSet(

@@ -95,8 +95,7 @@ func (t *TableController) QuerySysTable(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	resp.SetData(result.Data)
-	resp.SetTotal(result.Total)
+	resp.SetData(result.Data).SetTotal(result.Total)
 	return
 }
 

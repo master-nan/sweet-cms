@@ -90,7 +90,7 @@ func (t *DictController) GetSysDictByCode(ctx *gin.Context) {
 // @Tags 字典
 // @Produce application/json
 // @Param Authorization header string false "Bearer 用户令牌"
-// @Param q query request.Basic false "请求参数"
+// @Param q body request.Basic false "请求参数"
 // @Success 200 {object} response.Response "请求成功"
 // @Failure 400 {object} response.Response "参数错误"
 // @Failure 500 {object} response.Response  "内部错误"

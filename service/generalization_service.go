@@ -7,6 +7,7 @@ package service
 
 import (
 	"sweet-cms/form/request"
+	"sweet-cms/model"
 	"sweet-cms/repository"
 )
 
@@ -20,6 +21,10 @@ func NewGeneralizationService(generalizationRepo repository.GeneralizationReposi
 	}
 }
 
-func (s *GeneralizationService) Query(basic request.Basic) (repository.GeneralizationListResult, error) {
-	panic("something")
+func (gs *GeneralizationService) Query(basic request.Basic, table model.SysTable) (repository.GeneralizationListResult, error) {
+	result, err := gs.generalizationRepo.Query(basic, table)
+	if err != nil {
+		return repository.GeneralizationListResult{}, err
+	}
+	return result, nil
 }
