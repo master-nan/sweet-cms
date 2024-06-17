@@ -169,43 +169,45 @@ func (s *SysTableService) GetTableFieldsByTableId(tableId int) ([]model.SysTable
 }
 
 func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) error {
-	err := s.sysTableRepo.UpdateTableField(req)
-	if err != nil {
-		return err
-	}
 	table, err := s.GetTableById(req.ID)
 	if err != nil {
 		return err
 	}
 	if table.ID != 0 {
+		err = s.sysTableRepo.UpdateTableField(req, table.TableCode)
+		if err != nil {
+			return err
+		}
 		s.sysTableCache.Delete(strconv.Itoa(table.ID))
 		s.sysTableCache.Delete(table.TableCode)
+		s.sysTableFieldCache.Delete(strconv.Itoa(req.ID))
+		return nil
 	}
-	s.sysTableFieldCache.Delete(strconv.Itoa(req.ID))
-	return nil
+	return errors.New("数据不存在")
 }
 
 func (s *SysTableService) DeleteTableFieldById(id int) error {
-	err := s.sysTableRepo.DeleteTableFieldById(id)
+	field, err := s.GetTableFieldById(id)
 	if err != nil {
 		return err
 	}
-	fields, err := s.GetTableFieldById(id)
-	if err != nil {
-		return err
-	}
-	if fields.ID != 0 {
-		s.sysTableFieldCache.Delete(strconv.Itoa(fields.ID))
-		table, err := s.GetTableById(fields.TableID)
+	if field.ID != 0 {
+		table, err := s.GetTableById(field.TableID)
 		if err != nil {
 			return err
 		}
 		if table.ID != 0 {
+			err = s.sysTableRepo.DeleteTableField(field, table.TableCode)
+			if err != nil {
+				return err
+			}
+			s.sysTableFieldCache.Delete(strconv.Itoa(field.ID))
 			s.sysTableCache.Delete(strconv.Itoa(table.ID))
 			s.sysTableCache.Delete(table.TableCode)
+			return nil
 		}
 	}
-	return nil
+	return errors.New("数据不存在")
 }
 
 func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) error {
@@ -219,15 +221,17 @@ func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) erro
 	if err != nil {
 		return err
 	}
-	data.ID = int(id)
-	err = s.sysTableRepo.InsertTableField(data)
-	if err != nil {
-		return err
-	}
 	table, err := s.GetTableById(data.TableID)
 	if err != nil {
 		return err
 	}
+
+	data.ID = int(id)
+	err = s.sysTableRepo.InsertTableField(data, table.TableCode)
+	if err != nil {
+		return err
+	}
+
 	if table.ID != 0 {
 		s.sysTableCache.Delete(strconv.Itoa(table.ID))
 		s.sysTableCache.Delete(table.TableCode)

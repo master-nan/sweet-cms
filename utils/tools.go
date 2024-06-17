@@ -7,6 +7,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/go-playground/validator/v10"
 	"math/rand"
+	"sweet-cms/enum"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -144,5 +145,39 @@ func TranslateError(err validator.FieldError) string {
 		return fmt.Sprintf("%s 是必填项", err.Field())
 	default:
 		return fmt.Sprintf("%s 验证错误", err.Field())
+	}
+}
+
+// 辅助函数用于创建各种类型的指针
+func BoolPtr(b bool) *bool {
+	return &b
+}
+
+func IntPtr(i int) *int {
+	return &i
+}
+
+func StringPtr(s string) *string {
+	return &s
+}
+
+func SqlTypeFromFieldType(fieldType enum.SysTableFieldType) string {
+	switch fieldType {
+	case enum.INT:
+		return "INT"
+	case enum.VARCHAR:
+		return "VARCHAR" // 长度将在外部指定
+	case enum.DATETIME:
+		return "DATETIME"
+	case enum.BOOLEAN:
+		return "BOOLEAN"
+	case enum.TEXT:
+		return "TEXT"
+	case enum.DATE:
+		return "DATE"
+	case enum.TIME:
+		return "TIME"
+	default:
+		return "TEXT"
 	}
 }

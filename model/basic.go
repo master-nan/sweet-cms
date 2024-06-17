@@ -59,13 +59,13 @@ func (t *CustomTime) Scan(value interface{}) error {
 
 type Basic struct {
 	ID            int            `gorm:"primaryKey;type:int" json:"id"`
-	GmtCreate     *CustomTime    `gorm:"type:datetime;autoCreateTime" json:"gmt_create"`
+	GmtCreate     CustomTime     `gorm:"type:datetime;autoCreateTime" json:"gmt_create"`
 	GmtCreateUser *int           `json:"gmt_create_user"`
-	GmtModify     *CustomTime    `gorm:"type:datetime;autoCreateTime;autoUpdateTime" json:"gmt_modify"`
+	GmtModify     CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime" json:"gmt_modify"`
 	GmtModifyUser *int           `json:"gmt_modify_user"`
 	GmtDelete     gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
 	GmtDeleteUser *int           `json:"-"`
-	State         *bool          `gorm:"default:true" json:"state"`
+	State         bool           `gorm:"default:true" json:"state"`
 }
 
 func (b *Basic) BeforeCreate(tx *gorm.DB) (err error) {

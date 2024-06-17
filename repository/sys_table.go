@@ -25,7 +25,7 @@ type SysTableRepository interface {
 
 	GetTableFieldById(int) (model.SysTableField, error)
 	GetTableFieldsByTableId(int) ([]model.SysTableField, error)
-	UpdateTableField(request.TableFieldUpdateReq) error
-	InsertTableField(model.SysTableField) error
-	DeleteTableFieldById(int) error
+	UpdateTableField(request.TableFieldUpdateReq, string) error
+	InsertTableField(model.SysTableField, string) error
+	DeleteTableField(model.SysTableField, string) error
 }
