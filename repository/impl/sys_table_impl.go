@@ -69,14 +69,14 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) error {
 	}
 	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
 	basicFields := []model.SysTableField{
-		{TableID: table.ID, FieldName: "ID", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: utils.BoolPtr(true), IsNull: utils.BoolPtr(false), InputType: enum.INPUT_NUMBER, IsSort: utils.BoolPtr(true)},
-		{TableID: table.ID, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: utils.BoolPtr(false), InputType: enum.DATETIME_PICKER, IsSort: utils.BoolPtr(true)},
-		{TableID: table.ID, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: utils.BoolPtr(true), InputType: enum.INPUT_NUMBER},
-		{TableID: table.ID, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: utils.BoolPtr(false), InputType: enum.DATETIME_PICKER, IsSort: utils.BoolPtr(true)},
-		{TableID: table.ID, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: utils.BoolPtr(true), InputType: enum.INPUT_NUMBER},
-		{TableID: table.ID, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: utils.BoolPtr(true), InputType: enum.DATETIME_PICKER},
-		{TableID: table.ID, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: utils.BoolPtr(true), InputType: enum.INPUT_NUMBER},
-		{TableID: table.ID, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: utils.BoolPtr(false), InputType: enum.SELECT, IsSort: utils.BoolPtr(true), DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether")},
+		{TableID: table.ID, FieldName: "ID", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, InputType: enum.INPUT_NUMBER, IsSort: true},
+		{TableID: table.ID, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, InputType: enum.DATETIME_PICKER, IsSort: true},
+		{TableID: table.ID, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, InputType: enum.INPUT_NUMBER},
+		{TableID: table.ID, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, InputType: enum.DATETIME_PICKER, IsSort: true},
+		{TableID: table.ID, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER},
+		{TableID: table.ID, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER},
+		{TableID: table.ID, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER},
+		{TableID: table.ID, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether")},
 	}
 	for _, field := range basicFields {
 		if err := tx.Create(&field).Error; err != nil {
@@ -135,7 +135,7 @@ func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateRe
 	if req.IsNull {
 		sqlType += " NULL"
 	} else {
-		sqlType += "NOT NULL"
+		sqlType += " NOT NULL"
 	}
 	if req.FieldName != "" {
 		sqlType += fmt.Sprintf(" COMMENT '%s'", req.FieldName)
@@ -185,10 +185,10 @@ func (s *SysTableRepositoryImpl) InsertTableField(field model.SysTableField, tab
 	if field.DefaultValue != nil {
 		sqlType += fmt.Sprintf(" DEFAULT '%s'", field.DefaultValue)
 	}
-	if field.IsNull != nil && !*field.IsNull {
-		sqlType += " NOT NULL"
-	} else {
+	if field.IsNull {
 		sqlType += " NULL"
+	} else {
+		sqlType += " NOT NULL"
 	}
 	if field.FieldName != "" {
 		sqlType += fmt.Sprintf(" COMMENT '%s'", field.FieldName)
