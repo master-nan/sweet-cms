@@ -7,8 +7,11 @@ package utils
 
 import (
 	"fmt"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gorm.io/gorm"
 	"reflect"
+	"strings"
 	"sweet-cms/enum"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
@@ -156,7 +159,7 @@ func finalizeQuery(query *gorm.DB, basic request.Basic) *gorm.DB {
 func DynamicQuery(db *gorm.DB, basic request.Basic, table model.SysTable) (repository.GeneralizationListResult, error) {
 	var result repository.GeneralizationListResult
 	// 创建动态结构体
-	modelType := createDynamicStruct(table.TableFields)
+	modelType := CreateDynamicStruct(table.TableFields)
 
 	// 构建查询
 	query := ExecuteQuery(db.Table(table.TableCode), basic)
@@ -191,8 +194,8 @@ func DynamicQuery(db *gorm.DB, basic request.Basic, table model.SysTable) (repos
 	return result, nil
 }
 
-// createDynamicStruct 根据表元数据创建动态结构体
-func createDynamicStruct(fields []model.SysTableField) reflect.Type {
+// CreateDynamicStruct 根据表元数据创建动态结构体
+func CreateDynamicStruct(fields []model.SysTableField) reflect.Type {
 	var fieldsList []reflect.StructField
 	for _, field := range fields {
 		var fieldType reflect.Type
@@ -215,10 +218,24 @@ func createDynamicStruct(fields []model.SysTableField) reflect.Type {
 			fieldType = reflect.TypeOf(time.Time{})
 		}
 		fieldsList = append(fieldsList, reflect.StructField{
-			Name: field.FieldName,
+			Name: toCamelCase(field.FieldCode),
 			Type: fieldType,
-			Tag:  reflect.StructTag(fmt.Sprintf(`gorm:"column:%s" json:"%s"`, field.FieldCode, field.FieldName)),
+			Tag:  reflect.StructTag(fmt.Sprintf(`gorm:"comment:%s" json:"%s"`, field.FieldName, field.FieldCode)),
 		})
 	}
 	return reflect.StructOf(fieldsList)
+}
+
+func GetTableName(db *gorm.DB, tableCode string) string {
+	tableName := db.NamingStrategy.TableName(tableCode)
+	return tableName
+}
+
+func toCamelCase(input string) string {
+	parts := strings.Split(input, "_")
+	c := cases.Title(language.English) // 使用英语规则进行标题转换
+	for i, part := range parts {
+		parts[i] = c.String(part)
+	}
+	return strings.Join(parts, "")
 }

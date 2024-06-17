@@ -8,6 +8,7 @@ package impl
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"reflect"
 	"sweet-cms/enum"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
@@ -39,36 +40,39 @@ func (s *SysTableRepositoryImpl) GetTableByTableCode(code string) (model.SysTabl
 	return table, err
 }
 
-func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) error {
+func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) (err error) {
 	// 开始事务
 	tx := s.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
-			tx.Rollback()
+			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
+			tx.Rollback()                               // 回滚事务
+			// 设置返回的错误信息
+			if e, ok := r.(error); ok {
+				err = e // 如果 r 是 error 类型，直接返回
+			} else {
+				// 如果 r 不是 error 类型，转换为 error 后返回
+				err = fmt.Errorf("%v", r)
+			}
 		}
 	}()
-	err := tx.Create(&table).Error
+	err = tx.Create(&table).Error
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-	// 构建创建实际表的SQL语句，包含Basic结构体的字段
-	createSQL := fmt.Sprintf("CREATE TABLE `%s` (", table.TableCode)
-	createSQL += `
-       	id INT AUTO_INCREMENT PRIMARY KEY,
-        gmt_create DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-        gmt_create_user INT COMMENT '创建者',
-        gmt_modify DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-        gmt_modify_user INT COMMENT '修改者',
-        gmt_delete DATETIME COMMENT '删除时间',
-        gmt_delete_user INT COMMENT '删除者',
-        state BOOLEAN DEFAULT TRUE COMMENT '状态'
-    );`
-	// 执行创建表的SQL语句
-	if err := tx.Exec(createSQL).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+	//// 构建创建实际表的SQL语句，包含Basic结构体的字段
+	//createSQL := fmt.Sprintf("CREATE TABLE `%s` (", table.TableCode)
+	//createSQL += `
+	//   	id INT AUTO_INCREMENT PRIMARY KEY,
+	//    gmt_create DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+	//    gmt_create_user INT COMMENT '创建者',
+	//    gmt_modify DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+	//    gmt_modify_user INT COMMENT '修改者',
+	//    gmt_delete DATETIME COMMENT '删除时间',
+	//    gmt_delete_user INT COMMENT '删除者',
+	//    state BOOLEAN DEFAULT TRUE COMMENT '状态'
+	//);`
 	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
 	basicFields := []model.SysTableField{
 		{TableID: table.ID, FieldName: "ID", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
@@ -80,6 +84,22 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) error {
 		{TableID: table.ID, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
 		{TableID: table.ID, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
 	}
+	// 动态创建结构体类型
+	dynamicType := utils.CreateDynamicStruct(basicFields)
+	// 创建实例
+	dynamicModel := reflect.New(dynamicType).Interface()
+	tableName := utils.GetTableName(tx, table.TableCode)
+	err = tx.Table(tableName).AutoMigrate(dynamicModel)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	//// 执行创建表的SQL语句
+	//if err := tx.Exec(createSQL).Error; err != nil {
+	//	tx.Rollback()
+	//	return err
+	//}
+
 	for i := range basicFields {
 		fieldID, err := s.sf.GenerateUniqueID()
 		if err != nil {
@@ -127,8 +147,21 @@ func (s *SysTableRepositoryImpl) GetTableFieldsByTableId(id int) ([]model.SysTab
 	return items, err
 }
 
-func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateReq, tableCode string) error {
+func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateReq, tableCode string) (err error) {
 	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
+			tx.Rollback()                               // 回滚事务
+			// 设置返回的错误信息
+			if e, ok := r.(error); ok {
+				err = e // 如果 r 是 error 类型，直接返回
+			} else {
+				// 如果 r 不是 error 类型，转换为 error 后返回
+				err = fmt.Errorf("%v", r)
+			}
+		}
+	}()
 	if err := tx.Model(&model.SysTableField{}).Where("id = ?", req.ID).Updates(req).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -178,8 +211,21 @@ func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateRe
 	return tx.Commit().Error
 }
 
-func (s *SysTableRepositoryImpl) InsertTableField(field model.SysTableField, tableCode string) error {
+func (s *SysTableRepositoryImpl) InsertTableField(field model.SysTableField, tableCode string) (err error) {
 	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
+			tx.Rollback()                               // 回滚事务
+			// 设置返回的错误信息
+			if e, ok := r.(error); ok {
+				err = e // 如果 r 是 error 类型，直接返回
+			} else {
+				// 如果 r 不是 error 类型，转换为 error 后返回
+				err = fmt.Errorf("%v", r)
+			}
+		}
+	}()
 	// 创建字段记录
 	if err := tx.Create(&field).Error; err != nil {
 		tx.Rollback()
@@ -218,8 +264,21 @@ func (s *SysTableRepositoryImpl) InsertTableField(field model.SysTableField, tab
 	return tx.Commit().Error
 }
 
-func (s *SysTableRepositoryImpl) DeleteTableField(field model.SysTableField, tableCode string) error {
+func (s *SysTableRepositoryImpl) DeleteTableField(field model.SysTableField, tableCode string) (err error) {
 	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
+			tx.Rollback()                               // 回滚事务
+			// 设置返回的错误信息
+			if e, ok := r.(error); ok {
+				err = e // 如果 r 是 error 类型，直接返回
+			} else {
+				// 如果 r 不是 error 类型，转换为 error 后返回
+				err = fmt.Errorf("%v", r)
+			}
+		}
+	}()
 	// 删除字段
 	if err := tx.Where("id = ?", field.ID).Delete(model.SysTableField{}).Error; err != nil {
 		tx.Rollback()
