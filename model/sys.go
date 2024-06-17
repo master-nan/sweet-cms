@@ -76,6 +76,10 @@ type SysTableField struct {
 	IsAdvancedSearch   bool                        `gorm:"default:false;comment:是否高级搜索" json:"is_advanced_search"`
 	IsSort             bool                        `gorm:"default:false;comment:是否可排序" json:"is_sort"`
 	IsNull             bool                        `gorm:"default:true;comment:是否可空" json:"is_null"`
+	IsListShow         bool                        `gorm:"default:true;comment:是否列表显示" json:"is_list_show"`
+	IsInsertShow       bool                        `gorm:"default:true;comment:是否新增显示" json:"is_insert_show"`
+	IsUpdateShow       bool                        `gorm:"default:true;comment:是否更新显示" json:"is_update_show"`
+	Sequence           uint8                       `gorm:"comment:排序;type:tinyint" json:"sequence"`
 	OriginalFieldID    int                         `gorm:"comment:原字段ID" json:"original_field_id"`
 }
 

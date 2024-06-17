@@ -17,11 +17,13 @@ import (
 
 type SysTableRepositoryImpl struct {
 	db *gorm.DB
+	sf *utils.Snowflake
 }
 
-func NewSysTableRepositoryImpl(db *gorm.DB) *SysTableRepositoryImpl {
+func NewSysTableRepositoryImpl(db *gorm.DB, sf *utils.Snowflake) *SysTableRepositoryImpl {
 	return &SysTableRepositoryImpl{
 		db,
+		sf,
 	}
 }
 
@@ -45,7 +47,7 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) error {
 			tx.Rollback()
 		}
 	}()
-	err := s.db.Create(&table).Error
+	err := tx.Create(&table).Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -69,20 +71,26 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) error {
 	}
 	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
 	basicFields := []model.SysTableField{
-		{TableID: table.ID, FieldName: "ID", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, InputType: enum.INPUT_NUMBER, IsSort: true},
-		{TableID: table.ID, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, InputType: enum.DATETIME_PICKER, IsSort: true},
-		{TableID: table.ID, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, InputType: enum.INPUT_NUMBER},
-		{TableID: table.ID, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, InputType: enum.DATETIME_PICKER, IsSort: true},
-		{TableID: table.ID, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER},
-		{TableID: table.ID, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER},
-		{TableID: table.ID, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER},
-		{TableID: table.ID, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether")},
+		{TableID: table.ID, FieldName: "ID", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
+		{TableID: table.ID, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 2, IsListShow: true},
+		{TableID: table.ID, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 3, IsListShow: true},
+		{TableID: table.ID, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 4, IsListShow: true},
+		{TableID: table.ID, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 5, IsListShow: true},
+		{TableID: table.ID, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER, Sequence: 6},
+		{TableID: table.ID, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
+		{TableID: table.ID, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
 	}
-	for _, field := range basicFields {
-		if err := tx.Create(&field).Error; err != nil {
+	for i := range basicFields {
+		fieldID, err := s.sf.GenerateUniqueID()
+		if err != nil {
 			tx.Rollback()
 			return err
 		}
+		basicFields[i].ID = int(fieldID)
+	}
+	if err := tx.Create(&basicFields).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
 	// 提交事务
 	return tx.Commit().Error
@@ -98,7 +106,7 @@ func (s *SysTableRepositoryImpl) DeleteTableById(i int) error {
 
 func (s *SysTableRepositoryImpl) GetTableList(basic request.Basic) (repository.SysTableListResult, error) {
 	var repo repository.SysTableListResult
-	query := utils.BuildQuery(s.db, basic)
+	query := utils.ExecuteQuery(s.db, basic)
 	var sysTableList []model.SysTable
 	var total int64 = 0
 	err := query.Find(&sysTableList).Limit(-1).Offset(-1).Count(&total).Error

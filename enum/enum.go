@@ -5,8 +5,6 @@
 
 package enum
 
-import "database/sql/driver"
-
 // DataPermissionsEnum 数据权限字典
 type DataPermissionsEnum uint8
 
@@ -16,10 +14,6 @@ const (
 	TACITLY                                // 默认
 )
 
-func (dp DataPermissionsEnum) Value() (driver.Value, error) {
-	return int(dp), nil
-}
-
 type SysMenuBtnPosition uint8
 
 const (
@@ -27,20 +21,12 @@ const (
 	LINE
 )
 
-func (sbp SysMenuBtnPosition) Value() (driver.Value, error) {
-	return int(sbp), nil
-}
-
 type SysTableType uint8
 
 const (
 	SYSTEM SysTableType = iota + 1
 	VIEW
 )
-
-func (stt SysTableType) Value() (driver.Value, error) {
-	return int(stt), nil
-}
 
 type SysTableFieldType uint8
 
@@ -54,10 +40,6 @@ const (
 	DATETIME
 	TIME
 )
-
-func (stf SysTableFieldType) Value() (driver.Value, error) {
-	return int(stf), nil
-}
 
 type SysTableFieldInputType uint8
 
@@ -73,10 +55,6 @@ const (
 	YREA_MONTH_PICKER
 	FILE_PICKER
 )
-
-func (s SysTableFieldInputType) Value() (driver.Value, error) {
-	return int(s), nil
-}
 
 // ExpressionType 表达式
 type ExpressionType uint8
@@ -96,20 +74,12 @@ const (
 	IS_NOT_NULL
 )
 
-func (e ExpressionType) Value() (driver.Value, error) {
-	return int(e), nil
-}
-
 type ExpressionLogic uint8
 
 const (
 	AND ExpressionLogic = iota + 1
 	OR
 )
-
-func (e ExpressionLogic) Value() (driver.Value, error) {
-	return int(e), nil
-}
 
 type ArticleType string
 
@@ -119,7 +89,3 @@ const (
 	RELEASE ArticleType = "release"
 	REJECT  ArticleType = "reject"
 )
-
-func (at ArticleType) Value() (driver.Value, error) {
-	return string(at), nil
-}

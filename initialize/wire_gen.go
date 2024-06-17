@@ -61,7 +61,7 @@ func InitializeApp() (*App, error) {
 	sysUserRepositoryImpl := impl.NewSysUserRepositoryImpl(db)
 	sysUserService := service.NewSysUserService(sysUserRepositoryImpl)
 	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureService, logService, sysUserService, v)
-	sysTableRepositoryImpl := impl.NewSysTableRepositoryImpl(db)
+	sysTableRepositoryImpl := impl.NewSysTableRepositoryImpl(db, snowflake)
 	sysTableCache := cache.NewSysTableCache(redisUtil)
 	sysTableFieldCache := cache.NewSysTableFieldCache(redisUtil)
 	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake, sysTableCache, sysTableFieldCache)

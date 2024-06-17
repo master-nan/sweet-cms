@@ -42,7 +42,16 @@ func parseValue(value interface{}, valueType enum.SysTableFieldType) interface{}
 	}
 }
 
-func BuildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
+func ExecuteQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
+	// 构建基本查询
+	query := buildQuery(db, basic)
+	// 应用排序和分页
+	query = finalizeQuery(query, basic)
+
+	return query
+}
+
+func buildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 	query := db
 	// 构建查询条件
 	for _, exprGroup := range basic.Expressions {
@@ -81,7 +90,7 @@ func BuildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 
 		// 处理嵌套表达式
 		for _, nestedExpr := range exprGroup.Nested {
-			nestedQuery := BuildQuery(db, request.Basic{Expressions: []request.ExpressionGroup{nestedExpr}}) // 递归处理嵌套表达式
+			nestedQuery := buildQuery(db, request.Basic{Expressions: []request.ExpressionGroup{nestedExpr}}) // 递归处理嵌套表达式
 			switch exprGroup.Logic {
 			case enum.OR:
 				if subQuery == nil {
@@ -110,7 +119,10 @@ func BuildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 			}
 		}
 	}
+	return query
+}
 
+func finalizeQuery(query *gorm.DB, basic request.Basic) *gorm.DB {
 	// 添加排序
 	if basic.Order.Field != "" {
 		order := basic.Order.Field
@@ -140,18 +152,24 @@ func BuildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 	return query
 }
 
-// 动态生成结构体并进行查询
+// DynamicQuery 动态生成结构体并进行查询
 func DynamicQuery(db *gorm.DB, basic request.Basic, table model.SysTable) (repository.GeneralizationListResult, error) {
 	var result repository.GeneralizationListResult
 	// 创建动态结构体
 	modelType := createDynamicStruct(table.TableFields)
 
 	// 构建查询
-	query := BuildQuery(db.Table(table.TableCode), basic)
+	query := ExecuteQuery(db.Table(table.TableCode), basic)
 
 	// 查询结果
 	results := reflect.New(reflect.SliceOf(modelType)).Elem()
 	err := query.Find(results.Addr().Interface()).Error
+	if err != nil {
+		return result, err
+	}
+	// 总数查询
+	var total int64
+	err = query.Limit(-1).Offset(-1).Count(&total).Error
 	if err != nil {
 		return result, err
 	}
@@ -168,15 +186,12 @@ func DynamicQuery(db *gorm.DB, basic request.Basic, table model.SysTable) (repos
 		}
 		records[i] = record
 	}
-	// 总数查询
-	var total int64
-	db.Table(table.TableCode).Count(&total)
 	result.Data = records
 	result.Total = int(total)
 	return result, nil
 }
 
-// 根据表元数据创建动态结构体
+// createDynamicStruct 根据表元数据创建动态结构体
 func createDynamicStruct(fields []model.SysTableField) reflect.Type {
 	var fieldsList []reflect.StructField
 	for _, field := range fields {

@@ -10,7 +10,7 @@ import (
 func LoadConfig() (*config.Server, error) {
 	environment := os.Getenv("APP_ENV")
 	if environment == "" {
-		environment = "debug" // 默认使用开发环境的配置
+		environment = "local" // 默认使用本地环境的配置
 	}
 	filename := fmt.Sprintf("config-%s.yaml", environment)
 	v := viper.New()
