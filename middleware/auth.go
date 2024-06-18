@@ -3,7 +3,7 @@
  * @Date: 2023/3/15 11:32
  */
 
-package middlewares
+package middleware
 
 import (
 	"fmt"

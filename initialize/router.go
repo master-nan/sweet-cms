@@ -7,7 +7,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	_ "sweet-cms/docs"
-	"sweet-cms/middlewares"
+	"sweet-cms/middleware"
 )
 
 func InitRouter(app *App) *gin.Engine {
@@ -15,9 +15,9 @@ func InitRouter(app *App) *gin.Engine {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	store := cookie.NewStore([]byte(app.Config.Session.Secret))
 	router.
-		Use(middlewares.CorsHandler()).
-		Use(middlewares.LogHandler(app.LogService)).
-		Use(middlewares.ResponseHandler()).
+		Use(middleware.CorsHandler()).
+		Use(middleware.LogHandler(app.LogService)).
+		Use(middleware.ResponseHandler()).
 		Use(sessions.Sessions("sweet-cms-session", store))
 	//总路由
 	routerGroup := router.Group("/sweet")

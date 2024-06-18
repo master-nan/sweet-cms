@@ -3,7 +3,7 @@
  * @Date: 2023/3/18 17:04
  */
 
-package middlewares
+package middleware
 
 import (
 	"bytes"

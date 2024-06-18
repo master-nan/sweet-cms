@@ -3,7 +3,7 @@
  * @Date: 2023/3/13 22:26
  */
 
-package middlewares
+package middleware
 
 import (
 	"github.com/gin-gonic/gin"
