@@ -81,6 +81,7 @@ type SysTableField struct {
 	IsUpdateShow       bool                        `gorm:"default:true;comment:是否更新显示" json:"is_update_show"`
 	Sequence           uint8                       `gorm:"comment:排序;type:tinyint" json:"sequence"`
 	OriginalFieldID    int                         `gorm:"comment:原字段ID" json:"original_field_id"`
+	Binding            string                      `gorm:"size:256;comment:验证器" json:"binding"` // 用于存储绑定规则
 }
 
 type SysDict struct {

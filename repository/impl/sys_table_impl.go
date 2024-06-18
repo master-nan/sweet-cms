@@ -30,13 +30,17 @@ func NewSysTableRepositoryImpl(db *gorm.DB, sf *utils.Snowflake) *SysTableReposi
 
 func (s *SysTableRepositoryImpl) GetTableById(i int) (model.SysTable, error) {
 	var table model.SysTable
-	err := s.db.Preload("TableFields").Where("id = ", i).First(&table).Error
+	err := s.db.Preload("TableFields", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sequence")
+	}).Where("id = ", i).First(&table).Error
 	return table, err
 }
 
 func (s *SysTableRepositoryImpl) GetTableByTableCode(code string) (model.SysTable, error) {
 	var table model.SysTable
-	err := s.db.Preload("TableFields").Where("table_code=?", code).First(&table).Error
+	err := s.db.Preload("TableFields", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sequence")
+	}).Where("table_code=?", code).First(&table).Error
 	return table, err
 }
 
@@ -143,7 +147,7 @@ func (s *SysTableRepositoryImpl) GetTableFieldById(i int) (model.SysTableField, 
 
 func (s *SysTableRepositoryImpl) GetTableFieldsByTableId(id int) ([]model.SysTableField, error) {
 	var items []model.SysTableField
-	err := s.db.Where("table_id = ?", id).Find(&items).Error
+	err := s.db.Where("table_id = ?", id).Order("sequence").Find(&items).Error
 	return items, err
 }
 

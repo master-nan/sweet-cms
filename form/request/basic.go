@@ -11,12 +11,13 @@ import (
 
 // Basic 请求参数参数
 type Basic struct {
-	Page        int               `json:"page" example:"1"`
-	Num         int               `json:"num" example:"10"`
-	Order       Order             `json:"order" example:"\{\"field\":\"name\",\"is_asc\":true\}"`
-	TableCode   string            `json:"table_code" example:"sys_dict"`
-	Expressions []ExpressionGroup `json:"expressions"`
-	QuickQuery  *QuickQuery       `json:"quick_query" example:"\{'keyword':'search'\}"`
+	Page           int               `json:"page" example:"1"`
+	Num            int               `json:"num" example:"10"`
+	Order          Order             `json:"order" example:"\{\"field\":\"name\",\"is_asc\":true\}"`
+	TableCode      string            `json:"table_code" example:"sys_dict"`
+	Expressions    []ExpressionGroup `json:"expressions"`
+	QuickQuery     *QuickQuery       `json:"quick_query" example:"\{'keyword':'search'\}"`
+	IncludeDeleted bool              `json:"-"`
 }
 
 // ExpressionGroup 参数请求组

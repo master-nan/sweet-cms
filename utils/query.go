@@ -56,6 +56,9 @@ func ExecuteQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 
 func buildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 	query := db
+	if !basic.IncludeDeleted {
+		query = query.Where("gmt_delete IS NULL")
+	}
 	// 构建查询条件
 	for _, exprGroup := range basic.Expressions {
 		var subQuery *gorm.DB
@@ -198,32 +201,96 @@ func DynamicQuery(db *gorm.DB, basic request.Basic, table model.SysTable) (repos
 func CreateDynamicStruct(fields []model.SysTableField) reflect.Type {
 	var fieldsList []reflect.StructField
 	for _, field := range fields {
-		var fieldType reflect.Type
-		switch field.FieldType {
-		case enum.INT:
-			fieldType = reflect.TypeOf(0)
-		case enum.FLOAT:
-			fieldType = reflect.TypeOf(float64(0.0))
-		case enum.VARCHAR:
-			fieldType = reflect.TypeOf("")
-		case enum.TEXT:
-			fieldType = reflect.TypeOf("")
-		case enum.BOOLEAN:
-			fieldType = reflect.TypeOf(false)
-		case enum.DATE:
-			fieldType = reflect.TypeOf(time.Time{})
-		case enum.DATETIME:
-			fieldType = reflect.TypeOf(time.Time{})
-		case enum.TIME:
-			fieldType = reflect.TypeOf(time.Time{})
-		}
+		fieldType := getFieldType(field.FieldType)
+		fieldTag := buildTag(field)
 		fieldsList = append(fieldsList, reflect.StructField{
 			Name: toCamelCase(field.FieldCode),
 			Type: fieldType,
-			Tag:  reflect.StructTag(fmt.Sprintf(`gorm:"comment:%s" json:"%s"`, field.FieldName, field.FieldCode)),
+			Tag:  reflect.StructTag(fieldTag),
 		})
 	}
 	return reflect.StructOf(fieldsList)
+}
+
+// getFieldType 获取对应类型
+func getFieldType(fieldType enum.SysTableFieldType) reflect.Type {
+	switch fieldType {
+	case enum.INT:
+		return reflect.TypeOf(int(0)) // 或 reflect.TypeOf(int64(0)) 根据需要选择
+	case enum.FLOAT:
+		return reflect.TypeOf(float64(0.0)) // 使用 float64 是 Go 中最常用的浮点类型
+	case enum.VARCHAR, enum.TEXT:
+		return reflect.TypeOf("") // 字符串类型
+	case enum.BOOLEAN:
+		return reflect.TypeOf(false)
+	case enum.DATE, enum.DATETIME, enum.TIME:
+		return reflect.TypeOf(time.Time{}) // 对于所有的时间类型使用 time.Time
+	default:
+		return reflect.TypeOf(nil) // 未知类型返回 nil 类型，可能需要处理错误
+	}
+}
+
+// buildTag 构建结构体tag
+func buildTag(field model.SysTableField) string {
+	gormParts := []string{
+		fmt.Sprintf(`column:%s`, field.FieldCode),
+		fmt.Sprintf(`type:%s`, getSQLType(field.FieldType, field.FieldLength, field.FieldDecimalLength)),
+	}
+	if field.FieldLength > 0 {
+		gormParts = append(gormParts, fmt.Sprintf(`size:%d`, field.FieldLength))
+	}
+	if field.DefaultValue != nil && *field.DefaultValue != "" {
+		gormParts = append(gormParts, fmt.Sprintf(`default:'%s'`, *field.DefaultValue))
+	}
+	if field.IsPrimaryKey {
+		gormParts = append(gormParts, `primaryKey:true`)
+	}
+	if !field.IsNull {
+		gormParts = append(gormParts, `notNull:true`)
+	}
+	if field.IsIndex {
+		gormParts = append(gormParts, `index:true`)
+	}
+	gormParts = append(gormParts, fmt.Sprintf(`comment:'%s'`, field.FieldName))
+
+	// JSON 标签
+	jsonPart := fmt.Sprintf(`json:"%s"`, field.FieldCode)
+
+	// Binding 标签，如果字段定义了 Binding 规则，使用该规则
+	bindingPart := ""
+	if field.Binding != "" {
+		bindingPart = fmt.Sprintf(`binding:"%s"`, field.Binding)
+	}
+	// 组合 GORM, JSON 和 Binding 标签
+	fullTag := fmt.Sprintf(`gorm:"%s" %s %s`, strings.Join(gormParts, ";"), jsonPart, bindingPart)
+	return fullTag
+}
+
+// getSQLType 返回类型和长度
+func getSQLType(fieldType enum.SysTableFieldType, length int, decimal int) string {
+	switch fieldType {
+	case enum.INT:
+		return "int"
+	case enum.FLOAT:
+		if decimal > 0 {
+			return fmt.Sprintf("decimal(%d,%d)", length, decimal)
+		}
+		return "float"
+	case enum.VARCHAR:
+		return fmt.Sprintf("varchar(%d)", length)
+	case enum.TEXT:
+		return "text"
+	case enum.BOOLEAN:
+		return "boolean"
+	case enum.DATE:
+		return "date"
+	case enum.DATETIME:
+		return "datetime"
+	case enum.TIME:
+		return "time"
+	default:
+		return "text"
+	}
 }
 
 func GetTableName(db *gorm.DB, tableCode string) string {
