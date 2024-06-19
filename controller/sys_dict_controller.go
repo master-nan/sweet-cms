@@ -249,23 +249,6 @@ func (t *DictController) DeleteSysDictById(ctx *gin.Context) {
 
 }
 
-func (t *DictController) GetSysDictItemById(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
-	resp := response.NewResponse()
-	ctx.Set("response", resp)
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-	data, err := t.sysDictService.GetSysDictItemById(id)
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-	resp.SetData(data)
-	return
-}
-
 func (t *DictController) GetSysDictItemsByDictId(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
@@ -280,6 +263,23 @@ func (t *DictController) GetSysDictItemsByDictId(ctx *gin.Context) {
 		return
 	}
 	resp.SetData(result)
+	return
+}
+
+func (t *DictController) GetSysDictItemById(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	data, err := t.sysDictService.GetSysDictItemById(id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	resp.SetData(data)
 	return
 }
 

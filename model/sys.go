@@ -36,16 +36,16 @@ type SysMenuBtn struct {
 
 type SysRole struct {
 	Basic
-	Name  string    `gorm:"size:128;comment:角色名称" json:"name"`
-	Rs    string    `gorm:"size:128;comment:菜单ID集合" json:"rs"`
-	Memo  string    `gorm:"size:128;comment:备注" json:"memo"`
-	Users []SysUser `gorm:"foreignKey:RoleId;references:ID" json:"users"`
+	Name string `gorm:"size:128;comment:角色名称" json:"name"`
+	Rs   string `gorm:"size:128;comment:菜单ID集合" json:"rs"`
+	Memo string `gorm:"size:128;comment:备注" json:"memo"`
+	//Users []SysUser `gorm:"foreignKey:RoleId;references:ID" json:"users"`
 }
 
 type SysUser struct {
 	Basic
 	UserName string  `gorm:"size:128;comment:用户名" json:"username"`
-	RoleId   int     `gorm:"comment:角色ID" json:"roleId"`
+	RoleId   int     `gorm:"comment:角色ID" json:"role_id"`
 	Password string  `gorm:"size:128;comment:密码" json:"-"`
 	Role     SysRole `gorm:"foreignKey:RoleId" json:"role"`
 }

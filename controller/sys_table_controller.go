@@ -195,23 +195,6 @@ func (t *TableController) DeleteSysTableById(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) GetSysTableFieldById(ctx *gin.Context) {
-	resp := response.NewResponse()
-	ctx.Set("response", resp)
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-	data, err := t.sysTableService.GetTableFieldById(id)
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-	resp.SetData(data)
-	return
-}
-
 func (t *TableController) GetSysTableFieldsByTableId(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
@@ -229,6 +212,24 @@ func (t *TableController) GetSysTableFieldsByTableId(ctx *gin.Context) {
 	resp.SetData(len(data))
 	return
 }
+
+func (t *TableController) GetSysTableFieldById(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	data, err := t.sysTableService.GetTableFieldById(id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	resp.SetData(data)
+	return
+}
+
 func (t *TableController) InsertSysTableField(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)

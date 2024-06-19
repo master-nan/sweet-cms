@@ -24,10 +24,11 @@ func InitRouter(app *App) *gin.Engine {
 	//后台非验证路由
 	adminBaseGroup := routerGroup.Group("/admin")
 	{
-		adminBaseGroup.GET("/captcha", app.BasicController.Captcha)
-		adminBaseGroup.GET("/login", app.BasicController.Login)
-		adminBaseGroup.GET("/configure", app.BasicController.Configure)
 		adminBaseGroup.POST("/login", app.BasicController.Login)
+		adminBaseGroup.GET("/captcha", app.BasicController.Captcha)
+		adminBaseGroup.GET("/configure", app.BasicController.Configure)
+		adminBaseGroup.POST("/logout", app.BasicController.Logout)
+
 	}
 
 	//后台验证路由
@@ -42,6 +43,13 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.PUT("/dict/:id", app.DictController.UpdateSysDict)
 		adminGroup.DELETE("/dict/:id", app.DictController.DeleteSysDictById)
 
+		// dict_item
+		adminGroup.GET("/dict/items/:id", app.DictController.GetSysDictItemsByDictId)
+		adminGroup.GET("/dict/item/:id", app.DictController.GetSysDictItemById)
+		adminGroup.POST("/dict/item", app.DictController.InsertSysDictItem)
+		adminGroup.PUT("/dict/item/:id", app.DictController.UpdateSysDictItem)
+		adminGroup.DELETE("/dict/item/:id", app.DictController.DeleteSysDictItemById)
+
 		// table
 		adminGroup.GET("/table/id/:id", app.TableController.GetSysTableByID)
 		adminGroup.GET("/table/code/:code", app.TableController.GetSysTableByCode)
@@ -49,6 +57,13 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.POST("/table", app.TableController.InsertSysTable)
 		adminGroup.PUT("/table/:id", app.TableController.UpdateSysTable)
 		adminGroup.DELETE("/table/:id", app.TableController.DeleteSysTableById)
+
+		// table_field
+		adminGroup.GET("/table/fields/:id", app.TableController.GetSysTableFieldsByTableId)
+		adminGroup.GET("/table/field/:id", app.TableController.GetSysTableFieldById)
+		adminGroup.POST("/table/field", app.TableController.InsertSysTableField)
+		adminGroup.PUT("/table/field/:id", app.TableController.UpdateSysTableField)
+		adminGroup.DELETE("/table/field/:id", app.TableController.DeleteSysTableFieldById)
 
 		adminGroup.GET("/generalization/query/:id", app.GeneralizationController.Query)
 
