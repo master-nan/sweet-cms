@@ -34,29 +34,61 @@ type SysMenuBtn struct {
 	Position enum.SysMenuBtnPosition `gorm:"type:tinyint;default:1;comment:位置" json:"position" binding:"required"`
 }
 
+type SysMenuDataPermission struct {
+	Basic
+	UserID     int    `gorm:"comment:用户ID" json:"user_id"`
+	MenuID     int    `gorm:"comment:菜单ID" json:"menu_id"`
+	CompanyIDs string `gorm:"size:128;comment:公司ID集合" json:"company_ids"`
+}
+
 type SysRole struct {
 	Basic
-	Name string `gorm:"size:128;comment:角色名称" json:"name"`
-	Rs   string `gorm:"size:128;comment:菜单ID集合" json:"rs"`
-	Memo string `gorm:"size:128;comment:备注" json:"memo"`
-	//Users []SysUser `gorm:"foreignKey:RoleId;references:ID" json:"users"`
+	Name  string    `gorm:"size:128;comment:角色名称" json:"name"`
+	Memo  string    `gorm:"size:128;comment:备注" json:"memo"`
+	Menus []SysMenu `gorm:"many2many:sys_role_menu;" json:"menus"`
 }
 
 type SysUser struct {
 	Basic
-	UserName string  `gorm:"size:128;comment:用户名" json:"username"`
-	RoleId   int     `gorm:"comment:角色ID" json:"role_id"`
-	Password string  `gorm:"size:128;comment:密码" json:"-"`
-	Role     SysRole `gorm:"foreignKey:RoleId" json:"role"`
+	UserName     string     `gorm:"size:128;unique;comment:用户名" json:"username"`
+	Password     string     `gorm:"size:128;comment:密码" json:"-"`
+	Email        string     `gorm:"size:128;unique;comment:邮箱" json:"email"`
+	PhoneNumber  string     `gorm:"size:128;unique;comment:电话" json:"phone_number"`
+	IDCard       string     `gorm:"size:128;unique;comment:身份证号" json:"id_card"`
+	EmployeeID   int        `gorm:"comment:员工ID" json:"employee_id"`
+	GmtLastLogin CustomTime `gorm:"type:datetime;comment:最后登录时间" json:"gmt_last_login"`
+	Language     string     `gorm:"size:32;comment:语言包" json:"language"`
+	AccessTokens string     `gorm:"type:text;comment:用户最近5次Token" json:"access_tokens"`
+	Roles        []SysRole  `gorm:"many2many:sys_user_role;" json:"roles"`
+}
+
+type SysUserRole struct {
+	UserID int `gorm:"primaryKey;autoIncrement:false" json:"user_id"`
+	RoleID int `gorm:"primaryKey;autoIncrement:false" json:"role_id"`
+}
+
+type SysRoleMenu struct {
+	RoleID int `gorm:"primaryKey;autoIncrement:false" json:"role_id"`
+	MenuID int `gorm:"primaryKey;autoIncrement:false" json:"menu_id"`
+}
+
+type SysGlobalDataPermission struct {
+	Basic
+	UserID     int    `gorm:"comment:用户ID" json:"user_id"`
+	CompanyIDs string `gorm:"size:128;comment:公司ID集合" json:"company_ids"`
+	IsAll      bool   `gorm:"default:false;comment:是否拥有全部公司权限" json:"is_all"`
 }
 
 type SysTable struct {
 	Basic
-	TableName   string            `gorm:"size:128;comment:表名" json:"table_name"`
-	TableCode   string            `gorm:"size:128;comment:数据库中表名" json:"table_code"`
-	TableType   enum.SysTableType `gorm:"type:tinyint;default:1;comment:表类型" json:"table_type"`
-	ParentID    int               `gorm:"comment:父节点ID" json:"parent_id"`
-	TableFields []SysTableField   `gorm:"foreignKey:TableID;references:ID" json:"table_fields"`
+	TableName      string             `gorm:"size:128;comment:表名" json:"table_name"`
+	TableCode      string             `gorm:"size:128;comment:数据库中表名" json:"table_code"`
+	TableType      enum.SysTableType  `gorm:"type:tinyint;default:1;comment:表类型" json:"table_type"`
+	ParentID       int                `gorm:"comment:父节点ID" json:"parent_id"`
+	SQL            string             `gorm:"type:text;comment:视图定义SQL" json:"sql"`
+	TableFields    []SysTableField    `gorm:"foreignKey:TableID;references:ID" json:"table_fields"`
+	TableRelations []SysTableRelation `gorm:"foreignKey:TableID"`
+	TableIndexes   []SysTableIndex    `gorm:"foreignKey:TableID"`
 }
 
 type SysTableField struct {
@@ -70,8 +102,8 @@ type SysTableField struct {
 	InputType          enum.SysTableFieldInputType `gorm:"type:tinyint;default:1;comment:输入类型" json:"input_type"`
 	DefaultValue       *string                     `gorm:"size:128;comment:默认值" json:"default_value"`
 	DictCode           *string                     `gorm:"size:128;comment:所用字典" json:"dict_code"`
+	Dict               SysDict                     `gorm:"foreignKey:DictCode;references:DictCode" json:"dict"`
 	IsPrimaryKey       bool                        `gorm:"default:false;comment:是否主键" json:"is_primary_key"`
-	IsIndex            bool                        `gorm:"default:false;comment:是否索引" json:"is_index"`
 	IsQuickSearch      bool                        `gorm:"default:false;comment:是否快捷搜索" json:"is_quick_search"`
 	IsAdvancedSearch   bool                        `gorm:"default:false;comment:是否高级搜索" json:"is_advanced_search"`
 	IsSort             bool                        `gorm:"default:false;comment:是否可排序" json:"is_sort"`
@@ -81,7 +113,33 @@ type SysTableField struct {
 	IsUpdateShow       bool                        `gorm:"default:true;comment:是否更新显示" json:"is_update_show"`
 	Sequence           uint8                       `gorm:"comment:排序;type:tinyint" json:"sequence"`
 	OriginalFieldID    int                         `gorm:"comment:原字段ID" json:"original_field_id"`
-	Binding            string                      `gorm:"size:256;comment:验证器" json:"binding"` // 用于存储绑定规则
+	Binding            string                      `gorm:"size:256;comment:验证器" json:"binding"`        // 用于存储绑定规则
+	FieldCategory      enum.SysTableFieldCategory  `gorm:"size:64;comment:字段类别" json:"field_category"` // 字段类别（普通字段、虚拟列、计算字段）
+	Expression         *string                     `gorm:"size:256;comment:计算字段表达式" json:"expression"` // 计算字段表达式或虚拟列表达式
+}
+
+type SysTableIndex struct {
+	Basic
+	TableID     int                  `gorm:"index;comment:表ID" json:"table_id"`
+	IndexName   string               `gorm:"size:128;comment:索引名称" json:"index_name"`
+	IsUnique    bool                 `gorm:"comment:是否唯一索引" json:"is_unique"`
+	IndexFields []SysTableIndexField `gorm:"many2many:sys_table_index_field" json:"index_fields"`
+}
+
+type SysTableIndexField struct {
+	IndexID int `gorm:"primaryKey;autoIncrement:false" json:"index_id"`
+	FieldID int `gorm:"primaryKey;autoIncrement:false" json:"field_id"`
+}
+
+type SysTableRelation struct {
+	Basic
+	TableID        int                       `gorm:"index;comment:主表ID" json:"table_id"`
+	RelatedTableID int                       `gorm:"index;comment:关联表ID" json:"related_table_id"`   // 关联的表的ID
+	ReferenceKey   string                    `gorm:"size:128;comment:引用主表的字段" json:"reference_key"` // 主表对应字段
+	ForeignKey     string                    `gorm:"size:128;comment:外键字段" json:"foreign_key"`      // 关联表 字段
+	OnDelete       string                    `gorm:"size:128;comment:删除时策略" json:"on_delete"`
+	OnUpdate       string                    `gorm:"size:128;comment:更新时策略" json:"on_update"`
+	RelationType   enum.SysTableRelationType `gorm:"size:128;comment:关系类型" json:"relation_type"` // 新增字段
 }
 
 type SysDict struct {

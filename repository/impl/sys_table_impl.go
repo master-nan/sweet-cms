@@ -258,13 +258,13 @@ func (s *SysTableRepositoryImpl) InsertTableField(field model.SysTableField, tab
 		return err
 	}
 	// 如果字段需要索引
-	if field.IsIndex {
-		indexSQL := fmt.Sprintf("CREATE INDEX `idx_%s_%s` ON `%s`(`%s`);", tableCode, field.FieldCode, tableCode, field.FieldCode)
-		if err := tx.Exec(indexSQL).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
+	//if field.IsIndex {
+	//	indexSQL := fmt.Sprintf("CREATE INDEX `idx_%s_%s` ON `%s`(`%s`);", tableCode, field.FieldCode, tableCode, field.FieldCode)
+	//	if err := tx.Exec(indexSQL).Error; err != nil {
+	//		tx.Rollback()
+	//		return err
+	//	}
+	//}
 	return tx.Commit().Error
 }
 

@@ -248,9 +248,9 @@ func buildTag(field model.SysTableField) string {
 	if !field.IsNull {
 		gormParts = append(gormParts, `notNull:true`)
 	}
-	if field.IsIndex {
-		gormParts = append(gormParts, `index:true`)
-	}
+	//if field.IsIndex {
+	//	gormParts = append(gormParts, `index:true`)
+	//}
 	gormParts = append(gormParts, fmt.Sprintf(`comment:'%s'`, field.FieldName))
 
 	// JSON 标签

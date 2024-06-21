@@ -81,6 +81,15 @@ const (
 	OR
 )
 
+type SysTableRelationType uint8
+
+const (
+	ONE_TO_ONE SysTableRelationType = iota + 1
+	ONE_TO_MANY
+	MANY_TO_ONE
+	MANY_TO_MANY
+)
+
 type ArticleType string
 
 const (
@@ -88,4 +97,12 @@ const (
 	REVIEW  ArticleType = "review"
 	RELEASE ArticleType = "release"
 	REJECT  ArticleType = "reject"
+)
+
+type SysTableFieldCategory string
+
+const (
+	NormalField     SysTableFieldCategory = "normal_field"
+	VirtualColumn   SysTableFieldCategory = "virtual_column"
+	CalculatedField SysTableFieldCategory = "calculated_field"
 )
