@@ -191,27 +191,27 @@ func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateRe
 		return err
 	}
 	// 处理索引
-	indexName := fmt.Sprintf("idx_%s_%s", tableCode, req.FieldCode)
-	if req.IsIndex {
-		// 检查索引是否存在
-		var count int64
-		tx.Raw("SHOW INDEX FROM `"+tableCode+"` WHERE Key_name = ?", indexName).Count(&count)
-		if count == 0 {
-			// 创建索引
-			createIndexSQL := fmt.Sprintf("CREATE INDEX `%s` ON `%s`(`%s`);", indexName, tableCode, req.FieldCode)
-			if err := tx.Exec(createIndexSQL).Error; err != nil {
-				tx.Rollback()
-				return err
-			}
-		}
-	} else {
-		// 删除索引
-		dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", indexName, tableCode)
-		if err := tx.Exec(dropIndexSQL).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
+	//indexName := fmt.Sprintf("idx_%s_%s", tableCode, req.FieldCode)
+	//if req.IsIndex {
+	//	// 检查索引是否存在
+	//	var count int64
+	//	tx.Raw("SHOW INDEX FROM `"+tableCode+"` WHERE Key_name = ?", indexName).Count(&count)
+	//	if count == 0 {
+	//		// 创建索引
+	//		createIndexSQL := fmt.Sprintf("CREATE INDEX `%s` ON `%s`(`%s`);", indexName, tableCode, req.FieldCode)
+	//		if err := tx.Exec(createIndexSQL).Error; err != nil {
+	//			tx.Rollback()
+	//			return err
+	//		}
+	//	}
+	//} else {
+	//	// 删除索引
+	//	dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", indexName, tableCode)
+	//	if err := tx.Exec(dropIndexSQL).Error; err != nil {
+	//		tx.Rollback()
+	//		return err
+	//	}
+	//}
 	return tx.Commit().Error
 }
 
@@ -295,4 +295,29 @@ func (s *SysTableRepositoryImpl) DeleteTableField(field model.SysTableField, tab
 		return err
 	}
 	return tx.Commit().Error
+}
+
+func (s *SysTableRepositoryImpl) GetTableRelationById(i int) (model.SysTableRelation, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *SysTableRepositoryImpl) GetTableRelationByTableId(i int) (model.SysTableRelation, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *SysTableRepositoryImpl) UpdateTableRelation(req request.TableRelationUpdateReq, s2 string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *SysTableRepositoryImpl) InsertTableRelation(relation model.SysTableRelation, s2 string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *SysTableRepositoryImpl) DeleteTableRelation(relation model.SysTableRelation, s2 string) error {
+	//TODO implement me
+	panic("implement me")
 }

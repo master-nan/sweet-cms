@@ -139,7 +139,7 @@ type SysTableRelation struct {
 	ForeignKey     string                    `gorm:"size:128;comment:外键字段" json:"foreign_key"`      // 关联表 字段
 	OnDelete       string                    `gorm:"size:128;comment:删除时策略" json:"on_delete"`
 	OnUpdate       string                    `gorm:"size:128;comment:更新时策略" json:"on_update"`
-	RelationType   enum.SysTableRelationType `gorm:"size:128;comment:关系类型" json:"relation_type"` // 新增字段
+	RelationType   enum.SysTableRelationType `gorm:"size:128;comment:关系类型" json:"relation_type"`
 }
 
 type SysDict struct {

@@ -8,6 +8,7 @@
 package initialize
 
 import (
+	"github.com/casbin/casbin/v2"
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -27,6 +28,7 @@ type App struct {
 	Redis                    *redis.Client
 	SF                       *utils.Snowflake
 	JWT                      *utils.JWTTokenGen
+	Enforcer                 *casbin.Enforcer
 	DictController           *controller.DictController
 	BasicController          *controller.BasicController
 	TableController          *controller.TableController
@@ -38,6 +40,7 @@ var Providers = wire.NewSet(
 	LoadConfig,
 	InitDB,
 	InitRedis,
+	InitCasbin,
 	InitSnowflake,
 	InitValidators,
 	utils.NewJWTTokenGen,
@@ -48,6 +51,7 @@ var Providers = wire.NewSet(
 	impl.NewSysTableRepositoryImpl,
 	impl.NewSysUserRepositoryImpl,
 	impl.NewGeneralizationRepositoryImpl,
+	impl.NewCasbinRuleRepositoryImpl,
 
 	wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)),
 	wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)),
@@ -57,6 +61,7 @@ var Providers = wire.NewSet(
 	wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)),
 	wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)),
 	wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)),
+	wire.Bind(new(repository.CasbinRuleRepository), new(*impl.CasbinRuleRepositoryImpl)),
 
 	cache.NewSysConfigureCache,
 	cache.NewSysDictCache,
@@ -70,6 +75,7 @@ var Providers = wire.NewSet(
 	service.NewSysUserService,
 
 	service.NewGeneralizationService,
+	service.NewCasbinRuleService,
 
 	controller.NewDictController,
 	controller.NewTableController,

@@ -31,7 +31,6 @@ type TableFieldCreateReq struct {
 	DefaultValue       string                      `json:"default_value"`                         // 默认值
 	DictCode           string                      `json:"dict_code"`                             // 所用字典
 	IsPrimaryKey       bool                        `json:"is_primary_key" binding:"required"`     // 是否主键
-	IsIndex            bool                        `json:"is_index" binding:"required"`           // 是否索引
 	IsQuickSearch      bool                        `json:"is_quick_search" binding:"required"`    // 是否快捷搜索
 	IsAdvancedSearch   bool                        `json:"is_advanced_search" binding:"required"` // 是否高级搜索
 	IsSort             bool                        `json:"is_sort" binding:"required"`            // 是否可排序
@@ -51,10 +50,26 @@ type TableFieldUpdateReq struct {
 	DefaultValue       string                      `json:"default_value"`                         // 默认值
 	DictCode           string                      `json:"dict_code"`                             // 所用字典
 	IsPrimaryKey       bool                        `json:"is_primary_key" binding:"required"`     // 是否主键
-	IsIndex            bool                        `json:"is_index" binding:"required"`           // 是否索引
 	IsQuickSearch      bool                        `json:"is_quick_search" binding:"required"`    // 是否快捷搜索
 	IsAdvancedSearch   bool                        `json:"is_advanced_search" binding:"required"` // 是否高级搜索
 	IsSort             bool                        `json:"is_sort" binding:"required"`            // 是否可排序
 	IsNull             bool                        `json:"is_null" binding:"required"`            // 是否可空
 	OriginalFieldID    int                         `json:"original_field_id"`                     // 原字段ID
+}
+
+type TableRelationCreateReq struct {
+	TableID        int                       `json:"table_id" binding:"required"`
+	RelatedTableID int                       `json:"related_table_id" binding:"required"` // 关联的表的ID
+	ReferenceKey   string                    `json:"reference_key" binding:"required"`    // 主表对应字段
+	ForeignKey     string                    `json:"foreign_key" binding:"required"`      // 关联表 字段
+	RelationType   enum.SysTableRelationType `json:"relation_type" binding:"required"`
+}
+
+type TableRelationUpdateReq struct {
+	ID             int                       `json:"id" binding:"required"`
+	TableID        int                       `json:"table_id" binding:"required"`
+	RelatedTableID int                       `json:"related_table_id" binding:"required"` // 关联的表的ID
+	ReferenceKey   string                    `json:"reference_key" binding:"required"`    // 主表对应字段
+	ForeignKey     string                    `json:"foreign_key" binding:"required"`      // 关联表 字段
+	RelationType   enum.SysTableRelationType `json:"relation_type" binding:"required"`
 }

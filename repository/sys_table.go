@@ -28,4 +28,11 @@ type SysTableRepository interface {
 	UpdateTableField(request.TableFieldUpdateReq, string) error
 	InsertTableField(model.SysTableField, string) error
 	DeleteTableField(model.SysTableField, string) error
+
+	GetTableRelationById(int) (model.SysTableRelation, error)
+	GetTableRelationByTableId(int) (model.SysTableRelation, error)
+
+	UpdateTableRelation(request.TableRelationUpdateReq, string) error
+	InsertTableRelation(model.SysTableRelation, string) error
+	DeleteTableRelation(model.SysTableRelation, string) error
 }

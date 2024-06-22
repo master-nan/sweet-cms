@@ -7,6 +7,7 @@
 package initialize
 
 import (
+	"github.com/casbin/casbin/v2"
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -44,6 +45,10 @@ func InitializeApp() (*App, error) {
 		return nil, err
 	}
 	jwtTokenGen := utils.NewJWTTokenGen()
+	enforcer, err := InitCasbin(db)
+	if err != nil {
+		return nil, err
+	}
 	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl(db)
 	redisUtil := utils.NewRedisUtil(client)
 	sysDictCache := cache.NewSysDictCache(redisUtil)
@@ -75,6 +80,7 @@ func InitializeApp() (*App, error) {
 		Redis:                    client,
 		SF:                       snowflake,
 		JWT:                      jwtTokenGen,
+		Enforcer:                 enforcer,
 		DictController:           dictController,
 		BasicController:          basicController,
 		TableController:          tableController,
@@ -92,6 +98,7 @@ type App struct {
 	Redis                    *redis.Client
 	SF                       *utils.Snowflake
 	JWT                      *utils.JWTTokenGen
+	Enforcer                 *casbin.Enforcer
 	DictController           *controller.DictController
 	BasicController          *controller.BasicController
 	TableController          *controller.TableController
@@ -103,6 +110,7 @@ var Providers = wire.NewSet(
 	LoadConfig,
 	InitDB,
 	InitRedis,
+	InitCasbin,
 	InitSnowflake,
-	InitValidators, utils.NewJWTTokenGen, utils.NewRedisUtil, impl.NewLogRepositoryImpl, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewSysTableRepositoryImpl, impl.NewSysUserRepositoryImpl, impl.NewGeneralizationRepositoryImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)), cache.NewSysConfigureCache, cache.NewSysDictCache, cache.NewSysTableCache, cache.NewSysTableFieldCache, service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysTableService, service.NewSysUserService, service.NewGeneralizationService, controller.NewDictController, controller.NewTableController, controller.NewBasicController, controller.NewGeneralizationController, wire.Struct(new(App), "*"),
+	InitValidators, utils.NewJWTTokenGen, utils.NewRedisUtil, impl.NewLogRepositoryImpl, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewSysTableRepositoryImpl, impl.NewSysUserRepositoryImpl, impl.NewGeneralizationRepositoryImpl, impl.NewCasbinRuleRepositoryImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)), wire.Bind(new(repository.CasbinRuleRepository), new(*impl.CasbinRuleRepositoryImpl)), cache.NewSysConfigureCache, cache.NewSysDictCache, cache.NewSysTableCache, cache.NewSysTableFieldCache, service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysTableService, service.NewSysUserService, service.NewGeneralizationService, service.NewCasbinRuleService, controller.NewDictController, controller.NewTableController, controller.NewBasicController, controller.NewGeneralizationController, wire.Struct(new(App), "*"),
 )
