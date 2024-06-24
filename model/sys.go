@@ -120,10 +120,10 @@ type SysTableField struct {
 
 type SysTableIndex struct {
 	Basic
-	TableID     int                  `gorm:"index;comment:表ID" json:"table_id"`
-	IndexName   string               `gorm:"size:128;comment:索引名称" json:"index_name"`
-	IsUnique    bool                 `gorm:"comment:是否唯一索引" json:"is_unique"`
-	IndexFields []SysTableIndexField `gorm:"many2many:sys_table_index_field" json:"index_fields"`
+	TableID     int             `gorm:"index;comment:表ID" json:"table_id"`
+	IndexName   string          `gorm:"size:128;comment:索引名称" json:"index_name"`
+	IsUnique    bool            `gorm:"comment:是否唯一索引" json:"is_unique"`
+	IndexFields []SysTableField `gorm:"many2many:sys_table_index_field" json:"index_fields"`
 }
 
 type SysTableIndexField struct {
@@ -140,6 +140,7 @@ type SysTableRelation struct {
 	OnDelete       string                    `gorm:"size:128;comment:删除时策略" json:"on_delete"`
 	OnUpdate       string                    `gorm:"size:128;comment:更新时策略" json:"on_update"`
 	RelationType   enum.SysTableRelationType `gorm:"size:128;comment:关系类型" json:"relation_type"`
+	ManyTableCode  *string                   `gorm:"size:128;comment:多对多关系中间表" json:"many_table_code"` // 多对多关系使用到的中间表
 }
 
 type SysDict struct {

@@ -49,7 +49,6 @@ type TableFieldUpdateReq struct {
 	InputType          enum.SysTableFieldInputType `json:"input_type" binding:"required"`         // 输入类型
 	DefaultValue       string                      `json:"default_value"`                         // 默认值
 	DictCode           string                      `json:"dict_code"`                             // 所用字典
-	IsPrimaryKey       bool                        `json:"is_primary_key" binding:"required"`     // 是否主键
 	IsQuickSearch      bool                        `json:"is_quick_search" binding:"required"`    // 是否快捷搜索
 	IsAdvancedSearch   bool                        `json:"is_advanced_search" binding:"required"` // 是否高级搜索
 	IsSort             bool                        `json:"is_sort" binding:"required"`            // 是否可排序
@@ -72,4 +71,25 @@ type TableRelationUpdateReq struct {
 	ReferenceKey   string                    `json:"reference_key" binding:"required"`    // 主表对应字段
 	ForeignKey     string                    `json:"foreign_key" binding:"required"`      // 关联表 字段
 	RelationType   enum.SysTableRelationType `json:"relation_type" binding:"required"`
+}
+
+type TableIndexFieldReq struct {
+	TableID   int    `json:"table_id" binding:"required"`
+	FieldID   int    `json:"field_id" binding:"required"`
+	FieldCode string `json:"field_code"  binding:"required"`
+}
+
+type TableIndexCreateReq struct {
+	TableID     int                  `json:"table_id" binding:"required"`
+	IndexName   string               `json:"index_name" binding:"required"`
+	IsUnique    bool                 `json:"is_unique" binding:"required"`
+	IndexFields []TableIndexFieldReq `json:"index_fields" binding:"required,min=1"`
+}
+
+type TableIndexUpdateReq struct {
+	ID          int                  `json:"id" binding:"required"`
+	TableID     int                  `json:"table_id" binding:"required"`
+	IndexName   string               `json:"index_name" binding:"required"`
+	IsUnique    bool                 `json:"is_unique" binding:"required"`
+	IndexFields []TableIndexFieldReq `json:"index_fields" binding:"required"`
 }

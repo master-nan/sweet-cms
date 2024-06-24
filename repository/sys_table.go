@@ -25,14 +25,19 @@ type SysTableRepository interface {
 
 	GetTableFieldById(int) (model.SysTableField, error)
 	GetTableFieldsByTableId(int) ([]model.SysTableField, error)
-	UpdateTableField(request.TableFieldUpdateReq, string) error
+	UpdateTableField(request.TableFieldUpdateReq, model.SysTableField, string) error
 	InsertTableField(model.SysTableField, string) error
 	DeleteTableField(model.SysTableField, string) error
 
 	GetTableRelationById(int) (model.SysTableRelation, error)
 	GetTableRelationByTableId(int) (model.SysTableRelation, error)
-
-	UpdateTableRelation(request.TableRelationUpdateReq, string) error
 	InsertTableRelation(model.SysTableRelation, string) error
+	UpdateTableRelation(request.TableRelationUpdateReq, string) error
 	DeleteTableRelation(model.SysTableRelation, string) error
+
+	GetTableIndexById(int) (model.SysTableIndex, error)
+	GetTableIndexByTableId(int) (model.SysTableIndex, error)
+	InsertTableIndex(model.SysTableIndex, string) error
+	UpdateTableIndex(request.TableIndexUpdateReq, string) error
+	DeleteTableIndex(model.SysTableIndex, string) error
 }

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"reflect"
+	"strings"
 	"sweet-cms/enum"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
@@ -32,7 +33,7 @@ func (s *SysTableRepositoryImpl) GetTableById(i int) (model.SysTable, error) {
 	var table model.SysTable
 	err := s.db.Preload("TableFields", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sequence")
-	}).Where("id = ", i).First(&table).Error
+	}).Preload("TableRelations").Preload("TableIndexes.IndexFields").Where("id = ", i).First(&table).Error
 	return table, err
 }
 
@@ -65,18 +66,7 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) (err error) {
 		tx.Rollback()
 		return err
 	}
-	//// 构建创建实际表的SQL语句，包含Basic结构体的字段
-	//createSQL := fmt.Sprintf("CREATE TABLE `%s` (", table.TableCode)
-	//createSQL += `
-	//   	id INT AUTO_INCREMENT PRIMARY KEY,
-	//    gmt_create DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-	//    gmt_create_user INT COMMENT '创建者',
-	//    gmt_modify DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-	//    gmt_modify_user INT COMMENT '修改者',
-	//    gmt_delete DATETIME COMMENT '删除时间',
-	//    gmt_delete_user INT COMMENT '删除者',
-	//    state BOOLEAN DEFAULT TRUE COMMENT '状态'
-	//);`
+
 	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
 	basicFields := []model.SysTableField{
 		{TableID: table.ID, FieldName: "ID", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
@@ -98,11 +88,6 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) (err error) {
 		tx.Rollback()
 		return err
 	}
-	//// 执行创建表的SQL语句
-	//if err := tx.Exec(createSQL).Error; err != nil {
-	//	tx.Rollback()
-	//	return err
-	//}
 
 	for i := range basicFields {
 		fieldID, err := s.sf.GenerateUniqueID()
@@ -151,7 +136,7 @@ func (s *SysTableRepositoryImpl) GetTableFieldsByTableId(id int) ([]model.SysTab
 	return items, err
 }
 
-func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateReq, tableCode string) (err error) {
+func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateReq, field model.SysTableField, tableCode string) (err error) {
 	tx := s.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -170,48 +155,36 @@ func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateRe
 		tx.Rollback()
 		return err
 	}
-	sqlType := utils.SqlTypeFromFieldType(req.FieldType)
-	if req.FieldLength > 0 {
-		sqlType += fmt.Sprintf("(%d)", req.FieldLength)
+	var sqlType string
+	if req.FieldType != field.FieldType || (req.FieldLength > 0 && req.FieldLength != field.FieldLength) {
+		sqlType += fmt.Sprintf("%s(%d)", utils.SqlTypeFromFieldType(req.FieldType), req.FieldLength)
 	}
-	if req.DefaultValue != "" {
+	if req.DefaultValue != "" && req.DefaultValue != *field.DefaultValue {
 		sqlType += fmt.Sprintf(" DEFAULT '%s'", req.DefaultValue)
 	}
-	if req.IsNull {
-		sqlType += " NULL"
-	} else {
-		sqlType += " NOT NULL"
+	if req.IsNull != field.IsNull {
+		if req.IsNull {
+			sqlType += " NULL"
+		} else {
+			sqlType += " NOT NULL"
+		}
 	}
-	if req.FieldName != "" {
+	if req.FieldName != "" && req.FieldName != field.FieldName {
 		sqlType += fmt.Sprintf(" COMMENT '%s'", req.FieldName)
 	}
-	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` MODIFY COLUMN `%s` %s;", tableCode, req.FieldCode, sqlType)
+	var alterColumnSQL string
+	if req.FieldCode == field.FieldCode {
+		if sqlType == "" {
+			return tx.Commit().Error
+		}
+		alterColumnSQL = fmt.Sprintf("ALTER TABLE `%s` MODIFY `%s` %s;", tableCode, req.FieldCode, sqlType)
+	} else {
+		alterColumnSQL = fmt.Sprintf("ALTER TABLE `%s` CHANGE `%s` `%s` %s;", tableCode, field.FieldCode, req.FieldCode, sqlType)
+	}
 	if err := tx.Exec(alterColumnSQL).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	// 处理索引
-	//indexName := fmt.Sprintf("idx_%s_%s", tableCode, req.FieldCode)
-	//if req.IsIndex {
-	//	// 检查索引是否存在
-	//	var count int64
-	//	tx.Raw("SHOW INDEX FROM `"+tableCode+"` WHERE Key_name = ?", indexName).Count(&count)
-	//	if count == 0 {
-	//		// 创建索引
-	//		createIndexSQL := fmt.Sprintf("CREATE INDEX `%s` ON `%s`(`%s`);", indexName, tableCode, req.FieldCode)
-	//		if err := tx.Exec(createIndexSQL).Error; err != nil {
-	//			tx.Rollback()
-	//			return err
-	//		}
-	//	}
-	//} else {
-	//	// 删除索引
-	//	dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", indexName, tableCode)
-	//	if err := tx.Exec(dropIndexSQL).Error; err != nil {
-	//		tx.Rollback()
-	//		return err
-	//	}
-	//}
 	return tx.Commit().Error
 }
 
@@ -257,14 +230,6 @@ func (s *SysTableRepositoryImpl) InsertTableField(field model.SysTableField, tab
 		tx.Rollback()
 		return err
 	}
-	// 如果字段需要索引
-	//if field.IsIndex {
-	//	indexSQL := fmt.Sprintf("CREATE INDEX `idx_%s_%s` ON `%s`(`%s`);", tableCode, field.FieldCode, tableCode, field.FieldCode)
-	//	if err := tx.Exec(indexSQL).Error; err != nil {
-	//		tx.Rollback()
-	//		return err
-	//	}
-	//}
 	return tx.Commit().Error
 }
 
@@ -322,4 +287,155 @@ func (s *SysTableRepositoryImpl) UpdateTableRelation(req request.TableRelationUp
 func (s *SysTableRepositoryImpl) DeleteTableRelation(relation model.SysTableRelation, tableCode string) error {
 	//TODO 判断是否修改表关系，是否需要删除多对多关联表，同时检查多对多关系表是否存在
 	return s.db.Where("id = ", relation.ID).Delete(model.SysTableRelation{}).Error
+}
+
+func (s *SysTableRepositoryImpl) GetTableIndexById(i int) (model.SysTableIndex, error) {
+	var index model.SysTableIndex
+	err := s.db.Where("id = ", i).First(&index).Error
+	return index, err
+}
+
+func (s *SysTableRepositoryImpl) GetTableIndexByTableId(i int) (model.SysTableIndex, error) {
+	var index model.SysTableIndex
+	err := s.db.Where("table_id = ", i).First(&index).Error
+	return index, err
+}
+
+func (s *SysTableRepositoryImpl) InsertTableIndex(index model.SysTableIndex, tableCode string) (err error) {
+	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
+			tx.Rollback()                               // 回滚事务
+			// 设置返回的错误信息
+			if e, ok := r.(error); ok {
+				err = e // 如果 r 是 error 类型，直接返回
+			} else {
+				// 如果 r 不是 error 类型，转换为 error 后返回
+				err = fmt.Errorf("%v", r)
+			}
+		}
+	}()
+	// 创建索引表数据
+	if err := tx.Create(&index).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	var indexFields []model.SysTableIndexField
+	fieldCodeList := make([]string, len(index.IndexFields))
+	for _, field := range index.IndexFields {
+		fieldCodeList = append(fieldCodeList, field.FieldCode)
+		indexField := model.SysTableIndexField{
+			IndexID: index.ID,
+			FieldID: field.ID,
+		}
+		indexFields = append(indexFields, indexField)
+	}
+	// 创建中间表数据
+	if err := tx.Create(&indexFields).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	var unique string
+	if index.IsUnique {
+		unique = "UNIQUE"
+	}
+	fields := strings.Join(fieldCodeList, ",")
+	createIndexSql := fmt.Sprintf("CREATE %s INDEX %s ON %s (%s)", unique, index.IndexName, tableCode, fields)
+	if err := tx.Exec(createIndexSql).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}
+
+func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateReq, tableCode string) error {
+	// 处理索引
+	//indexName := fmt.Sprintf("idx_%s_%s", tableCode, req.FieldCode)
+	//if req.IsIndex {
+	//	// 检查索引是否存在
+	//	var count int64
+	//	tx.Raw("SHOW INDEX FROM `"+tableCode+"` WHERE Key_name = ?", indexName).Count(&count)
+	//	if count == 0 {
+	//		// 创建索引
+	//		createIndexSQL := fmt.Sprintf("CREATE INDEX `%s` ON `%s`(`%s`);", indexName, tableCode, req.FieldCode)
+	//		if err := tx.Exec(createIndexSQL).Error; err != nil {
+	//			tx.Rollback()
+	//			return err
+	//		}
+	//	}
+	//} else {
+	//	// 删除索引
+	//	dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", indexName, tableCode)
+	//	if err := tx.Exec(dropIndexSQL).Error; err != nil {
+	//		tx.Rollback()
+	//		return err
+	//	}
+	//}
+	tx := s.db.Begin()
+	// 删除中间表字段
+	if err := tx.Where("index_id = ?", req.ID).Delete(model.SysTableIndexField{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// 修改表数据
+	if err := tx.Model(model.SysTableIndex{}).Where("id=?", req.ID).Updates(&req).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// 删除表索引
+	dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", req.IndexName, tableCode)
+	if err := tx.Exec(dropIndexSQL).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	var indexFields []model.SysTableIndexField
+	fieldCodeList := make([]string, len(req.IndexFields))
+	for _, field := range req.IndexFields {
+		fieldCodeList = append(fieldCodeList, field.FieldCode)
+		indexField := model.SysTableIndexField{
+			IndexID: req.ID,
+			FieldID: field.FieldID,
+		}
+		indexFields = append(indexFields, indexField)
+	}
+	// 创建中间表数据
+	if err := tx.Create(&indexFields).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	var unique string
+	if req.IsUnique {
+		unique = "UNIQUE"
+	}
+	fields := strings.Join(fieldCodeList, ",")
+	// 创建表索引
+	createIndexSql := fmt.Sprintf("CREATE %s INDEX %s ON %s (%s)", unique, req.IndexName, tableCode, fields)
+	if err := tx.Exec(createIndexSql).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}
+
+func (s *SysTableRepositoryImpl) DeleteTableIndex(index model.SysTableIndex, tableCode string) error {
+	tx := s.db.Begin()
+	// 删除字段
+	if err := tx.Where("id = ?", index.ID).Delete(model.SysTableIndex{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// 删除中间表字段
+	if err := tx.Where("index_id = ?", index.ID).Delete(model.SysTableIndexField{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// 构建删除索引的SQL语句
+	dropIndexSQL := fmt.Sprintf("DROP INDEX %s ON %s", index.IndexName, tableCode)
+	if err := tx.Exec(dropIndexSQL).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }

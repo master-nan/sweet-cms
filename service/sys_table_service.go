@@ -7,13 +7,16 @@ package service
 
 import (
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"net/http"
 	"strconv"
 	"sweet-cms/cache"
 	"sweet-cms/form/request"
+	"sweet-cms/form/response"
 	"sweet-cms/inter"
 	"sweet-cms/model"
 	"sweet-cms/repository"
@@ -86,6 +89,17 @@ func (s *SysTableService) GetTableByTableCode(code string) (model.SysTable, erro
 
 func (s *SysTableService) InsertTable(req request.TableCreateReq) error {
 	var data model.SysTable
+	table, e := s.GetTableByTableCode(req.TableCode)
+	if e != nil {
+		return e
+	}
+	if table.ID != 0 {
+		e := &response.AdminError{
+			Code:    http.StatusBadRequest,
+			Message: "当前表已存在，请勿重复创建",
+		}
+		return e
+	}
 	err := mapstructure.Decode(req, &data)
 	if err != nil {
 		fmt.Println("Error during struct mapping:", err)
@@ -168,13 +182,74 @@ func (s *SysTableService) GetTableFieldsByTableId(tableId int) ([]model.SysTable
 	return fields, nil
 }
 
+func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) error {
+	var data model.SysTableField
+	fields, e := s.GetTableFieldsByTableId(req.TableID)
+	if e != nil {
+		return e
+	}
+	for _, field := range fields {
+		if field.FieldCode == req.FieldCode {
+			e = &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "该字段已存在，请勿重复创建",
+			}
+			return e
+		}
+	}
+	err := mapstructure.Decode(req, &data)
+	if err != nil {
+		zap.L().Error("Error during struct mapping:", zap.Error(err))
+		return err
+	}
+	id, err := s.sf.GenerateUniqueID()
+	if err != nil {
+		return err
+	}
+	table, err := s.GetTableById(data.TableID)
+	if err != nil {
+		return err
+	}
+
+	data.ID = int(id)
+	err = s.sysTableRepo.InsertTableField(data, table.TableCode)
+	if err != nil {
+		return err
+	}
+
+	if table.ID != 0 {
+		s.sysTableCache.Delete(strconv.Itoa(table.ID))
+		s.sysTableCache.Delete(table.TableCode)
+	}
+	return nil
+}
+
 func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) error {
 	table, err := s.GetTableById(req.ID)
 	if err != nil {
 		return err
 	}
 	if table.ID != 0 {
-		err = s.sysTableRepo.UpdateTableField(req, table.TableCode)
+		fields, e := s.GetTableFieldsByTableId(req.TableID)
+		if e != nil {
+			return e
+		}
+		var data model.SysTableField
+		for _, field := range fields {
+			if field.ID == req.ID {
+				diff := cmp.Diff(req, field)
+				if diff == "" {
+					return &response.AdminError{
+						Code:    http.StatusBadRequest,
+						Message: "字段未发生变化，无需更新",
+					}
+				}
+				zap.L().Info("变化值：", zap.String("diff", diff))
+				data = field
+				break
+			}
+		}
+		err = s.sysTableRepo.UpdateTableField(req, data, table.TableCode)
 		if err != nil {
 			return err
 		}
@@ -208,33 +283,4 @@ func (s *SysTableService) DeleteTableFieldById(id int) error {
 		}
 	}
 	return errors.New("数据不存在")
-}
-
-func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) error {
-	var data model.SysTableField
-	err := mapstructure.Decode(req, &data)
-	if err != nil {
-		zap.L().Error("Error during struct mapping:", zap.Error(err))
-		return err
-	}
-	id, err := s.sf.GenerateUniqueID()
-	if err != nil {
-		return err
-	}
-	table, err := s.GetTableById(data.TableID)
-	if err != nil {
-		return err
-	}
-
-	data.ID = int(id)
-	err = s.sysTableRepo.InsertTableField(data, table.TableCode)
-	if err != nil {
-		return err
-	}
-
-	if table.ID != 0 {
-		s.sysTableCache.Delete(strconv.Itoa(table.ID))
-		s.sysTableCache.Delete(table.TableCode)
-	}
-	return nil
 }
