@@ -298,26 +298,28 @@ func (s *SysTableRepositoryImpl) DeleteTableField(field model.SysTableField, tab
 }
 
 func (s *SysTableRepositoryImpl) GetTableRelationById(i int) (model.SysTableRelation, error) {
-	//TODO implement me
-	panic("implement me")
+	var relation model.SysTableRelation
+	err := s.db.Where("id = ", i).First(&relation).Error
+	return relation, err
 }
 
 func (s *SysTableRepositoryImpl) GetTableRelationByTableId(i int) (model.SysTableRelation, error) {
-	//TODO implement me
+	var relation model.SysTableRelation
+	err := s.db.Where("table_id = ", i).First(&relation).Error
+	return relation, err
+}
+
+func (s *SysTableRepositoryImpl) InsertTableRelation(relation model.SysTableRelation, tableCode string) error {
+	//TODO 新增多对多关系，2张表都要调整
 	panic("implement me")
 }
 
-func (s *SysTableRepositoryImpl) UpdateTableRelation(req request.TableRelationUpdateReq, s2 string) error {
-	//TODO implement me
-	panic("implement me")
+func (s *SysTableRepositoryImpl) UpdateTableRelation(req request.TableRelationUpdateReq, tableCode string) error {
+	// TODO 判断是否修改成多对多关系，检查多对多关系表是否存在，修改多对多关心，2张表都要调整
+	return s.db.Model(model.SysTableRelation{}).Updates(&req).Error
 }
 
-func (s *SysTableRepositoryImpl) InsertTableRelation(relation model.SysTableRelation, s2 string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *SysTableRepositoryImpl) DeleteTableRelation(relation model.SysTableRelation, s2 string) error {
-	//TODO implement me
-	panic("implement me")
+func (s *SysTableRepositoryImpl) DeleteTableRelation(relation model.SysTableRelation, tableCode string) error {
+	//TODO 判断是否修改表关系，是否需要删除多对多关联表，同时检查多对多关系表是否存在
+	return s.db.Where("id = ", relation.ID).Delete(model.SysTableRelation{}).Error
 }

@@ -11,27 +11,27 @@ type SysConfigure struct {
 
 type SysMenu struct {
 	Basic
-	PID       int          `gorm:"type:int" json:"pid"`
-	Name      string       `gorm:"size:32;comment:路由" json:"name"`
-	Path      string       `gorm:"size:128;comment:路径" json:"path"`
-	Component string       `gorm:"size:64;comment:路由主体" json:"component"`
-	Title     string       `gorm:"size:64;comment:显示标题" json:"title"`
-	IsHidden  bool         `gorm:"default:false;comment:是否隐藏" json:"isHidden"`
-	Sequence  uint8        `gorm:"comment:排序;type:tinyint" json:"sequence"`
-	Option    string       `gorm:"size:64;comment:选项" json:"option"`
-	Icon      *string      `gorm:"size:32;comment:图标" json:"icon"`
-	Redirect  *string      `gorm:"size:128;comment:重定向地址" json:"redirect"`
-	IsUnfold  bool         `gorm:"default:false;comment:默认展开" json:"isUnfold"`
-	MenuBtns  []SysMenuBtn `gorm:"foreignKey:MenuId;references:ID" json:"menu_btns"`
+	PID         int             `gorm:"type:int" json:"pid"`
+	Name        string          `gorm:"size:32;comment:路由" json:"name"`
+	Path        string          `gorm:"size:128;comment:路径" json:"path"`
+	Component   string          `gorm:"size:64;comment:路由主体" json:"component"`
+	Title       string          `gorm:"size:64;comment:显示标题" json:"title"`
+	IsHidden    bool            `gorm:"default:false;comment:是否隐藏" json:"isHidden"`
+	Sequence    uint8           `gorm:"comment:排序;type:tinyint" json:"sequence"`
+	Option      string          `gorm:"size:64;comment:选项" json:"option"`
+	Icon        *string         `gorm:"size:32;comment:图标" json:"icon"`
+	Redirect    *string         `gorm:"size:128;comment:重定向地址" json:"redirect"`
+	IsUnfold    bool            `gorm:"default:false;comment:默认展开" json:"isUnfold"`
+	MenuButtons []SysMenuButton `gorm:"foreignKey:MenuId;references:ID" json:"menu_btns"`
 }
 
-type SysMenuBtn struct {
+type SysMenuButton struct {
 	Basic
-	MenuID   int                     `gorm:"comment:menu_id" json:"menu_id" binding:"required"`
-	Name     string                  `gorm:"size:128;comment:按钮名称" json:"name" binding:"required"`
-	Code     string                  `gorm:"size:128;comment:按钮编码" json:"code" binding:"required"`
-	Memo     string                  `gorm:"size:128;comment:备注" json:"memo"`
-	Position enum.SysMenuBtnPosition `gorm:"type:tinyint;default:1;comment:位置" json:"position" binding:"required"`
+	MenuID   int                        `gorm:"comment:menu_id" json:"menu_id" binding:"required"`
+	Name     string                     `gorm:"size:128;comment:按钮名称" json:"name" binding:"required"`
+	Code     string                     `gorm:"size:128;comment:按钮编码" json:"code" binding:"required"`
+	Memo     string                     `gorm:"size:128;comment:备注" json:"memo"`
+	Position enum.SysMenuButtonPosition `gorm:"type:tinyint;default:1;comment:位置" json:"position" binding:"required"`
 }
 
 type SysMenuDataPermission struct {

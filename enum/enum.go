@@ -14,10 +14,10 @@ const (
 	TACITLY                                // 默认
 )
 
-type SysMenuBtnPosition uint8
+type SysMenuButtonPosition uint8
 
 const (
-	COLUMN SysMenuBtnPosition = iota + 1
+	COLUMN SysMenuButtonPosition = iota + 1
 	LINE
 )
 
