@@ -85,7 +85,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			boolean := captcha.VerifyString(captchaId, data.Captcha)
 			if boolean == false {
 				e := &response.AdminError{
-					Code:    http.StatusUnauthorized,
+					Code:    http.StatusBadRequest,
 					Message: "验证码错误",
 				}
 				ctx.Error(e)
@@ -101,7 +101,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 		user, err := b.sysUserService.GetByUserName(data.Username)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password {
 			e := &response.AdminError{
-				Code:    http.StatusUnauthorized,
+				Code:    http.StatusBadRequest,
 				Message: "用户名或密码错误",
 			}
 			ctx.Error(e)

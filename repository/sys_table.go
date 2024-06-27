@@ -38,6 +38,6 @@ type SysTableRepository interface {
 	GetTableIndexById(int) (model.SysTableIndex, error)
 	GetTableIndexByTableId(int) (model.SysTableIndex, error)
 	InsertTableIndex(model.SysTableIndex, string) error
-	UpdateTableIndex(request.TableIndexUpdateReq, string) error
+	UpdateTableIndex(request.TableIndexUpdateReq, model.SysTableIndex, string) error
 	DeleteTableIndex(model.SysTableIndex, string) error
 }

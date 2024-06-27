@@ -22,7 +22,7 @@ type SysMenu struct {
 	Icon        *string         `gorm:"size:32;comment:图标" json:"icon"`
 	Redirect    *string         `gorm:"size:128;comment:重定向地址" json:"redirect"`
 	IsUnfold    bool            `gorm:"default:false;comment:默认展开" json:"isUnfold"`
-	MenuButtons []SysMenuButton `gorm:"foreignKey:MenuId;references:ID" json:"menu_btns"`
+	MenuButtons []SysMenuButton `gorm:"foreignKey:MenuID;references:ID" json:"menu_btns"`
 }
 
 type SysMenuButton struct {

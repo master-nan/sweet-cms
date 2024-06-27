@@ -14,7 +14,6 @@ import (
 	"log"
 	"os"
 	"sweet-cms/model"
-	"sweet-cms/utils"
 	"time"
 )
 
@@ -56,20 +55,21 @@ func main() {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysDict{}, &model.SysDictItem{}, &model.SysConfigure{},
-		&model.AccessLog{}, &model.LoginLog{})
-	// 迁移 schema
-	db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysDict{}, &model.SysDictItem{}, &model.SysConfigure{}, &model.AccessLog{}, &model.LoginLog{})
+	//db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysDict{}, &model.SysDictItem{}, &model.SysConfigure{},
+	//	&model.AccessLog{}, &model.LoginLog{})
+	//// 迁移 schema
+	//db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysDict{}, &model.SysDictItem{}, &model.SysConfigure{}, &model.AccessLog{}, &model.LoginLog{})
+	db.AutoMigrate(&model.SysMenuButton{})
 
 	// Create
-	m := &model.SysConfigure{EnableCaptcha: false}
-	sf, err := utils.NewSnowflake(1)
-	if err != nil {
-		panic(err)
-	}
-	uniqueID, err := sf.GenerateUniqueID()
-	m.ID = int(uniqueID)
-	db.Create(m)
+	//m := &model.SysConfigure{EnableCaptcha: false}
+	//sf, err := utils.NewSnowflake(1)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//uniqueID, err := sf.GenerateUniqueID()
+	//m.ID = int(uniqueID)
+	//db.Create(m)
 
 	// Read
 	//var product Product

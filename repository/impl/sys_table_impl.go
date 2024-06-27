@@ -350,29 +350,7 @@ func (s *SysTableRepositoryImpl) InsertTableIndex(index model.SysTableIndex, tab
 	return tx.Commit().Error
 }
 
-func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateReq, tableCode string) error {
-	// 处理索引
-	//indexName := fmt.Sprintf("idx_%s_%s", tableCode, req.FieldCode)
-	//if req.IsIndex {
-	//	// 检查索引是否存在
-	//	var count int64
-	//	tx.Raw("SHOW INDEX FROM `"+tableCode+"` WHERE Key_name = ?", indexName).Count(&count)
-	//	if count == 0 {
-	//		// 创建索引
-	//		createIndexSQL := fmt.Sprintf("CREATE INDEX `%s` ON `%s`(`%s`);", indexName, tableCode, req.FieldCode)
-	//		if err := tx.Exec(createIndexSQL).Error; err != nil {
-	//			tx.Rollback()
-	//			return err
-	//		}
-	//	}
-	//} else {
-	//	// 删除索引
-	//	dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", indexName, tableCode)
-	//	if err := tx.Exec(dropIndexSQL).Error; err != nil {
-	//		tx.Rollback()
-	//		return err
-	//	}
-	//}
+func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateReq, data model.SysTableIndex, tableCode string) error {
 	tx := s.db.Begin()
 	// 删除中间表字段
 	if err := tx.Where("index_id = ?", req.ID).Delete(model.SysTableIndexField{}).Error; err != nil {
@@ -384,8 +362,8 @@ func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateRe
 		tx.Rollback()
 		return err
 	}
-	// 删除表索引
-	dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", req.IndexName, tableCode)
+	// 使用原索引名称删除表索引
+	dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", data.IndexName, tableCode)
 	if err := tx.Exec(dropIndexSQL).Error; err != nil {
 		tx.Rollback()
 		return err
