@@ -23,7 +23,7 @@ func NewSysUserRepositoryImpl(db *gorm.DB) *SysUserRepositoryImpl {
 
 func (s *SysUserRepositoryImpl) GetByUserName(username string) (model.SysUser, error) {
 	var user model.SysUser
-	result := s.db.Where(&model.SysUser{UserName: username}).First(&user)
+	result := s.db.Where(&model.SysUser{UserName: username}).Or(&model.SysUser{PhoneNumber: username}).First(&user)
 	return user, result.Error
 }
 
@@ -31,6 +31,11 @@ func (s *SysUserRepositoryImpl) GetByUserId(id int) (model.SysUser, error) {
 	var user model.SysUser
 	result := s.db.Where("id = ?", id).First(&user)
 	return user, result.Error
+}
+
+func (s *SysUserRepositoryImpl) Insert(d model.SysUser) error {
+	result := s.db.Create(&d)
+	return result.Error
 }
 
 func (s *SysUserRepositoryImpl) UpdateUser(req request.UserUpdateReq) error {
@@ -41,7 +46,7 @@ func (s *SysUserRepositoryImpl) DeleteUserById(i int) error {
 	return s.db.Where("id = ", i).Delete(model.SysUser{}).Error
 }
 
-func (s *SysUserRepositoryImpl) GetUserList(basic request.Basic) (response.ListResult[model.SysUser], error) {
+func (s *SysUserRepositoryImpl) GetList(basic request.Basic) (response.ListResult[model.SysUser], error) {
 	var repo response.ListResult[model.SysUser]
 	query := utils.ExecuteQuery(s.db, basic)
 	var sysUserList []model.SysUser

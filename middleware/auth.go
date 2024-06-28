@@ -6,16 +6,17 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"sweet-cms/form/response"
+	"sweet-cms/service"
 	"sweet-cms/utils"
 )
 
 const bearerLength = len("Bearer ")
 
-func AuthHandler(jwt *utils.JWTTokenGen) gin.HandlerFunc {
+func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
 		resp := response.NewResponse()
@@ -38,7 +39,25 @@ func AuthHandler(jwt *utils.JWTTokenGen) gin.HandlerFunc {
 			c.Error(e)
 			return
 		}
-		fmt.Println(id)
+		i, err := strconv.Atoi(id)
+		if err != nil {
+			e := &response.AdminError{
+				Code:    http.StatusForbidden,
+				Message: err.Error(),
+			}
+			c.Error(e)
+			return
+		}
+		user, err := userService.GetByUserId(i)
+		if err != nil {
+			e := &response.AdminError{
+				Code:    http.StatusForbidden,
+				Message: err.Error(),
+			}
+			c.Error(e)
+			return
+		}
+		c.Set("user", user)
 		c.Next()
 	}
 }

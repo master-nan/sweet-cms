@@ -33,7 +33,7 @@ func InitRouter(app *App) *gin.Engine {
 
 	//后台验证路由
 	adminGroup := routerGroup.Group("/admin")
-	//adminGroup.Use(middlewares.AuthHandler(app.JWT))
+	adminGroup.Use(middleware.AuthHandler(app.JWT, app.UserService))
 	{
 		// dict
 		adminGroup.GET("/dict/id/:id", app.DictController.GetSysDictById)

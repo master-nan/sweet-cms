@@ -72,6 +72,7 @@ func InitializeApp() (*App, error) {
 	sysTableFieldCache := cache.NewSysTableFieldCache(redisUtil)
 	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake, sysTableCache, sysTableFieldCache)
 	tableController := controller.NewTableController(sysTableService, v)
+	userController := controller.NewUserController(sysUserService, v)
 	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db)
 	generalizationService := service.NewGeneralizationService(generalizationRepositoryImpl)
 	generalizationController := controller.NewGeneralizationController(generalizationService, sysTableService)
@@ -85,8 +86,10 @@ func InitializeApp() (*App, error) {
 		DictController:           dictController,
 		BasicController:          basicController,
 		TableController:          tableController,
+		UserController:           userController,
 		GeneralizationController: generalizationController,
 		LogService:               logService,
+		UserService:              sysUserService,
 	}
 	return app, nil
 }
@@ -103,8 +106,10 @@ type App struct {
 	DictController           *controller.DictController
 	BasicController          *controller.BasicController
 	TableController          *controller.TableController
+	UserController           *controller.UserController
 	GeneralizationController *controller.GeneralizationController
 	LogService               *service.LogService
+	UserService              *service.SysUserService
 }
 
 var Providers = wire.NewSet(

@@ -32,8 +32,10 @@ type App struct {
 	DictController           *controller.DictController
 	BasicController          *controller.BasicController
 	TableController          *controller.TableController
+	UserController           *controller.UserController
 	GeneralizationController *controller.GeneralizationController
 	LogService               *service.LogService
+	UserService              *service.SysUserService
 }
 
 var Providers = wire.NewSet(

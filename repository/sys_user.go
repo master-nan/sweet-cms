@@ -16,5 +16,6 @@ type SysUserRepository interface {
 	GetByUserId(id int) (model.SysUser, error)
 	UpdateUser(request.UserUpdateReq) error
 	DeleteUserById(int) error
-	GetUserList(request.Basic) (response.ListResult[model.SysUser], error)
+	GetList(request.Basic) (response.ListResult[model.SysUser], error)
+	Insert(model.SysUser) error
 }

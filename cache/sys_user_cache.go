@@ -22,8 +22,8 @@ func NewSysUserCache(cacheInterface inter.CacheInterface) *SysUserCache {
 	return &SysUserCache{cacheInterface: cacheInterface}
 }
 
-func (c *SysUserCache) Get(key string) (model.SysTable, error) {
-	var data model.SysTable
+func (c *SysUserCache) Get(key string) (model.SysUser, error) {
+	var data model.SysUser
 	err := c.cacheInterface.Get(UserCacheKey+key, &data)
 	if err != nil {
 		zap.L().Error(UserCacheKey+"Error getting key in cache", zap.String("key", key), zap.Error(err))
@@ -32,7 +32,7 @@ func (c *SysUserCache) Get(key string) (model.SysTable, error) {
 	return data, nil
 }
 
-func (c *SysUserCache) Set(key string, data model.SysTable) error {
+func (c *SysUserCache) Set(key string, data model.SysUser) error {
 	err := c.cacheInterface.Set(UserCacheKey+key, &data, 7200*time.Second)
 	if err != nil {
 		zap.L().Error(UserCacheKey+"Error setting key in cache", zap.String("key", key), zap.Error(err))
