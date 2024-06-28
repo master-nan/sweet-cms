@@ -72,3 +72,8 @@ func (r *Response) SetCode(code int) *Response {
 	r.Code = code
 	return r
 }
+
+type ListResult[T any] struct {
+	Data  []T `json:"data"`
+	Total int `json:"total"`
+}

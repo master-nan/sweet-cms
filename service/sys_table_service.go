@@ -63,7 +63,7 @@ func (s *SysTableService) GetTableById(id int) (model.SysTable, error) {
 	return data, nil
 }
 
-func (s *SysTableService) GetTableList(basic request.Basic) (repository.SysTableListResult, error) {
+func (s *SysTableService) GetTableList(basic request.Basic) (response.ListResult[model.SysTable], error) {
 	result, err := s.sysTableRepo.GetTableList(basic)
 	return result, err
 }

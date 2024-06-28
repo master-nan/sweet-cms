@@ -56,7 +56,7 @@ func (s *SysDictService) GetSysDictById(id int) (model.SysDict, error) {
 	return dict, nil
 }
 
-func (s *SysDictService) GetSysDictList(basic request.Basic) (repository.SysDictListResult, error) {
+func (s *SysDictService) GetSysDictList(basic request.Basic) (response.ListResult[model.SysDict], error) {
 	result, err := s.sysDictRepo.GetSysDictList(basic)
 	return result, err
 }

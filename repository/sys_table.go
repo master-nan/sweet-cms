@@ -7,13 +7,9 @@ package repository
 
 import (
 	"sweet-cms/form/request"
+	"sweet-cms/form/response"
 	"sweet-cms/model"
 )
-
-type SysTableListResult struct {
-	Data  []model.SysTable `json:"data"`
-	Total int              `json:"total"`
-}
 
 type SysTableRepository interface {
 	GetTableById(int) (model.SysTable, error)
@@ -21,7 +17,7 @@ type SysTableRepository interface {
 	InsertTable(model.SysTable) error
 	UpdateTable(request.TableUpdateReq) error
 	DeleteTableById(int) error
-	GetTableList(request.Basic) (SysTableListResult, error)
+	GetTableList(request.Basic) (response.ListResult[model.SysTable], error)
 
 	GetTableFieldById(int) (model.SysTableField, error)
 	GetTableFieldsByTableId(int) ([]model.SysTableField, error)

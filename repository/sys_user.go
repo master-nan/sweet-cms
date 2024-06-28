@@ -5,9 +5,16 @@
 
 package repository
 
-import "sweet-cms/model"
+import (
+	"sweet-cms/form/request"
+	"sweet-cms/form/response"
+	"sweet-cms/model"
+)
 
 type SysUserRepository interface {
 	GetByUserName(string) (model.SysUser, error)
 	GetByUserId(id int) (model.SysUser, error)
+	UpdateUser(request.UserUpdateReq) error
+	DeleteUserById(int) error
+	GetUserList(request.Basic) (response.ListResult[model.SysUser], error)
 }

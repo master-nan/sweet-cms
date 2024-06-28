@@ -6,16 +6,24 @@
 package service
 
 import (
+	"sweet-cms/cache"
 	"sweet-cms/model"
 	"sweet-cms/repository"
+	"sweet-cms/utils"
 )
 
 type SysUserService struct {
-	sysUserRepo repository.SysUserRepository
+	sysUserRepo  repository.SysUserRepository
+	sf           *utils.Snowflake
+	sysUserCache *cache.SysUserCache
 }
 
-func NewSysUserService(sysUserRepo repository.SysUserRepository) *SysUserService {
-	return &SysUserService{sysUserRepo}
+func NewSysUserService(sysUserRepo repository.SysUserRepository, sf *utils.Snowflake, sysUserCache *cache.SysUserCache) *SysUserService {
+	return &SysUserService{
+		sysUserRepo,
+		sf,
+		sysUserCache,
+	}
 }
 
 // GetByUserName 根据username获取用户信息

@@ -8,8 +8,8 @@ package impl
 import (
 	"gorm.io/gorm"
 	"sweet-cms/form/request"
+	"sweet-cms/form/response"
 	"sweet-cms/model"
-	"sweet-cms/repository"
 	"sweet-cms/utils"
 )
 
@@ -29,8 +29,8 @@ func (i *SysDictRepositoryImpl) GetSysDictById(id int) (model.SysDict, error) {
 	return sysDict, err
 }
 
-func (i *SysDictRepositoryImpl) GetSysDictList(basic request.Basic) (repository.SysDictListResult, error) {
-	var repo repository.SysDictListResult
+func (i *SysDictRepositoryImpl) GetSysDictList(basic request.Basic) (response.ListResult[model.SysDict], error) {
+	var repo response.ListResult[model.SysDict]
 	query := utils.ExecuteQuery(i.db, basic)
 	var sysDictList []model.SysDict
 	var total int64 = 0

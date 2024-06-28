@@ -64,6 +64,7 @@ var Providers = wire.NewSet(
 	wire.Bind(new(repository.CasbinRuleRepository), new(*impl.CasbinRuleRepositoryImpl)),
 
 	cache.NewSysConfigureCache,
+	cache.NewSysUserCache,
 	cache.NewSysDictCache,
 	cache.NewSysTableCache,
 	cache.NewSysTableFieldCache,
@@ -79,6 +80,7 @@ var Providers = wire.NewSet(
 
 	controller.NewDictController,
 	controller.NewTableController,
+	controller.NewUserController,
 	controller.NewBasicController,
 	controller.NewGeneralizationController,
 

@@ -12,8 +12,8 @@ import (
 	"strings"
 	"sweet-cms/enum"
 	"sweet-cms/form/request"
+	"sweet-cms/form/response"
 	"sweet-cms/model"
-	"sweet-cms/repository"
 	"sweet-cms/utils"
 )
 
@@ -113,8 +113,8 @@ func (s *SysTableRepositoryImpl) DeleteTableById(i int) error {
 	return s.db.Where("id = ", i).Delete(model.SysTable{}).Error
 }
 
-func (s *SysTableRepositoryImpl) GetTableList(basic request.Basic) (repository.SysTableListResult, error) {
-	var repo repository.SysTableListResult
+func (s *SysTableRepositoryImpl) GetTableList(basic request.Basic) (response.ListResult[model.SysTable], error) {
+	var repo response.ListResult[model.SysTable]
 	query := utils.ExecuteQuery(s.db, basic)
 	var sysTableList []model.SysTable
 	var total int64 = 0

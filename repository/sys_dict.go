@@ -7,17 +7,13 @@ package repository
 
 import (
 	"sweet-cms/form/request"
+	"sweet-cms/form/response"
 	"sweet-cms/model"
 )
 
-type SysDictListResult struct {
-	Data  []model.SysDict `json:"data"`
-	Total int             `json:"total"`
-}
-
 type SysDictRepository interface {
 	GetSysDictById(int) (model.SysDict, error)
-	GetSysDictList(request.Basic) (SysDictListResult, error)
+	GetSysDictList(request.Basic) (response.ListResult[model.SysDict], error)
 	InsertSysDict(model.SysDict) error
 	UpdateSysDict(request.DictUpdateReq) error
 	DeleteSysDictById(int) error
