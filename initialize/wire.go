@@ -70,6 +70,7 @@ var Providers = wire.NewSet(
 	cache.NewSysDictCache,
 	cache.NewSysTableCache,
 	cache.NewSysTableFieldCache,
+	cache.NewGeneralizationCache,
 
 	service.NewLogServer,
 	service.NewSysConfigureService,

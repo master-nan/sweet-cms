@@ -22,23 +22,20 @@ import (
 )
 
 type SysUserService struct {
-	sysUserRepo         repository.SysUserRepository
-	sf                  *utils.Snowflake
-	sysUserCache        *cache.SysUserCache
-	generalizationCache *cache.GeneralizationCache
+	sysUserRepo  repository.SysUserRepository
+	sf           *utils.Snowflake
+	sysUserCache *cache.SysUserCache
 }
 
 func NewSysUserService(
 	sysUserRepo repository.SysUserRepository,
 	sf *utils.Snowflake,
 	sysUserCache *cache.SysUserCache,
-	generalizationCache *cache.GeneralizationCache,
 ) *SysUserService {
 	return &SysUserService{
 		sysUserRepo,
 		sf,
 		sysUserCache,
-		generalizationCache,
 	}
 }
 
