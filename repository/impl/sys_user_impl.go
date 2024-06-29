@@ -33,6 +33,12 @@ func (s *SysUserRepositoryImpl) GetByUserId(id int) (model.SysUser, error) {
 	return user, result.Error
 }
 
+func (s *SysUserRepositoryImpl) GetByEmployeeID(id int) (model.SysUser, error) {
+	var user model.SysUser
+	result := s.db.Where("employee_id = ?", id).First(&user)
+	return user, result.Error
+}
+
 func (s *SysUserRepositoryImpl) Insert(d model.SysUser) error {
 	result := s.db.Create(&d)
 	return result.Error

@@ -22,16 +22,23 @@ import (
 )
 
 type SysUserService struct {
-	sysUserRepo  repository.SysUserRepository
-	sf           *utils.Snowflake
-	sysUserCache *cache.SysUserCache
+	sysUserRepo         repository.SysUserRepository
+	sf                  *utils.Snowflake
+	sysUserCache        *cache.SysUserCache
+	generalizationCache *cache.GeneralizationCache
 }
 
-func NewSysUserService(sysUserRepo repository.SysUserRepository, sf *utils.Snowflake, sysUserCache *cache.SysUserCache) *SysUserService {
+func NewSysUserService(
+	sysUserRepo repository.SysUserRepository,
+	sf *utils.Snowflake,
+	sysUserCache *cache.SysUserCache,
+	generalizationCache *cache.GeneralizationCache,
+) *SysUserService {
 	return &SysUserService{
 		sysUserRepo,
 		sf,
 		sysUserCache,
+		generalizationCache,
 	}
 }
 
@@ -81,6 +88,17 @@ func (s *SysUserService) GetByUserId(id int) (model.SysUser, error) {
 	return data, nil
 }
 
+func (s *SysUserService) GetByEmployeeID(id int) (model.SysUser, error) {
+	data, err := s.sysUserRepo.GetByEmployeeID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.SysUser{}, nil
+		}
+		return model.SysUser{}, err
+	}
+	return data, nil
+}
+
 func (s *SysUserService) GetList(basic request.Basic) (response.ListResult[model.SysUser], error) {
 	result, err := s.sysUserRepo.GetList(basic)
 	return result, err
@@ -88,7 +106,8 @@ func (s *SysUserService) GetList(basic request.Basic) (response.ListResult[model
 
 func (s *SysUserService) Insert(req request.UserCreateReq) error {
 	var data model.SysUser
-	user, e := s.GetByUserName(req.UserName)
+	//user, e := s.GetByUserName(req.UserName)
+	user, e := s.GetByEmployeeID(req.EmployeeID)
 	if e != nil {
 		return e
 	}
