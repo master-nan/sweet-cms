@@ -48,7 +48,7 @@ func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gi
 			c.Error(e)
 			return
 		}
-		user, err := userService.GetByUserId(i)
+		user, err := userService.GetById(i)
 		if err != nil {
 			e := &response.AdminError{
 				Code:    http.StatusForbidden,

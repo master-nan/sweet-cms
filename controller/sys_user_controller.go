@@ -71,7 +71,7 @@ func (u *UserController) GetSysUserById(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	data, err := u.sysUserService.GetByUserId(id)
+	data, err := u.sysUserService.GetById(id)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -124,9 +124,54 @@ func (u *UserController) InsertSysUser(ctx *gin.Context) {
 func (u *UserController) UpdateSysUser(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	var data request.UserUpdateReq
+	translator, _ := u.translators["zh"]
+	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
+		if err == io.EOF {
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数错误",
+			}
+			ctx.Error(e)
+			return
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			ctx.Error(e)
+			return
+		}
+		ctx.Error(err)
+		return
+	}
+	err := u.sysUserService.Update(data)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
 }
 
 func (u *UserController) DeleteSysUser(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	err = u.sysUserService.Delete(id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
 }

@@ -130,11 +130,11 @@ func (s *SysTableService) UpdateTable(req request.TableUpdateReq) error {
 }
 
 func (s *SysTableService) DeleteTableById(id int) error {
-	err := s.sysTableRepo.DeleteTableById(id)
+	data, err := s.GetTableById(id)
 	if err != nil {
 		return err
 	}
-	data, err := s.GetTableById(id)
+	err = s.sysTableRepo.DeleteTableById(id)
 	if err != nil {
 		return err
 	}

@@ -21,5 +21,4 @@ type UserUpdateReq struct {
 	Email       string `json:"email" binding:"required"`
 	PhoneNumber string `json:"phone_number" binding:"required"`
 	IDCard      string `json:"id_card" binding:"required"`
-	EmployeeID  int    `json:"employee_id" binding:"required"`
 }

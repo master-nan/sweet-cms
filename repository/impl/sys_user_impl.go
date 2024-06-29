@@ -27,7 +27,7 @@ func (s *SysUserRepositoryImpl) GetByUserName(username string) (model.SysUser, e
 	return user, result.Error
 }
 
-func (s *SysUserRepositoryImpl) GetByUserId(id int) (model.SysUser, error) {
+func (s *SysUserRepositoryImpl) GetById(id int) (model.SysUser, error) {
 	var user model.SysUser
 	result := s.db.Where("id = ?", id).First(&user)
 	return user, result.Error
@@ -44,11 +44,11 @@ func (s *SysUserRepositoryImpl) Insert(d model.SysUser) error {
 	return result.Error
 }
 
-func (s *SysUserRepositoryImpl) UpdateUser(req request.UserUpdateReq) error {
+func (s *SysUserRepositoryImpl) Update(req request.UserUpdateReq) error {
 	return s.db.Model(model.SysUser{}).Updates(&req).Error
 }
 
-func (s *SysUserRepositoryImpl) DeleteUserById(i int) error {
+func (s *SysUserRepositoryImpl) DeleteById(i int) error {
 	return s.db.Where("id = ", i).Delete(model.SysUser{}).Error
 }
 

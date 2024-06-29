@@ -13,9 +13,9 @@ import (
 
 type SysUserRepository interface {
 	GetByUserName(string) (model.SysUser, error)
-	GetByUserId(int) (model.SysUser, error)
-	UpdateUser(request.UserUpdateReq) error
-	DeleteUserById(int) error
+	GetById(int) (model.SysUser, error)
+	Update(request.UserUpdateReq) error
+	DeleteById(int) error
 	GetList(request.Basic) (response.ListResult[model.SysUser], error)
 	Insert(model.SysUser) error
 	GetByEmployeeID(int) (model.SysUser, error)

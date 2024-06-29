@@ -65,8 +65,8 @@ func (s *SysUserService) GetByUserName(username string) (model.SysUser, error) {
 	return data, nil
 }
 
-// GetByUserId 根据id获取用户信息
-func (s *SysUserService) GetByUserId(id int) (model.SysUser, error) {
+// GetById 根据id获取用户信息
+func (s *SysUserService) GetById(id int) (model.SysUser, error) {
 	data, err := s.sysUserCache.Get(strconv.Itoa(id))
 	if err == nil {
 		return data, nil
@@ -74,7 +74,7 @@ func (s *SysUserService) GetByUserId(id int) (model.SysUser, error) {
 	if !errors.Is(err, inter.ErrCacheMiss) {
 		return model.SysUser{}, err
 	}
-	data, err = s.sysUserRepo.GetByUserId(id)
+	data, err = s.sysUserRepo.GetById(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return model.SysUser{}, nil
@@ -129,4 +129,38 @@ func (s *SysUserService) Insert(req request.UserCreateReq) error {
 	}
 	data.ID = int(id)
 	return s.sysUserRepo.Insert(data)
+}
+
+func (s *SysUserService) Update(req request.UserUpdateReq) error {
+	err := s.sysUserRepo.Update(req)
+	if err != nil {
+		return err
+	}
+	data, err := s.GetById(req.ID)
+	if err != nil {
+		return err
+	}
+	if data.ID != 0 {
+		s.sysUserCache.Delete(strconv.Itoa(data.ID))
+		s.sysUserCache.Delete(data.UserName)
+		s.sysUserCache.Delete(data.PhoneNumber)
+	}
+	return nil
+}
+
+func (s *SysUserService) Delete(id int) error {
+	data, err := s.GetById(id)
+	if err != nil {
+		return err
+	}
+	err = s.sysUserRepo.DeleteById(id)
+	if err != nil {
+		return err
+	}
+	if data.ID != 0 {
+		s.sysUserCache.Delete(strconv.Itoa(data.ID))
+		s.sysUserCache.Delete(data.UserName)
+		s.sysUserCache.Delete(data.PhoneNumber)
+	}
+	return nil
 }
