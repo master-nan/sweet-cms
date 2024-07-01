@@ -32,10 +32,10 @@ func NewUserController(sysUserService *service.SysUserService, translators map[s
 	}
 }
 
-func (u *UserController) QueryUser(ctx *gin.Context) {}
+func (u *UserController) QuerySysUser(ctx *gin.Context) {}
 
-func (u *UserController) GetMyUserInfo(ctx *gin.Context) {
-	if data, exists := ctx.Get("u"); exists {
+func (u *UserController) GetMe(ctx *gin.Context) {
+	if data, exists := ctx.Get("user"); exists {
 		resp := response.NewResponse()
 		ctx.Set("response", resp)
 		resp.SetData(data)

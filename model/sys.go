@@ -58,7 +58,7 @@ type SysUser struct {
 	EmployeeID   int        `gorm:"comment:员工ID" json:"employee_id"`
 	GmtLastLogin CustomTime `gorm:"type:datetime;comment:最后登录时间" json:"gmt_last_login"`
 	Language     string     `gorm:"size:32;comment:语言包" json:"language"`
-	AccessTokens string     `gorm:"type:text;comment:用户最近5次Token" json:"access_tokens"`
+	AccessTokens string     `gorm:"type:text;comment:用户最近5次Token" json:"-"`
 	Roles        []SysRole  `gorm:"many2many:sys_user_role;" json:"roles"`
 }
 
