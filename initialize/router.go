@@ -67,7 +67,7 @@ func InitRouter(app *App) *gin.Engine {
 
 		// user
 		adminGroup.GET("/user/me", app.UserController.GetMe)
-		adminGroup.GET("/user", app.UserController.QuerySysUser)
+		adminGroup.GET("/user/query", app.UserController.QuerySysUser)
 		adminGroup.POST("/user", app.UserController.InsertSysUser)
 		adminGroup.PUT("/user/:id", app.UserController.UpdateSysUser)
 		adminGroup.DELETE("/user/:id", app.UserController.DeleteSysUser)
