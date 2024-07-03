@@ -17,7 +17,9 @@ import (
 	"strings"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
+	"sweet-cms/model"
 	"sweet-cms/service"
+	"sweet-cms/utils"
 )
 
 type UserController struct {
@@ -38,7 +40,10 @@ func (u *UserController) GetMe(ctx *gin.Context) {
 	if data, exists := ctx.Get("user"); exists {
 		resp := response.NewResponse()
 		ctx.Set("response", resp)
-		resp.SetData(data)
+		user, _ := data.(model.SysUser)
+		var userRes response.UserRes
+		utils.Assignment(&user, &userRes)
+		resp.SetData(userRes)
 		return
 	} else {
 		e := &response.AdminError{
@@ -59,7 +64,9 @@ func (u *UserController) GetSysUserByUserName(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	resp.SetData(data)
+	var userRes response.UserRes
+	utils.Assignment(&data, &userRes)
+	resp.SetData(userRes)
 	return
 }
 

@@ -36,6 +36,7 @@ func ResponseHandler() gin.HandlerFunc {
 						"errorMessage": e.Error(),
 					})
 				}
+				return
 			}
 		} else {
 			if resp, exists := c.Get("response"); exists {

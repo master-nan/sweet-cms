@@ -7,6 +7,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 	"sweet-cms/form/response"
@@ -21,6 +22,7 @@ func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gi
 		authorization := c.GetHeader("Authorization")
 		resp := response.NewResponse()
 		c.Set("response", resp)
+		zap.L().Info("AuthHandler start")
 		if len(authorization) < bearerLength {
 			e := &response.AdminError{
 				Code:    http.StatusUnauthorized,
@@ -58,6 +60,8 @@ func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gi
 			return
 		}
 		c.Set("user", user)
+		c.Set("id", id)
 		c.Next()
+		zap.L().Info("AuthHandler end")
 	}
 }

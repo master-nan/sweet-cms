@@ -56,7 +56,7 @@ func (s *SysUserService) GetByUserName(username string) (model.SysUser, error) {
 		return model.SysUser{}, err
 	}
 	// 将用户按照id、username以及手机号缓存
-	s.sysUserCache.Set(string(data.ID), data)
+	s.sysUserCache.Set(strconv.Itoa(data.ID), data)
 	s.sysUserCache.Set(data.UserName, data)
 	s.sysUserCache.Set(data.PhoneNumber, data)
 	return data, nil

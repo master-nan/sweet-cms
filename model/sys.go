@@ -51,14 +51,14 @@ type SysRole struct {
 type SysUser struct {
 	Basic
 	UserName     string     `gorm:"size:128;unique;comment:用户名" json:"username"`
-	Password     string     `gorm:"size:128;comment:密码" json:"-"`
+	Password     string     `gorm:"size:128;comment:密码" json:"password"`
 	Email        string     `gorm:"size:128;unique;comment:邮箱" json:"email"`
 	PhoneNumber  string     `gorm:"size:128;unique;comment:电话" json:"phone_number"`
 	IDCard       string     `gorm:"size:128;unique;comment:身份证号" json:"id_card"`
 	EmployeeID   int        `gorm:"comment:员工ID" json:"employee_id"`
 	GmtLastLogin CustomTime `gorm:"type:datetime;comment:最后登录时间" json:"gmt_last_login"`
 	Language     string     `gorm:"size:32;comment:语言包" json:"language"`
-	AccessTokens string     `gorm:"type:text;comment:用户最近5次Token" json:"-"`
+	AccessTokens string     `gorm:"type:text;comment:用户最近5次Token" json:"access_tokens"`
 	Roles        []SysRole  `gorm:"many2many:sys_user_role;" json:"roles"`
 }
 

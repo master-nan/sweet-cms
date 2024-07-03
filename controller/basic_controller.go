@@ -112,9 +112,12 @@ func (b *BasicController) Login(ctx *gin.Context) {
 				ctx.Error(err)
 				return
 			} else {
+				//b.sysUserService.Update()
+				var userRes response.UserRes
+				utils.Assignment(&user, &userRes)
 				signInRes := response.SignInRes{
 					AccessToken: token,
-					UserInfo:    user,
+					UserInfo:    userRes,
 				}
 				resp.SetData(signInRes)
 				return

@@ -14,6 +14,43 @@ import (
 	"reflect"
 )
 
+// ConvertStruct 通用结构体转换函数
+func ConvertStruct(source, target interface{}) error {
+	srcVal := reflect.ValueOf(source)
+	destVal := reflect.ValueOf(target).Elem() // 获取指针指向的元素
+
+	if srcVal.Kind() == reflect.Slice && destVal.Kind() == reflect.Slice {
+		// 处理切片类型
+		itemType := destVal.Type().Elem()
+		resultSlice := reflect.MakeSlice(destVal.Type(), srcVal.Len(), srcVal.Len())
+
+		for i := 0; i < srcVal.Len(); i++ {
+			newItem := reflect.New(itemType.Elem()) // 创建新的元素实例
+			err := ConvertStruct(srcVal.Index(i).Interface(), newItem.Interface())
+			if err != nil {
+				return err
+			}
+			resultSlice.Index(i).Set(newItem.Elem())
+		}
+		destVal.Set(resultSlice)
+	} else {
+		// 处理单个对象
+		srcType := srcVal.Type()
+
+		for i := 0; i < srcType.NumField(); i++ {
+			srcField := srcType.Field(i)
+			srcFieldValue := srcVal.Field(i)
+
+			if destField := destVal.FieldByName(srcField.Name); destField.IsValid() && destField.CanSet() {
+				// 直接设置值
+				destField.Set(srcFieldValue)
+			}
+		}
+	}
+
+	return nil
+}
+
 func Assignment(source interface{}, target interface{}) {
 	s1 := reflect.ValueOf(source).Elem()
 	t1 := reflect.ValueOf(target).Elem()

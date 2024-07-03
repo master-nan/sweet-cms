@@ -5,9 +5,7 @@
 
 package response
 
-import "sweet-cms/model"
-
 type SignInRes struct {
-	AccessToken string        `json:"access_token"`
-	UserInfo    model.SysUser `json:"user_info"`
+	AccessToken string  `json:"access_token"`
+	UserInfo    UserRes `json:"user_info"`
 }
