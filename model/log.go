@@ -20,5 +20,5 @@ type LoginLog struct {
 	Basic
 	Ip       string `gorm:"size:128;comment:用户名" json:"ip"`
 	Locality string `gorm:"size:128;comment:用户名" json:"locality"`
-	UserName string `gorm:"size:128;comment:用户名" json:"user_name"`
+	UserName string `gorm:"size:128;comment:用户名" json:"userName"`
 }

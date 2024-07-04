@@ -56,7 +56,7 @@ func (s *SysUserService) GetByUserName(username string) (model.SysUser, error) {
 		return model.SysUser{}, err
 	}
 	// 将用户按照id、username以及手机号缓存
-	s.sysUserCache.Set(strconv.Itoa(data.ID), data)
+	s.sysUserCache.Set(strconv.Itoa(data.Id), data)
 	s.sysUserCache.Set(data.UserName, data)
 	s.sysUserCache.Set(data.PhoneNumber, data)
 	return data, nil
@@ -79,13 +79,13 @@ func (s *SysUserService) GetById(id int) (model.SysUser, error) {
 		return model.SysUser{}, err
 	}
 	// 将用户按照id、username以及手机号缓存
-	s.sysUserCache.Set(string(data.ID), data)
+	s.sysUserCache.Set(string(data.Id), data)
 	s.sysUserCache.Set(data.UserName, data)
 	s.sysUserCache.Set(data.PhoneNumber, data)
 	return data, nil
 }
 
-func (s *SysUserService) GetByEmployeeID(id int) (model.SysUser, error) {
+func (s *SysUserService) GetByEmployeeId(id int) (model.SysUser, error) {
 	data, err := s.sysUserRepo.GetByEmployeeID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -104,11 +104,11 @@ func (s *SysUserService) GetList(basic request.Basic) (response.ListResult[model
 func (s *SysUserService) Insert(req request.UserCreateReq) error {
 	var data model.SysUser
 	//user, e := s.GetByUserName(req.UserName)
-	user, e := s.GetByEmployeeID(req.EmployeeID)
+	user, e := s.GetByEmployeeId(req.EmployeeId)
 	if e != nil {
 		return e
 	}
-	if user.ID != 0 {
+	if user.Id != 0 {
 		e = &response.AdminError{
 			Code:    http.StatusBadRequest,
 			Message: "存在重复的用户",
@@ -124,7 +124,7 @@ func (s *SysUserService) Insert(req request.UserCreateReq) error {
 	if err != nil {
 		return err
 	}
-	data.ID = int(id)
+	data.Id = int(id)
 	return s.sysUserRepo.Insert(data)
 }
 
@@ -133,12 +133,12 @@ func (s *SysUserService) Update(req request.UserUpdateReq) error {
 	if err != nil {
 		return err
 	}
-	data, err := s.GetById(req.ID)
+	data, err := s.GetById(req.Id)
 	if err != nil {
 		return err
 	}
-	if data.ID != 0 {
-		s.sysUserCache.Delete(strconv.Itoa(data.ID))
+	if data.Id != 0 {
+		s.sysUserCache.Delete(strconv.Itoa(data.Id))
 		s.sysUserCache.Delete(data.UserName)
 		s.sysUserCache.Delete(data.PhoneNumber)
 	}
@@ -154,8 +154,8 @@ func (s *SysUserService) Delete(id int) error {
 	if err != nil {
 		return err
 	}
-	if data.ID != 0 {
-		s.sysUserCache.Delete(strconv.Itoa(data.ID))
+	if data.Id != 0 {
+		s.sysUserCache.Delete(strconv.Itoa(data.Id))
 		s.sysUserCache.Delete(data.UserName)
 		s.sysUserCache.Delete(data.PhoneNumber)
 	}

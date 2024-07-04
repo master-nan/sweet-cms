@@ -107,13 +107,13 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			ctx.Error(e)
 			return
 		} else {
-			token, err := b.tokenGenerator.GenerateToken(strconv.Itoa(user.ID))
+			token, err := b.tokenGenerator.GenerateToken(strconv.Itoa(user.Id))
 			if err != nil {
 				ctx.Error(err)
 				return
 			} else {
 				var up request.UserUpdateReq
-				up.ID = user.ID
+				up.Id = user.Id
 				up.AccessTokens = utils.UpdateAccessTokens(user.AccessTokens, token)
 				up.GmtLastLogin = model.CustomTime(time.Now())
 				err = b.sysUserService.Update(up)

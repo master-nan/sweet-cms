@@ -31,11 +31,11 @@ func (cs *SysConfigureService) Query() (model.SysConfigure, error) {
 	var data model.SysConfigure
 	data, err := cs.sysConfigureCache.Get("")
 	if err != nil {
-		data, err = cs.sysConfigureRepo.GetSysConfigure()
-		if err != nil {
-			return data, err
+		data, e := cs.sysConfigureRepo.GetSysConfigure()
+		if e != nil {
+			return data, e
 		}
-		if errors.As(err, inter.ErrCacheMiss) {
+		if errors.Is(err, inter.ErrCacheMiss) {
 			err = cs.sysConfigureCache.Set("", data)
 			if err != nil {
 				zap.L().Error("Failed to cache sysConfigure set: %s", zap.Error(err))
@@ -47,7 +47,7 @@ func (cs *SysConfigureService) Query() (model.SysConfigure, error) {
 
 func (cs *SysConfigureService) Update(id int, data request.ConfigureUpdateReq) error {
 	var d model.SysConfigure
-	d.ID = id
+	d.Id = id
 	err := cs.sysConfigureRepo.UpdateSysConfigure(d)
 	if err != nil {
 		return err

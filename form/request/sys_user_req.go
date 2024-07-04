@@ -8,21 +8,21 @@ package request
 import "sweet-cms/model"
 
 type UserCreateReq struct {
-	UserName    string `json:"user_name" binding:"required"`
+	UserName    string `json:"userName" binding:"required"`
 	Password    string `json:"password" binding:"required"`
 	Email       string `json:"email" binding:"required"`
-	PhoneNumber string `json:"phone_number" binding:"required"`
-	IDCard      string `json:"id_card" binding:"required"`
-	EmployeeID  int    `json:"employee_id" binding:"required"`
+	PhoneNumber string `json:"phoneNumber" binding:"required"`
+	IdCard      string `json:"idCard" binding:"required"`
+	EmployeeId  int    `json:"employeeId" binding:"required"`
 }
 
 type UserUpdateReq struct {
-	ID           int              `json:"id" binding:"required"`
-	UserName     string           `json:"user_name" binding:"required"`
+	Id           int              `json:"id" binding:"required"`
+	UserName     string           `json:"userName" binding:"required"`
 	Password     string           `json:"password"`
 	Email        string           `json:"email" binding:"required"`
-	PhoneNumber  string           `json:"phone_number" binding:"required"`
-	IDCard       string           `json:"id_card" binding:"required"`
-	AccessTokens string           `json:"access_tokens"`
-	GmtLastLogin model.CustomTime `json:"gmt_last_login"`
+	PhoneNumber  string           `json:"phoneNumber" binding:"required"`
+	IdCard       string           `json:"idCard" binding:"required"`
+	AccessTokens string           `json:"accessTokens"`
+	GmtLastLogin model.CustomTime `json:"gmtLastLogin"`
 }

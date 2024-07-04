@@ -39,7 +39,7 @@ func (gc *GeneralizationController) Query(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	if table.ID == 0 {
+	if table.Id == 0 {
 		e := &response.AdminError{
 			Code:    http.StatusBadRequest,
 			Message: "ID资源错误",

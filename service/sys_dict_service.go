@@ -88,7 +88,7 @@ func (s *SysDictService) InsertSysDict(req request.DictCreateReq) error {
 	if e != nil {
 		return e
 	}
-	if dict.ID != 0 {
+	if dict.Id != 0 {
 		e = &response.AdminError{
 			Code:    http.StatusBadRequest,
 			Message: "存在重复的dict_code",
@@ -104,7 +104,7 @@ func (s *SysDictService) InsertSysDict(req request.DictCreateReq) error {
 	if err != nil {
 		return err
 	}
-	data.ID = int(id)
+	data.Id = int(id)
 	return s.sysDictRepo.InsertSysDict(data)
 }
 
@@ -113,12 +113,12 @@ func (s *SysDictService) UpdateSysDict(req request.DictUpdateReq) error {
 	if err != nil {
 		return err
 	}
-	data, err := s.GetSysDictById(req.ID)
+	data, err := s.GetSysDictById(req.Id)
 	if err != nil {
 		return err
 	}
-	if data.ID != 0 {
-		s.sysDictCache.Delete(strconv.Itoa(data.ID))
+	if data.Id != 0 {
+		s.sysDictCache.Delete(strconv.Itoa(data.Id))
 		s.sysDictCache.Delete(data.DictCode)
 	}
 	return nil
@@ -153,19 +153,19 @@ func (s *SysDictService) InsertSysDictItem(req request.DictItemCreateReq) error 
 	if err != nil {
 		return err
 	}
-	data.ID = int(id)
+	data.Id = int(id)
 	err = s.sysDictRepo.InsertSysDictItem(data)
 	if err != nil {
 		zap.L().Error("InsertSysDictItem err:", zap.Error(err))
 		return err
 	}
-	dict, err := s.GetSysDictById(req.DictID)
+	dict, err := s.GetSysDictById(req.DictId)
 	if err != nil {
 		zap.L().Error("InsertSysDictItem err:", zap.Error(err))
 		return err
 	}
-	if dict.ID != 0 {
-		s.sysDictCache.Delete(strconv.Itoa(dict.ID))
+	if dict.Id != 0 {
+		s.sysDictCache.Delete(strconv.Itoa(dict.Id))
 		s.sysDictCache.Delete(dict.DictCode)
 	}
 	return nil
@@ -177,18 +177,18 @@ func (s *SysDictService) UpdateSysDictItem(req request.DictItemUpdateReq) error 
 		zap.L().Error("UpdateSysDictItem err:", zap.Error(err))
 		return err
 	}
-	dictItem, err := s.GetSysDictItemById(req.ID)
+	dictItem, err := s.GetSysDictItemById(req.Id)
 	if err != nil {
 		zap.L().Error("UpdateSysDictItem err:", zap.Error(err))
 		return err
 	}
-	dict, err := s.GetSysDictById(dictItem.DictID)
+	dict, err := s.GetSysDictById(dictItem.DictId)
 	if err != nil {
 		zap.L().Error("UpdateSysDictItem err:", zap.Error(err))
 		return err
 	}
-	if dict.ID != 0 {
-		s.sysDictCache.Delete(strconv.Itoa(dict.ID))
+	if dict.Id != 0 {
+		s.sysDictCache.Delete(strconv.Itoa(dict.Id))
 		s.sysDictCache.Delete(dict.DictCode)
 	}
 	return nil
@@ -205,13 +205,13 @@ func (s *SysDictService) DeleteSysDictItemById(id int) error {
 		zap.L().Error("DeleteSysDictItemById err:", zap.Error(err))
 		return err
 	}
-	dict, err := s.GetSysDictById(dictItem.DictID)
+	dict, err := s.GetSysDictById(dictItem.DictId)
 	if err != nil {
 		zap.L().Error("DeleteSysDictItemById err:", zap.Error(err))
 		return err
 	}
-	if dict.ID != 0 {
-		s.sysDictCache.Delete(strconv.Itoa(dict.ID))
+	if dict.Id != 0 {
+		s.sysDictCache.Delete(strconv.Itoa(dict.Id))
 		s.sysDictCache.Delete(dict.DictCode)
 	}
 	return nil

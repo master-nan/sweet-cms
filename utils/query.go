@@ -204,7 +204,7 @@ func CreateDynamicStruct(fields []model.SysTableField) reflect.Type {
 		fieldType := getFieldType(field.FieldType)
 		fieldTag := buildTag(field)
 		fieldsList = append(fieldsList, reflect.StructField{
-			Name: toCamelCase(field.FieldCode),
+			Name: toCamelCaseGo(field.FieldCode),
 			Type: fieldType,
 			Tag:  reflect.StructTag(fieldTag),
 		})
@@ -254,7 +254,7 @@ func buildTag(field model.SysTableField) string {
 	gormParts = append(gormParts, fmt.Sprintf(`comment:'%s'`, field.FieldName))
 
 	// JSON 标签
-	jsonPart := fmt.Sprintf(`json:"%s"`, field.FieldCode)
+	jsonPart := fmt.Sprintf(`json:"%s"`, toCamelCaseJson(field.FieldCode))
 
 	// Binding 标签，如果字段定义了 Binding 规则，使用该规则
 	bindingPart := ""
@@ -298,11 +298,26 @@ func GetTableName(db *gorm.DB, tableCode string) string {
 	return tableName
 }
 
-func toCamelCase(input string) string {
+func toCamelCaseGo(input string) string {
 	parts := strings.Split(input, "_")
 	c := cases.Title(language.English) // 使用英语规则进行标题转换
 	for i, part := range parts {
 		parts[i] = c.String(part)
+	}
+	return strings.Join(parts, "")
+}
+
+func toCamelCaseJson(input string) string {
+	parts := strings.Split(input, "_")
+	c := cases.Title(language.English) // 使用英语规则进行标题转换
+	for i, part := range parts {
+		if i == 0 {
+			// 第一个单词首字母小写
+			parts[i] = strings.ToLower(part)
+		} else {
+			// 其余单词首字母大写
+			parts[i] = c.String(part)
+		}
 	}
 	return strings.Join(parts, "")
 }

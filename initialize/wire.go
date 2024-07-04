@@ -36,6 +36,7 @@ type App struct {
 	GeneralizationController *controller.GeneralizationController
 	LogService               *service.LogService
 	UserService              *service.SysUserService
+	BlackCache               *cache.BlackCache
 }
 
 var Providers = wire.NewSet(
@@ -71,6 +72,7 @@ var Providers = wire.NewSet(
 	cache.NewSysTableCache,
 	cache.NewSysTableFieldCache,
 	cache.NewGeneralizationCache,
+	cache.NewBlackCache,
 
 	service.NewLogServer,
 	service.NewSysConfigureService,

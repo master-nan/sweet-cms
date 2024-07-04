@@ -69,14 +69,14 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) (err error) {
 
 	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
 	basicFields := []model.SysTableField{
-		{TableID: table.ID, FieldName: "ID", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
-		{TableID: table.ID, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 2, IsListShow: true},
-		{TableID: table.ID, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 3, IsListShow: true},
-		{TableID: table.ID, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 4, IsListShow: true},
-		{TableID: table.ID, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 5, IsListShow: true},
-		{TableID: table.ID, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER, Sequence: 6},
-		{TableID: table.ID, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
-		{TableID: table.ID, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
+		{TableId: table.Id, FieldName: "id", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
+		{TableId: table.Id, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 2, IsListShow: true},
+		{TableId: table.Id, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 3, IsListShow: true},
+		{TableId: table.Id, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 4, IsListShow: true},
+		{TableId: table.Id, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 5, IsListShow: true},
+		{TableId: table.Id, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER, Sequence: 6},
+		{TableId: table.Id, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
+		{TableId: table.Id, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
 	}
 	// 动态创建结构体类型
 	dynamicType := utils.CreateDynamicStruct(basicFields)
@@ -90,12 +90,12 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) (err error) {
 	}
 
 	for i := range basicFields {
-		fieldID, err := s.sf.GenerateUniqueID()
+		fieldId, err := s.sf.GenerateUniqueID()
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
-		basicFields[i].ID = int(fieldID)
+		basicFields[i].Id = int(fieldId)
 	}
 	if err := tx.Create(&basicFields).Error; err != nil {
 		tx.Rollback()
@@ -106,7 +106,7 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) (err error) {
 }
 
 func (s *SysTableRepositoryImpl) UpdateTable(req request.TableUpdateReq) error {
-	return s.db.Model(model.SysTable{Basic: model.Basic{ID: req.ID}}).Updates(&req).Error
+	return s.db.Model(model.SysTable{Basic: model.Basic{Id: req.Id}}).Updates(&req).Error
 }
 
 func (s *SysTableRepositoryImpl) DeleteTableById(i int) error {
@@ -151,7 +151,7 @@ func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateRe
 			}
 		}
 	}()
-	if err := tx.Model(&model.SysTableField{}).Where("id = ?", req.ID).Updates(req).Error; err != nil {
+	if err := tx.Model(&model.SysTableField{}).Where("id = ?", req.Id).Updates(req).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -249,7 +249,7 @@ func (s *SysTableRepositoryImpl) DeleteTableField(field model.SysTableField, tab
 		}
 	}()
 	// 删除字段
-	if err := tx.Where("id = ?", field.ID).Delete(model.SysTableField{}).Error; err != nil {
+	if err := tx.Where("id = ?", field.Id).Delete(model.SysTableField{}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -286,7 +286,7 @@ func (s *SysTableRepositoryImpl) UpdateTableRelation(req request.TableRelationUp
 
 func (s *SysTableRepositoryImpl) DeleteTableRelation(relation model.SysTableRelation, tableCode string) error {
 	//TODO 判断是否修改表关系，是否需要删除多对多关联表，同时检查多对多关系表是否存在
-	return s.db.Where("id = ", relation.ID).Delete(model.SysTableRelation{}).Error
+	return s.db.Where("id = ", relation.Id).Delete(model.SysTableRelation{}).Error
 }
 
 func (s *SysTableRepositoryImpl) GetTableIndexById(i int) (model.SysTableIndex, error) {
@@ -327,8 +327,8 @@ func (s *SysTableRepositoryImpl) InsertTableIndex(index model.SysTableIndex, tab
 	for _, field := range index.IndexFields {
 		fieldCodeList = append(fieldCodeList, field.FieldCode)
 		indexField := model.SysTableIndexField{
-			IndexID: index.ID,
-			FieldID: field.ID,
+			IndexId: index.Id,
+			FieldId: field.Id,
 		}
 		indexFields = append(indexFields, indexField)
 	}
@@ -353,12 +353,12 @@ func (s *SysTableRepositoryImpl) InsertTableIndex(index model.SysTableIndex, tab
 func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateReq, data model.SysTableIndex, tableCode string) error {
 	tx := s.db.Begin()
 	// 删除中间表字段
-	if err := tx.Where("index_id = ?", req.ID).Delete(model.SysTableIndexField{}).Error; err != nil {
+	if err := tx.Where("index_id = ?", req.Id).Delete(model.SysTableIndexField{}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	// 修改表数据
-	if err := tx.Model(model.SysTableIndex{}).Where("id=?", req.ID).Updates(&req).Error; err != nil {
+	if err := tx.Model(model.SysTableIndex{}).Where("id=?", req.Id).Updates(&req).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -373,8 +373,8 @@ func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateRe
 	for _, field := range req.IndexFields {
 		fieldCodeList = append(fieldCodeList, field.FieldCode)
 		indexField := model.SysTableIndexField{
-			IndexID: req.ID,
-			FieldID: field.FieldID,
+			IndexId: req.Id,
+			FieldId: field.FieldId,
 		}
 		indexFields = append(indexFields, indexField)
 	}
@@ -400,12 +400,12 @@ func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateRe
 func (s *SysTableRepositoryImpl) DeleteTableIndex(index model.SysTableIndex, tableCode string) error {
 	tx := s.db.Begin()
 	// 删除字段
-	if err := tx.Where("id = ?", index.ID).Delete(model.SysTableIndex{}).Error; err != nil {
+	if err := tx.Where("id = ?", index.Id).Delete(model.SysTableIndex{}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	// 删除中间表字段
-	if err := tx.Where("index_id = ?", index.ID).Delete(model.SysTableIndexField{}).Error; err != nil {
+	if err := tx.Where("index_id = ?", index.Id).Delete(model.SysTableIndexField{}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

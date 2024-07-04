@@ -193,7 +193,7 @@ func (t *DictController) UpdateSysDict(ctx *gin.Context) {
 		return
 	}
 	var dictUpdateReq request.DictUpdateReq
-	dictUpdateReq.ID = id
+	dictUpdateReq.Id = id
 	err = ctx.ShouldBindBodyWith(&dictUpdateReq, binding.JSON)
 	translator, _ := t.translators["zh"]
 	if err != nil {

@@ -18,6 +18,10 @@ type BlackCache struct {
 
 const BlackCacheKey = "BLACK_CACHE_KEY_"
 
+func NewBlackCache(cacheInterface inter.CacheInterface) *BlackCache {
+	return &BlackCache{cacheInterface: cacheInterface}
+}
+
 func (c *BlackCache) Get(key string) (model.SysUser, error) {
 	var data model.SysUser
 	err := c.cacheInterface.Get(BlackCacheKey+key, &data)

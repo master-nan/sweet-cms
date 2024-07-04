@@ -6,6 +6,6 @@
 package request
 
 type ConfigureUpdateReq struct {
-	ID            int  `json:"id" binding:"required"`
-	EnableCaptcha bool `json:"enable_captcha" binding:"required"`
+	Id            int  `json:"id" binding:"required"`
+	EnableCaptcha bool `json:"enableCaptcha" binding:"required"`
 }

@@ -13,10 +13,10 @@ import (
 type Basic struct {
 	Page           int               `json:"page" example:"1"`
 	Num            int               `json:"num" example:"10"`
-	Order          Order             `json:"order" example:"\{\"field\":\"name\",\"is_asc\":true\}"`
-	TableCode      string            `json:"table_code" example:"sys_dict"`
+	Order          Order             `json:"order" example:"\{\"field\":\"name\",\"isAsc\":true\}"`
+	TableCode      string            `json:"tableCode" example:"sys_dict"`
 	Expressions    []ExpressionGroup `json:"expressions"`
-	QuickQuery     *QuickQuery       `json:"quick_query" example:"\{'keyword':'search'\}"`
+	QuickQuery     *QuickQuery       `json:"quickQuery" example:"\{'keyword':'search'\}"`
 	IncludeDeleted bool              `json:"-"`
 }
 
@@ -29,16 +29,16 @@ type ExpressionGroup struct {
 
 // QueryRule 查询规则
 type QueryRule struct {
-	Field          string                 `json:"field"`           // 字段
-	ExpressionType enum.ExpressionType    `json:"expression_type"` // 比较器类型，如EQ, LT等
-	Value          interface{}            `json:"value"`           // 值
-	Type           enum.SysTableFieldType `json:"type"`            // 字段类型
+	Field          string                 `json:"field"`          // 字段
+	ExpressionType enum.ExpressionType    `json:"expressionType"` // 比较器类型，如EQ, LT等
+	Value          interface{}            `json:"value"`          // 值
+	Type           enum.SysTableFieldType `json:"type"`           // 字段类型
 }
 
 // Order 排序
 type Order struct {
 	Field string `json:"field"`
-	IsAsc bool   `json:"is_asc"`
+	IsAsc bool   `json:"isAsc"`
 }
 
 // QuickQuery 快速查询参数

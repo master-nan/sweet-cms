@@ -93,7 +93,7 @@ func (s *SysTableService) InsertTable(req request.TableCreateReq) error {
 	if e != nil {
 		return e
 	}
-	if table.ID != 0 {
+	if table.Id != 0 {
 		e := &response.AdminError{
 			Code:    http.StatusBadRequest,
 			Message: "当前表已存在，请勿重复创建",
@@ -109,7 +109,7 @@ func (s *SysTableService) InsertTable(req request.TableCreateReq) error {
 	if err != nil {
 		return err
 	}
-	data.ID = int(id)
+	data.Id = int(id)
 	return s.sysTableRepo.InsertTable(data)
 }
 
@@ -118,12 +118,12 @@ func (s *SysTableService) UpdateTable(req request.TableUpdateReq) error {
 	if err != nil {
 		return err
 	}
-	data, err := s.GetTableById(req.ID)
+	data, err := s.GetTableById(req.Id)
 	if err != nil {
 		return err
 	}
-	if data.ID != 0 {
-		s.sysTableCache.Delete(strconv.Itoa(data.ID))
+	if data.Id != 0 {
+		s.sysTableCache.Delete(strconv.Itoa(data.Id))
 		s.sysTableCache.Delete(data.TableCode)
 	}
 	return nil
@@ -138,8 +138,8 @@ func (s *SysTableService) DeleteTableById(id int) error {
 	if err != nil {
 		return err
 	}
-	if data.ID != 0 {
-		s.sysTableCache.Delete(strconv.Itoa(data.ID))
+	if data.Id != 0 {
+		s.sysTableCache.Delete(strconv.Itoa(data.Id))
 		s.sysTableCache.Delete(data.TableCode)
 	}
 	return nil
@@ -184,7 +184,7 @@ func (s *SysTableService) GetTableFieldsByTableId(tableId int) ([]model.SysTable
 
 func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) error {
 	var data model.SysTableField
-	fields, e := s.GetTableFieldsByTableId(req.TableID)
+	fields, e := s.GetTableFieldsByTableId(req.TableId)
 	if e != nil {
 		return e
 	}
@@ -206,37 +206,37 @@ func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) erro
 	if err != nil {
 		return err
 	}
-	table, err := s.GetTableById(data.TableID)
+	table, err := s.GetTableById(data.TableId)
 	if err != nil {
 		return err
 	}
 
-	data.ID = int(id)
+	data.Id = int(id)
 	err = s.sysTableRepo.InsertTableField(data, table.TableCode)
 	if err != nil {
 		return err
 	}
 
-	if table.ID != 0 {
-		s.sysTableCache.Delete(strconv.Itoa(table.ID))
+	if table.Id != 0 {
+		s.sysTableCache.Delete(strconv.Itoa(table.Id))
 		s.sysTableCache.Delete(table.TableCode)
 	}
 	return nil
 }
 
 func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) error {
-	table, err := s.GetTableById(req.ID)
+	table, err := s.GetTableById(req.Id)
 	if err != nil {
 		return err
 	}
-	if table.ID != 0 {
-		fields, e := s.GetTableFieldsByTableId(req.TableID)
+	if table.Id != 0 {
+		fields, e := s.GetTableFieldsByTableId(req.TableId)
 		if e != nil {
 			return e
 		}
 		var data model.SysTableField
 		for _, field := range fields {
-			if field.ID == req.ID {
+			if field.Id == req.Id {
 				diff := cmp.Diff(req, field)
 				if diff == "" {
 					return &response.AdminError{
@@ -253,9 +253,9 @@ func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) erro
 		if err != nil {
 			return err
 		}
-		s.sysTableCache.Delete(strconv.Itoa(table.ID))
+		s.sysTableCache.Delete(strconv.Itoa(table.Id))
 		s.sysTableCache.Delete(table.TableCode)
-		s.sysTableFieldCache.Delete(strconv.Itoa(req.ID))
+		s.sysTableFieldCache.Delete(strconv.Itoa(req.Id))
 		return nil
 	}
 	return errors.New("数据不存在")
@@ -266,18 +266,18 @@ func (s *SysTableService) DeleteTableFieldById(id int) error {
 	if err != nil {
 		return err
 	}
-	if field.ID != 0 {
-		table, err := s.GetTableById(field.TableID)
+	if field.Id != 0 {
+		table, err := s.GetTableById(field.TableId)
 		if err != nil {
 			return err
 		}
-		if table.ID != 0 {
+		if table.Id != 0 {
 			err = s.sysTableRepo.DeleteTableField(field, table.TableCode)
 			if err != nil {
 				return err
 			}
-			s.sysTableFieldCache.Delete(strconv.Itoa(field.ID))
-			s.sysTableCache.Delete(strconv.Itoa(table.ID))
+			s.sysTableFieldCache.Delete(strconv.Itoa(field.Id))
+			s.sysTableCache.Delete(strconv.Itoa(table.Id))
 			s.sysTableCache.Delete(table.TableCode)
 			return nil
 		}

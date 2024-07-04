@@ -8,13 +8,13 @@ package response
 import "sweet-cms/model"
 
 type UserRes struct {
-	ID           int              `json:"id"`
+	Id           int              `json:"id"`
 	State        bool             `json:"state"`
-	UserName     string           `json:"user_name"`
+	UserName     string           `json:"userName"`
 	Email        string           `json:"email"`
-	PhoneNumber  string           `json:"phone_number"`
-	IDCard       string           `json:"id_card"`
-	EmployeeID   int              `json:"employee_id"`
-	GmtLastLogin model.CustomTime `json:"gmt_last_login"`
+	PhoneNumber  string           `json:"phoneNumber"`
+	IdCard       string           `json:"idCard"`
+	EmployeeId   int              `json:"employeeId"`
+	GmtLastLogin model.CustomTime `json:"gmtLastLogin"`
 	Language     string           `json:"language"`
 }

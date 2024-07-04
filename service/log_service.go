@@ -25,7 +25,7 @@ func (ls *LogService) CreateLoginLog(log model.LoginLog) error {
 	if err != nil {
 		return err
 	}
-	log.ID = int(id)
+	log.Id = int(id)
 	err = ls.logRepository.CreateLoginLog(log)
 	return err
 }
@@ -35,7 +35,7 @@ func (ls *LogService) CreateAccessLog(log model.AccessLog) error {
 	if err != nil {
 		return err
 	}
-	log.ID = int(id)
+	log.Id = int(id)
 	err = ls.logRepository.CreateAccessLog(log)
 	return err
 }
