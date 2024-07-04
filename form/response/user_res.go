@@ -10,7 +10,7 @@ import "sweet-cms/model"
 type UserRes struct {
 	ID           int              `json:"id"`
 	State        bool             `json:"state"`
-	UserName     string           `json:"username"`
+	UserName     string           `json:"user_name"`
 	Email        string           `json:"email"`
 	PhoneNumber  string           `json:"phone_number"`
 	IDCard       string           `json:"id_card"`

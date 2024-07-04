@@ -59,8 +59,8 @@ func main() {
 	//	&model.AccessLog{}, &model.LoginLog{})
 	//// 迁移 schema
 	//db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysDict{}, &model.SysDictItem{}, &model.SysConfigure{}, &model.AccessLog{}, &model.LoginLog{})
-	db.Migrator().DropTable(&model.SysUser{})
-	db.AutoMigrate(&model.SysUser{})
+	db.Migrator().DropTable(&model.AccessLog{})
+	db.AutoMigrate(&model.AccessLog{})
 
 	// Create
 	//m := &model.SysConfigure{EnableCaptcha: false}

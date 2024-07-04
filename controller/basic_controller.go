@@ -95,10 +95,10 @@ func (b *BasicController) Login(ctx *gin.Context) {
 		var log = model.LoginLog{
 			Ip:       ctx.ClientIP(),
 			Locality: "",
-			Username: data.Username,
+			UserName: data.UserName,
 		}
 		err = b.logService.CreateLoginLog(log)
-		user, err := b.sysUserService.GetByUserName(data.Username)
+		user, err := b.sysUserService.GetByUserName(data.UserName)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password || !user.State {
 			e := &response.AdminError{
 				Code:    http.StatusBadRequest,
@@ -112,12 +112,19 @@ func (b *BasicController) Login(ctx *gin.Context) {
 				ctx.Error(err)
 				return
 			} else {
-				//b.sysUserService.Update()
+				var up request.UserUpdateReq
+				up.ID = user.ID
+				up.AccessTokens = utils.UpdateAccessTokens(user.AccessTokens, token)
+				up.GmtLastLogin = model.CustomTime(time.Now())
+				err = b.sysUserService.Update(up)
+				if err != nil {
+					ctx.Error(err)
+					return
+				}
 				var userRes response.UserRes
 				utils.Assignment(&user, &userRes)
 				signInRes := response.SignInRes{
 					AccessToken: token,
-					UserInfo:    userRes,
 				}
 				resp.SetData(signInRes)
 				return

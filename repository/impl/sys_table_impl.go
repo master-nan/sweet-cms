@@ -106,7 +106,7 @@ func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) (err error) {
 }
 
 func (s *SysTableRepositoryImpl) UpdateTable(req request.TableUpdateReq) error {
-	return s.db.Model(model.SysTable{}).Updates(&req).Error
+	return s.db.Model(model.SysTable{Basic: model.Basic{ID: req.ID}}).Updates(&req).Error
 }
 
 func (s *SysTableRepositoryImpl) DeleteTableById(i int) error {

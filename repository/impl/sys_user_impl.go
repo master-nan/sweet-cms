@@ -45,7 +45,7 @@ func (s *SysUserRepositoryImpl) Insert(d model.SysUser) error {
 }
 
 func (s *SysUserRepositoryImpl) Update(req request.UserUpdateReq) error {
-	return s.db.Model(model.SysUser{}).Updates(&req).Error
+	return s.db.Model(model.SysUser{}).Where("id=?", req.ID).Updates(&req).Error
 }
 
 func (s *SysUserRepositoryImpl) DeleteById(i int) error {

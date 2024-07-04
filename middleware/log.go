@@ -7,6 +7,7 @@ package middleware
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -34,6 +35,10 @@ func LogHandler(logService *service.LogService) gin.HandlerFunc {
 		c.Next()
 		duration := time.Since(startTime)
 		responseBody := blw.Body.String()
+
+		queryStr, _ := json.Marshal(query)
+		bodyStr, _ := json.Marshal(body)
+
 		//responseStatus := blw.Status()
 		var accessLog = model.AccessLog{
 			Basic:    model.Basic{},
@@ -41,7 +46,8 @@ func LogHandler(logService *service.LogService) gin.HandlerFunc {
 			Ip:       c.ClientIP(),
 			Locality: "",
 			Url:      c.Request.URL.Path,
-			Data:     fmt.Sprintf("body:%v，query:%v", body, query),
+			Body:     string(bodyStr),
+			Query:    string(queryStr),
 			Response: responseBody,
 		}
 		err := logService.CreateAccessLog(accessLog)

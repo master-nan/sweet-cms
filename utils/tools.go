@@ -7,6 +7,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/go-playground/validator/v10"
 	"math/rand"
+	"strings"
 	"sweet-cms/enum"
 	"time"
 
@@ -217,4 +218,43 @@ func SqlTypeFromFieldType(fieldType enum.SysTableFieldType) string {
 	default:
 		return "TEXT"
 	}
+}
+
+func UpdateAccessTokens(existingTokens string, newToken string) string {
+	// 分隔符
+	delimiter := ","
+	var tokens []string
+	// 检查是否有现有的Tokens，防止创建一个包含空字符串的slice
+	if existingTokens != "" {
+		tokens = strings.Split(existingTokens, delimiter)
+	}
+
+	// 确保只保留最近的4个token（因为我们将添加一个新的）
+	if len(tokens) >= 5 {
+		tokens = tokens[1:] // 删除最老的Token
+	}
+	// 添加新的Token
+	tokens = append(tokens, newToken)
+	// 将更新后的Token列表连接成一个新的字符串
+	updatedTokens := strings.Join(tokens, delimiter)
+	return updatedTokens
+}
+
+func ContainsToken(existingTokens string, newToken string) bool {
+	// 如果现有的tokens字符串为空，直接返回false
+	if existingTokens == "" {
+		return false
+	}
+	// 分隔符
+	delimiter := ","
+	// 分割现有tokens
+	tokens := strings.Split(existingTokens, delimiter)
+
+	// 检查newToken是否在tokens切片中
+	for _, token := range tokens {
+		if token == newToken {
+			return true // 找到了，返回true
+		}
+	}
+	return false // 没有找到，返回false
 }

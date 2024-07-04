@@ -5,8 +5,10 @@
 
 package request
 
+import "sweet-cms/model"
+
 type UserCreateReq struct {
-	UserName    string `json:"username" binding:"required"`
+	UserName    string `json:"user_name" binding:"required"`
 	Password    string `json:"password" binding:"required"`
 	Email       string `json:"email" binding:"required"`
 	PhoneNumber string `json:"phone_number" binding:"required"`
@@ -15,11 +17,12 @@ type UserCreateReq struct {
 }
 
 type UserUpdateReq struct {
-	ID           int     `json:"id" binding:"required"`
-	UserName     *string `json:"username" binding:"required"`
-	Password     *string `json:"password" binding:"required"`
-	Email        *string `json:"email" binding:"required"`
-	PhoneNumber  *string `json:"phone_number" binding:"required"`
-	IDCard       *string `json:"id_card" binding:"required"`
-	AccessTokens *string `json:"access_tokens"`
+	ID           int              `json:"id" binding:"required"`
+	UserName     string           `json:"user_name" binding:"required"`
+	Password     string           `json:"password"`
+	Email        string           `json:"email" binding:"required"`
+	PhoneNumber  string           `json:"phone_number" binding:"required"`
+	IDCard       string           `json:"id_card" binding:"required"`
+	AccessTokens string           `json:"access_tokens"`
+	GmtLastLogin model.CustomTime `json:"gmt_last_login"`
 }

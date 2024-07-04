@@ -50,7 +50,7 @@ type SysRole struct {
 
 type SysUser struct {
 	Basic
-	UserName     string     `gorm:"size:128;unique;comment:用户名" json:"username"`
+	UserName     string     `gorm:"size:128;unique;comment:用户名" json:"user_name"`
 	Password     string     `gorm:"size:128;comment:密码" json:"password"`
 	Email        string     `gorm:"size:128;unique;comment:邮箱" json:"email"`
 	PhoneNumber  string     `gorm:"size:128;unique;comment:电话" json:"phone_number"`
