@@ -96,7 +96,7 @@ func IsStructEmpty(source interface{}, target interface{}) bool {
 
 func SaveSession(ctx *gin.Context, key string, value interface{}) {
 	session := sessions.Default(ctx)
-	option := sessions.Options{MaxAge: 3600}
+	option := sessions.Options{Path: "/", MaxAge: 3600}
 	session.Options(option)
 	session.Set(key, value)
 	session.Save()

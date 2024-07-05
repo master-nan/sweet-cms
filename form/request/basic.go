@@ -17,7 +17,7 @@ type Basic struct {
 	TableCode      string            `json:"tableCode" example:"sys_dict"`
 	Expressions    []ExpressionGroup `json:"expressions"`
 	QuickQuery     *QuickQuery       `json:"quickQuery" example:"\{'keyword':'search'\}"`
-	IncludeDeleted bool              `json:"-"`
+	IncludeDeleted bool              `json:"-"` // 是否查询删除数据
 }
 
 // ExpressionGroup 参数请求组

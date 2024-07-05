@@ -6,7 +6,8 @@
 package request
 
 type SignInReq struct {
-	UserName string `json:"userName"`
-	Password string `json:"password"`
-	Captcha  string `json:"captcha"`
+	UserName  string `json:"userName"`
+	Password  string `json:"password"`
+	Captcha   string `json:"captcha"`
+	CaptchaId string `json:"captchaId"`
 }

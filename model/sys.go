@@ -6,7 +6,7 @@ import (
 
 type SysConfigure struct {
 	Basic
-	EnableCaptcha bool `gorm:"comment:登录验证码" json:"enable_captcha"`
+	EnableCaptcha bool `gorm:"comment:登录验证码" json:"enableCaptcha"`
 }
 
 type SysMenu struct {

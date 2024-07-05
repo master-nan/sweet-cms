@@ -81,8 +81,8 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			return
 		}
 		if configUre.EnableCaptcha {
-			captchaId := utils.GetSessionString(ctx, "captcha")
-			boolean := captcha.VerifyString(captchaId, data.Captcha)
+			//captchaId := utils.GetSessionString(ctx, "captcha")
+			boolean := captcha.VerifyString(data.CaptchaId, data.Captcha)
 			if boolean == false {
 				e := &response.AdminError{
 					Code:    http.StatusBadRequest,
@@ -137,14 +137,26 @@ func (b *BasicController) Captcha(ctx *gin.Context) {
 	l := captcha.DefaultLen
 	w, h := 110, 50
 	captchaId := captcha.NewLen(l)
-	utils.SaveSession(ctx, "captcha", captchaId)
+	//utils.SaveSession(ctx, "captcha", captchaId)
 	var content bytes.Buffer
-	ctx.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.Writer.Header().Set("Pragma", "no-cache")
-	ctx.Writer.Header().Set("Expires", "0")
-	ctx.Writer.Header().Set("Content-Type", "image/png")
+	//ctx.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	//ctx.Writer.Header().Set("Pragma", "no-cache")
+	//ctx.Writer.Header().Set("Expires", "0")
+	//ctx.Writer.Header().Set("Content-Type", "image/png")
 	_ = captcha.WriteImage(&content, captchaId, w, h)
-	http.ServeContent(ctx.Writer, ctx.Request, captchaId+".png", time.Time{}, bytes.NewReader(content.Bytes()))
+	//http.ServeContent(ctx.Writer, ctx.Request, captchaId+".png", time.Time{}, bytes.NewReader(content.Bytes()))
+	imageData := content.Bytes()
+	// 返回JSON数据，包含captchaId和图片的base64编码
+	//ctx.JSON(http.StatusOK, gin.H{
+	//	"captchaId": captchaId,
+	//	"image":     imageData,
+	//})
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	resp.SetData(gin.H{
+		"captchaId": captchaId,
+		"image":     imageData,
+	})
 }
 
 func (b *BasicController) Configure(ctx *gin.Context) {
