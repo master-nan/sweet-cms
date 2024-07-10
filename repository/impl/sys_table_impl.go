@@ -417,3 +417,41 @@ func (s *SysTableRepositoryImpl) DeleteTableIndex(index model.SysTableIndex, tab
 	}
 	return tx.Commit().Error
 }
+
+func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCode string) ([]model.TableColumn, error) {
+	var columns []model.TableColumn
+	query := `SELECT *  FROM INFORMATION_SCHEMA.COLUMNS  WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;`
+	err := s.db.Raw(query, tableSchema, tableCode).Scan(&columns).Error
+	if err != nil {
+		return []model.TableColumn{}, err
+	}
+	return columns, nil
+}
+
+func (s *SysTableRepositoryImpl) InitTable(table model.SysTable) (err error) {
+	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
+			tx.Rollback()                               // 回滚事务
+			// 设置返回的错误信息
+			if e, ok := r.(error); ok {
+				err = e // 如果 r 是 error 类型，直接返回
+			} else {
+				// 如果 r 不是 error 类型，转换为 error 后返回
+				err = fmt.Errorf("%v", r)
+			}
+		}
+	}()
+	// 创建sys_table数据
+	if err := tx.Create(&table).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// 创建sys_table_field数据
+	if err := tx.Create(&table.TableFields).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}

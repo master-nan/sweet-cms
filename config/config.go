@@ -16,6 +16,7 @@ type DB struct {
 	Name     string `mapStructure:"name"`
 	User     string `mapStructure:"user"`
 	Password string `mapStructure:"password"`
+	Prefix   string `mapStructure:"prefix"`
 }
 
 type Redis struct {

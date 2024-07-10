@@ -7,6 +7,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -15,6 +16,8 @@ import (
 	"net/http"
 	"strconv"
 	"sweet-cms/cache"
+	"sweet-cms/config"
+	"sweet-cms/enum"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/inter"
@@ -28,6 +31,7 @@ type SysTableService struct {
 	sf                 *utils.Snowflake
 	sysTableCache      *cache.SysTableCache
 	sysTableFieldCache *cache.SysTableFieldCache
+	serverConfig       *config.Server
 }
 
 func NewSysTableService(
@@ -35,12 +39,14 @@ func NewSysTableService(
 	sf *utils.Snowflake,
 	sysTableCache *cache.SysTableCache,
 	sysTableFieldCache *cache.SysTableFieldCache,
+	serverConfig *config.Server,
 ) *SysTableService {
 	return &SysTableService{
 		sysTableRepo,
 		sf,
 		sysTableCache,
 		sysTableFieldCache,
+		serverConfig,
 	}
 }
 
@@ -283,4 +289,101 @@ func (s *SysTableService) DeleteTableFieldById(id int) error {
 		}
 	}
 	return errors.New("数据不存在")
+}
+
+func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
+	columns, err := s.sysTableRepo.FetchTableMetadata(s.serverConfig.DB.Name, s.serverConfig.DB.Prefix+tableCode)
+	fields, err := ConvertColumnsToSysTableFields(columns)
+	if err != nil {
+		return err
+	}
+	var user model.SysUser
+	obj, exists := ctx.Get("user")
+	if exists {
+		user, _ = obj.(model.SysUser)
+	}
+	id, err := s.sf.GenerateUniqueID()
+	if err != nil {
+		return err
+	}
+	table := model.SysTable{
+		Basic: model.Basic{
+			Id:            int(id),
+			GmtCreateUser: &user.EmployeeId,
+		},
+		TableName: tableCode,
+		TableCode: tableCode,
+		TableType: enum.SYSTEM,
+	}
+	for _, field := range fields {
+		field.TableId = table.Id
+		fieldId, err := s.sf.GenerateUniqueID()
+		if err != nil {
+			return err
+		}
+		field.Id = int(fieldId)
+		field.GmtCreateUser = &user.EmployeeId
+	}
+	table.TableFields = fields
+	err = s.sysTableRepo.InitTable(table)
+	return err
+}
+
+func ConvertColumnsToSysTableFields(columns []model.TableColumn) ([]model.SysTableField, error) {
+	var fields []model.SysTableField
+	for _, column := range columns {
+		field := model.SysTableField{
+			FieldCode:          column.ColumnName,              // 通常 FieldCode 会是数据库的真实列名
+			FieldDecimalLength: int(column.NumericScale.Int64), // 根据需要设置
+			IsNull:             column.IsNullable == "YES",
+			IsPrimaryKey:       column.ColumnKey == "PRI",
+			IsQuickSearch:      false,
+			IsAdvancedSearch:   false,
+			IsSort:             true,
+			IsListShow:         true,
+			IsInsertShow:       false,
+			IsUpdateShow:       false,
+			Sequence:           uint8(column.OrdinalPosition),
+			OriginalFieldId:    0,
+			FieldLength:        0,
+			FieldCategory:      enum.NORMAL_FIELD,
+			Binding:            "required", // 根据实际逻辑调整
+		}
+		if column.ColumnComment != "" {
+			field.FieldName = column.ColumnComment
+		} else {
+			field.FieldName = column.ColumnName
+		}
+		switch column.DataType {
+		case "int", "bigint":
+			field.FieldType = enum.INT
+			field.FieldLength = int(column.NumericPrecision.Int64)
+		case "tinyint":
+			field.FieldType = enum.TINYINT
+			field.FieldLength = int(column.NumericPrecision.Int64)
+		case "varchar":
+			field.FieldType = enum.VARCHAR
+			field.FieldLength = int(column.CharacterMaximumLength.Int64)
+		case "text", "mediumtext", "longtext":
+			field.FieldType = enum.TEXT
+			field.FieldLength = int(column.CharacterMaximumLength.Int64)
+		case "boolean", "bool":
+			field.FieldType = enum.BOOLEAN
+		case "date":
+			field.FieldType = enum.DATE
+		case "datetime", "timestamp":
+			field.FieldType = enum.DATETIME
+		case "time":
+			field.FieldType = enum.TIME
+		default:
+			field.FieldType = enum.VARCHAR
+			field.FieldLength = int(column.NumericPrecision.Int64)
+		}
+		// 检查DefaultValue是否有值
+		if column.ColumnDefault.Valid {
+			field.DefaultValue = &column.ColumnDefault.String
+		}
+		fields = append(fields, field)
+	}
+	return fields, nil
 }

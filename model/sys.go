@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"sweet-cms/enum"
 )
 
@@ -156,4 +157,21 @@ type SysDictItem struct {
 	ItemName  string `gorm:"size:128;comment:字典名称" json:"itemName"`
 	ItemCode  string `gorm:"size:128;comment:字典编码" json:"itemCode"`
 	ItemValue string `gorm:"size:128;comment:字典值" json:"itemValue"`
+}
+
+type TableColumn struct {
+	ColumnName             string         `gorm:"column:COLUMN_NAME" json:"columnName"`                          // 列名
+	OrdinalPosition        int            `gorm:"column:ORDINAL_POSITION" json:"ordinalPosition"`                // 列名所在位置，即排序-
+	ColumnDefault          sql.NullString `gorm:"column:COLUMN_DEFAULT" json:"columnDefault"`                    // 默认值
+	IsNullable             string         `gorm:"column:IS_NULLABLE" json:"isNullable"`                          // 是否可以为null
+	DataType               string         `gorm:"column:DATA_TYPE" json:"dataType"`                              // 数据类型
+	CharacterMaximumLength sql.NullInt64  `gorm:"column:CHARACTER_MAXIMUM_LENGTH" json:"characterMaximumLength"` // 字符类型最大长度
+	CharacterOctetLength   sql.NullInt64  `gorm:"column:CHARACTER_OCTET_LENGTH" json:"characterOctetLength"`     // 字符类型最大字节长度
+	NumericPrecision       sql.NullInt64  `gorm:"column:NUMERIC_PRECISION" json:"numericPrecision"`              // 数值型类的精度
+	NumericScale           sql.NullInt64  `gorm:"column:NUMERIC_SCALE" json:"numericScale"`                      // 数值型列的小数位数
+	DatetimePrecision      sql.NullInt64  `gorm:"column:DATETIME_PRECISION" json:"datetimePrecision"`            // 日期时间型列的精度
+	ColumnType             string         `gorm:"column:COLUMN_TYPE" json:"columnType"`                          // 列的完整类型描述
+	ColumnKey              string         `gorm:"column:COLUMN_KEY" json:"columnKey"`                            // 列是否被索引。
+	Extra                  string         `gorm:"column:EXTRA" json:"extra"`                                     // 其他信息，是否自增
+	ColumnComment          string         `gorm:"column:COLUMN_COMMENT" json:"columnComment"`                    // 列备注
 }

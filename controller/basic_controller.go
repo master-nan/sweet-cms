@@ -2,13 +2,16 @@ package controller
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,6 +23,7 @@ import (
 	"sweet-cms/service"
 	"sweet-cms/utils"
 	"time"
+	"vitess.io/vitess/go/vt/sqlparser"
 )
 
 type BasicController struct {
@@ -81,7 +85,6 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			return
 		}
 		if configUre.EnableCaptcha {
-			//captchaId := utils.GetSessionString(ctx, "captcha")
 			boolean := captcha.VerifyString(data.CaptchaId, data.Captcha)
 			if boolean == false {
 				e := &response.AdminError{
@@ -97,7 +100,14 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			Locality: "",
 			UserName: data.UserName,
 		}
-		err = b.logService.CreateLoginLog(log)
+		// 异步保存登录日志
+		go func(log model.LoginLog) {
+			e := b.logService.CreateLoginLog(log)
+			if e != nil {
+				zap.L().Error("login log err", zap.Error(err))
+			}
+		}(log)
+
 		user, err := b.sysUserService.GetByUserName(data.UserName)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password || !user.State {
 			e := &response.AdminError{
@@ -137,20 +147,10 @@ func (b *BasicController) Captcha(ctx *gin.Context) {
 	l := captcha.DefaultLen
 	w, h := 110, 50
 	captchaId := captcha.NewLen(l)
-	//utils.SaveSession(ctx, "captcha", captchaId)
 	var content bytes.Buffer
-	//ctx.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	//ctx.Writer.Header().Set("Pragma", "no-cache")
-	//ctx.Writer.Header().Set("Expires", "0")
-	//ctx.Writer.Header().Set("Content-Type", "image/png")
 	_ = captcha.WriteImage(&content, captchaId, w, h)
-	//http.ServeContent(ctx.Writer, ctx.Request, captchaId+".png", time.Time{}, bytes.NewReader(content.Bytes()))
 	imageData := content.Bytes()
 	// 返回JSON数据，包含captchaId和图片的base64编码
-	//ctx.JSON(http.StatusOK, gin.H{
-	//	"captchaId": captchaId,
-	//	"image":     imageData,
-	//})
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	resp.SetData(gin.H{
@@ -173,4 +173,31 @@ func (b *BasicController) Configure(ctx *gin.Context) {
 
 func (b *BasicController) Logout(ctx *gin.Context) {
 	utils.DeleteSession(ctx, "captcha")
+}
+
+func (b *BasicController) Test(ctx *gin.Context) {
+	// 示例：解析 SQL 语句
+	sql := "SELECT u.id as user_id, u.name as username, o.order_id FROM users u JOIN orders o ON u.id = o.user_id"
+	parser := sqlparser.NewTestParser()
+	stmt, err := parser.Parse(sql)
+	if err != nil {
+		// 处理解析错误
+		log.Fatalf("Error parsing SQL: %v", err)
+	}
+
+	// 断言 *sqlparser.Select 类型来访问选择语句的细节
+	selectStmt, ok := stmt.(*sqlparser.Select)
+	if !ok {
+		log.Fatalf("Not a SELECT statement: %v", stmt)
+	}
+
+	// 遍历解析的树来提取字段信息
+	// sqlparser.String() 可以将节点转回 SQL 字符串
+	for _, selectExpr := range selectStmt.SelectExprs {
+		if aliasedExpr, ok := selectExpr.(*sqlparser.AliasedExpr); ok {
+			if colName, ok := aliasedExpr.Expr.(*sqlparser.ColName); ok {
+				fmt.Printf("Column: %v, Table: %v\n", colName.Name, colName.Qualifier)
+			}
+		}
+	}
 }

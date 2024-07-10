@@ -70,7 +70,7 @@ func InitializeApp() (*App, error) {
 	sysTableRepositoryImpl := impl.NewSysTableRepositoryImpl(db, snowflake)
 	sysTableCache := cache.NewSysTableCache(redisUtil)
 	sysTableFieldCache := cache.NewSysTableFieldCache(redisUtil)
-	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake, sysTableCache, sysTableFieldCache)
+	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake, sysTableCache, sysTableFieldCache, server)
 	tableController := controller.NewTableController(sysTableService, v)
 	userController := controller.NewUserController(sysUserService, v)
 	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db)

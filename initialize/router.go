@@ -28,6 +28,7 @@ func InitRouter(app *App) *gin.Engine {
 		adminBaseGroup.GET("/captcha", app.BasicController.Captcha)
 		adminBaseGroup.GET("/configure", app.BasicController.Configure)
 		adminBaseGroup.POST("/logout", app.BasicController.Logout)
+		adminBaseGroup.GET("/test", app.BasicController.Test)
 
 	}
 
@@ -64,6 +65,8 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.POST("/table/field", app.TableController.InsertSysTableField)
 		adminGroup.PUT("/table/field/:id", app.TableController.UpdateSysTableField)
 		adminGroup.DELETE("/table/field/:id", app.TableController.DeleteSysTableFieldById)
+
+		adminGroup.GET("/table/init/:code", app.TableController.InitTable)
 
 		// user
 		adminGroup.GET("/user/me", app.UserController.GetMe)

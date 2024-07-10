@@ -36,4 +36,6 @@ type SysTableRepository interface {
 	InsertTableIndex(model.SysTableIndex, string) error
 	UpdateTableIndex(request.TableIndexUpdateReq, model.SysTableIndex, string) error
 	DeleteTableIndex(model.SysTableIndex, string) error
+	FetchTableMetadata(string, string) ([]model.TableColumn, error)
+	InitTable(model.SysTable) error
 }

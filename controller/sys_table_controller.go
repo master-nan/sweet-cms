@@ -323,3 +323,15 @@ func (t *TableController) DeleteSysTableFieldById(ctx *gin.Context) {
 	}
 	return
 }
+
+func (t *TableController) InitTable(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	code := ctx.Param("code")
+	err := t.sysTableService.InitTable(ctx, code)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
+}

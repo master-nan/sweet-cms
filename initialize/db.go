@@ -26,7 +26,7 @@ func InitDB(serverConfig *config.Server) (*gorm.DB, error) {
 	)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix:   "cms_",
+			TablePrefix:   serverConfig.DB.Prefix,
 			SingularTable: true,
 		},
 		Logger: dbLogger,

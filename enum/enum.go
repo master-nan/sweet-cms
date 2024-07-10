@@ -39,6 +39,7 @@ const (
 	DATE
 	DATETIME
 	TIME
+	TINYINT
 )
 
 type SysTableFieldInputType uint8
@@ -102,7 +103,7 @@ const (
 type SysTableFieldCategory string
 
 const (
-	NormalField     SysTableFieldCategory = "normal_field"
-	VirtualColumn   SysTableFieldCategory = "virtual_column"
-	CalculatedField SysTableFieldCategory = "calculated_field"
+	NORMAL_FIELD     SysTableFieldCategory = "normal_field"     // 默认字段
+	VIRTUAL_FIELD    SysTableFieldCategory = "virtual_field"    // 虚拟列
+	CALCULATED_FIELD SysTableFieldCategory = "calculated_field" // 计算字段
 )
