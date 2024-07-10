@@ -51,11 +51,11 @@ type SysRole struct {
 
 type SysUser struct {
 	Basic
-	UserName     string     `gorm:"size:128;unique;comment:用户名" json:"userName"`
+	UserName     string     `gorm:"size:128;uniqueIndex:uni_user_name;comment:用户名" json:"userName"`
 	Password     string     `gorm:"size:128;comment:密码" json:"password"`
-	Email        string     `gorm:"size:128;unique;comment:邮箱" json:"email"`
-	PhoneNumber  string     `gorm:"size:128;unique;comment:电话" json:"phoneNumber"`
-	IdCard       string     `gorm:"size:128;unique;comment:身份证号" json:"idCard"`
+	Email        string     `gorm:"size:128;uniqueIndex:uni_email;comment:邮箱" json:"email"`
+	PhoneNumber  string     `gorm:"size:128;uniqueIndex:uni_phone_number;comment:电话" json:"phoneNumber"`
+	IdCard       string     `gorm:"size:128;uniqueIndex:uni_id_card;comment:身份证号" json:"idCard"`
 	EmployeeId   int        `gorm:"comment:员工Id" json:"employeeId"`
 	GmtLastLogin CustomTime `gorm:"type:datetime;comment:最后登录时间" json:"gmtLastLogin"`
 	Language     string     `gorm:"size:32;comment:语言包" json:"language"`
@@ -94,9 +94,9 @@ type SysTable struct {
 
 type SysTableField struct {
 	Basic
-	TableId            int                         `gorm:"comment:table_id" json:"tableId" binding:"required"`
+	TableId            int                         `gorm:"comment:table_id;uniqueIndex:table_field_table_id_field_code_uindex" json:"tableId" binding:"required"`
 	FieldName          string                      `gorm:"size:128;comment:列名" json:"fieldName"`
-	FieldCode          string                      `gorm:"size:128;comment:数据库中字段名" json:"fieldCode"`
+	FieldCode          string                      `gorm:"size:128;uniqueIndex:table_field_table_id_field_code_uindex;comment:表字段名" json:"fieldCode"`
 	FieldType          enum.SysTableFieldType      `gorm:"type:tinyint;default:1;comment:字段类型" json:"type"`
 	FieldLength        int                         `gorm:"default:0;comment:字段长度" json:"fieldLength"`
 	FieldDecimalLength int                         `gorm:"default:0;comment:小数位数" json:"fieldDecimalLength"`
@@ -146,8 +146,8 @@ type SysTableRelation struct {
 
 type SysDict struct {
 	Basic
-	DictName  string        `gorm:"size:128;comment:字典名称" json:"dictName"`
-	DictCode  string        `gorm:"size:128;comment:字典编码" json:"dictCode"`
+	DictName  string        `gorm:"size:128;comment:字典名称;uniqueIndex:uni_dict_name" json:"dictName"`
+	DictCode  string        `gorm:"size:128;comment:字典编码;uniqueIndex:uni_dict_code" json:"dictCode"`
 	DictItems []SysDictItem `gorm:"foreignKey:DictId;references:Id" json:"dictItems"`
 }
 
@@ -155,7 +155,7 @@ type SysDictItem struct {
 	Basic
 	DictId    int    `gorm:"comment:dict_id" json:"dictId"`
 	ItemName  string `gorm:"size:128;comment:字典名称" json:"itemName"`
-	ItemCode  string `gorm:"size:128;comment:字典编码" json:"itemCode"`
+	ItemCode  string `gorm:"size:128;comment:字典编码;uniqueIndex:uni_item_code" json:"itemCode"`
 	ItemValue string `gorm:"size:128;comment:字典值" json:"itemValue"`
 }
 
@@ -174,4 +174,10 @@ type TableColumn struct {
 	ColumnKey              string         `gorm:"column:COLUMN_KEY" json:"columnKey"`                            // 列是否被索引。
 	Extra                  string         `gorm:"column:EXTRA" json:"extra"`                                     // 其他信息，是否自增
 	ColumnComment          string         `gorm:"column:COLUMN_COMMENT" json:"columnComment"`                    // 列备注
+}
+
+type TableIndex struct {
+	ColumnName string `gorm:"column:COLUMN_NAME" json:"columnName"` // 列名
+	IndexName  string `gorm:"column:INDEX_NAME" json:"indexName"`   // 索引名称
+	NonUnique  bool   `gorm:"column:NON_UNIQUE" json:"nonUnique"`   // 是否唯一索引
 }

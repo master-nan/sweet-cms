@@ -428,7 +428,23 @@ func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCod
 	return columns, nil
 }
 
-func (s *SysTableRepositoryImpl) InitTable(table model.SysTable) (err error) {
+func (s *SysTableRepositoryImpl) FetchTableIndexes(tableSchema string, tableCode string) ([]model.TableIndex, error) {
+	var indexes []model.TableIndex
+	query := `  SELECT
+    COLUMN_NAME,
+    INDEX_NAME,
+    NON_UNIQUE,
+    INDEX_TYPE
+FROM
+    INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME != 'PRIMARY';`
+	err := s.db.Raw(query, tableSchema, tableCode).Scan(&indexes).Error
+	if err != nil {
+		return []model.TableIndex{}, err
+	}
+	return indexes, nil
+}
+
+func (s *SysTableRepositoryImpl) InitTable(table model.SysTable, indexFields []model.SysTableIndexField) (err error) {
 	tx := s.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -448,8 +464,8 @@ func (s *SysTableRepositoryImpl) InitTable(table model.SysTable) (err error) {
 		tx.Rollback()
 		return err
 	}
-	// 创建sys_table_field数据
-	if err := tx.Create(&table.TableFields).Error; err != nil {
+	// 创建索引中间表sys_table_index_field数据
+	if err := tx.Create(&indexFields).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

@@ -293,6 +293,7 @@ func (s *SysTableService) DeleteTableFieldById(id int) error {
 
 func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	columns, err := s.sysTableRepo.FetchTableMetadata(s.serverConfig.DB.Name, s.serverConfig.DB.Prefix+tableCode)
+	tableIndexes, err := s.sysTableRepo.FetchTableIndexes(s.serverConfig.DB.Name, s.serverConfig.DB.Prefix+tableCode)
 	fields, err := ConvertColumnsToSysTableFields(columns)
 	if err != nil {
 		return err
@@ -315,17 +316,48 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 		TableCode: tableCode,
 		TableType: enum.SYSTEM,
 	}
-	for _, field := range fields {
-		field.TableId = table.Id
+	indexesMap := make(map[string]model.SysTableIndex)
+	var indexes []model.SysTableIndex
+	var indexFields []model.SysTableIndexField
+	for i, _ := range fields {
+		fields[i].TableId = table.Id
 		fieldId, err := s.sf.GenerateUniqueID()
 		if err != nil {
 			return err
 		}
-		field.Id = int(fieldId)
-		field.GmtCreateUser = &user.EmployeeId
+		fields[i].Id = int(fieldId)
+		fields[i].GmtCreateUser = &user.EmployeeId
+
+		for j, _ := range tableIndexes {
+			if tableIndexes[j].ColumnName == fields[i].FieldCode {
+				indexId, err := s.sf.GenerateUniqueID()
+				if err != nil {
+					return err
+				}
+				if _, exists := indexesMap[tableIndexes[j].IndexName]; !exists {
+					indexesMap[tableIndexes[j].IndexName] = model.SysTableIndex{
+						Basic: model.Basic{
+							Id:            int(indexId),
+							GmtCreateUser: &user.EmployeeId,
+						},
+						TableId:   table.Id,
+						IndexName: tableIndexes[j].IndexName,
+						IsUnique:  !tableIndexes[j].NonUnique,
+					}
+					indexes = append(indexes, indexesMap[tableIndexes[j].IndexName])
+				} else {
+					indexId = int64(indexesMap[tableIndexes[j].IndexName].Id)
+				}
+				indexFields = append(indexFields, model.SysTableIndexField{
+					IndexId: int(indexId),
+					FieldId: fields[i].Id,
+				})
+			}
+		}
 	}
 	table.TableFields = fields
-	err = s.sysTableRepo.InitTable(table)
+	table.TableIndexes = indexes
+	err = s.sysTableRepo.InitTable(table, indexFields)
 	return err
 }
 
@@ -357,7 +389,6 @@ func ConvertColumnsToSysTableFields(columns []model.TableColumn) ([]model.SysTab
 		switch column.DataType {
 		case "int", "bigint":
 			field.FieldType = enum.INT
-			field.FieldLength = int(column.NumericPrecision.Int64)
 		case "tinyint":
 			field.FieldType = enum.TINYINT
 			field.FieldLength = int(column.NumericPrecision.Int64)

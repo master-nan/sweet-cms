@@ -29,6 +29,7 @@ func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gi
 				Message: "请先登录",
 			}
 			c.Error(e)
+			c.Abort()
 			return
 		}
 		token := authorization[bearerLength:]
@@ -39,6 +40,7 @@ func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gi
 				Message: err.Error(),
 			}
 			c.Error(e)
+			c.Abort()
 			return
 		}
 		i, err := strconv.Atoi(id)
@@ -48,6 +50,7 @@ func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gi
 				Message: err.Error(),
 			}
 			c.Error(e)
+			c.Abort()
 			return
 		}
 		user, err := userService.GetById(i)
@@ -57,6 +60,7 @@ func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gi
 				Message: err.Error(),
 			}
 			c.Error(e)
+			c.Abort()
 			return
 		}
 		c.Set("user", user)

@@ -58,17 +58,17 @@ func (t *CustomTime) Scan(value interface{}) error {
 }
 
 type Basic struct {
-	Id             int            `gorm:"primaryKey;comment:ID" json:"id"`
-	GmtCreate      CustomTime     `gorm:"type:datetime;autoCreateTime;comment:创建时间" json:"gmtCreate"`
-	GmtCreateUser  *int           `gorm:"comment:创建人ID" json:"gmtCreateUser"`
-	CreateUserName *string        `gorm:"size:128;comment:创建人" json:"CreateUserName"`
-	GmtModify      CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime;comment:修改时间" json:"gmtModify"`
-	GmtModifyUser  *int           `gorm:"comment:修改人ID" json:"gmtModifyUser"`
-	ModifyUserName *string        `gorm:"size:128;comment:修改人" json:"modifyUserName"`
-	GmtDelete      gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
-	GmtDeleteUser  *int           `gorm:"comment:删除人ID" json:"-"`
-	DeleteUserName *string        `gorm:"size:128;comment:删除人" json:"deleteUserName"`
-	State          bool           `gorm:"default:true;comment:状态" json:"state"`
+	Id            int            `gorm:"primaryKey;comment:ID" json:"id"`
+	GmtCreate     CustomTime     `gorm:"type:datetime;autoCreateTime;comment:创建时间" json:"gmtCreate"`
+	GmtCreateUser *int           `gorm:"comment:创建人ID" json:"gmtCreateUser"`
+	CreateName    *string        `gorm:"size:128;comment:创建人" json:"CreateName"`
+	GmtModify     CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime;comment:修改时间" json:"gmtModify"`
+	GmtModifyUser *int           `gorm:"comment:修改人ID" json:"gmtModifyUser"`
+	ModifyName    *string        `gorm:"size:128;comment:修改人" json:"modifyName"`
+	GmtDelete     gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
+	GmtDeleteUser *int           `gorm:"comment:删除人ID" json:"-"`
+	DeleteName    *string        `gorm:"size:128;comment:删除人" json:"deleteName"`
+	State         bool           `gorm:"default:true;comment:状态" json:"state"`
 }
 
 func (b *Basic) BeforeCreate(tx *gorm.DB) (err error) {

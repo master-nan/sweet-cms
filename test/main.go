@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"sweet-cms/model"
+	"sweet-cms/utils"
 	"time"
 )
 
@@ -33,7 +34,8 @@ func main() {
 			TablePrefix:   "cms_",
 			SingularTable: true,
 		},
-		Logger: dbLogger,
+		DisableForeignKeyConstraintWhenMigrating: true,
+		Logger:                                   dbLogger,
 	})
 	if err != nil {
 		panic(err)
@@ -46,23 +48,21 @@ func main() {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	//db.Migrator().DropTable(&model.SysConfigure{})
-	//db.AutoMigrate(&model.SysConfigure{})
-	//
-	//// Create
-	//m := &model.SysConfigure{EnableCaptcha: false}
-	//sf, err := utils.NewSnowflake(1)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//uniqueID, err := sf.GenerateUniqueID()
-	//m.Id = int(uniqueID)
-	//db.Create(m)
+	db.Migrator().DropTable(&model.SysConfigure{})
+	db.AutoMigrate(&model.SysConfigure{})
 
-	//db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
-	//// 迁移 schema
-	//db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
-	db.Migrator().DropTable(&model.AccessLog{})
-	db.AutoMigrate(&model.AccessLog{})
+	// Create
+	m := &model.SysConfigure{EnableCaptcha: false}
+	sf, err := utils.NewSnowflake(1)
+	if err != nil {
+		panic(err)
+	}
+	uniqueID, err := sf.GenerateUniqueID()
+	m.Id = int(uniqueID)
+	db.Create(m)
+
+	db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.TableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
+	// 迁移 schema
+	db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.TableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
 
 }

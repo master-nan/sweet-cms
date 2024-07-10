@@ -29,7 +29,8 @@ func InitDB(serverConfig *config.Server) (*gorm.DB, error) {
 			TablePrefix:   serverConfig.DB.Prefix,
 			SingularTable: true,
 		},
-		Logger: dbLogger,
+		DisableForeignKeyConstraintWhenMigrating: true,
+		Logger:                                   dbLogger,
 	})
 	if err != nil {
 		return nil, err
