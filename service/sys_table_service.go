@@ -361,7 +361,7 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	return err
 }
 
-func ConvertColumnsToSysTableFields(columns []model.TableColumn) ([]model.SysTableField, error) {
+func ConvertColumnsToSysTableFields(columns []model.TableColumnMate) ([]model.SysTableField, error) {
 	var fields []model.SysTableField
 	for _, column := range columns {
 		field := model.SysTableField{

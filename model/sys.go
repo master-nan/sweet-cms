@@ -83,7 +83,7 @@ type SysGlobalDataPermission struct {
 type SysTable struct {
 	Basic
 	TableName      string             `gorm:"size:128;comment:表名" json:"tableName"`
-	TableCode      string             `gorm:"size:128;comment:数据库中表名" json:"tableCode"`
+	TableCode      string             `gorm:"size:128;uniqueIndex:uni_table_code_index;comment:数据库中表名" json:"tableCode"`
 	TableType      enum.SysTableType  `gorm:"type:tinyint;default:1;comment:表类型" json:"tableType"`
 	ParentId       int                `gorm:"comment:父节点Id" json:"parentId"`
 	SQL            string             `gorm:"type:text;comment:视图定义SQL" json:"sql"`
@@ -94,9 +94,9 @@ type SysTable struct {
 
 type SysTableField struct {
 	Basic
-	TableId            int                         `gorm:"comment:table_id;uniqueIndex:table_field_table_id_field_code_uindex" json:"tableId" binding:"required"`
+	TableId            int                         `gorm:"comment:table_id;uniqueIndex:union_uni_table_id_field_code_index" json:"tableId" binding:"required"`
 	FieldName          string                      `gorm:"size:128;comment:列名" json:"fieldName"`
-	FieldCode          string                      `gorm:"size:128;uniqueIndex:table_field_table_id_field_code_uindex;comment:表字段名" json:"fieldCode"`
+	FieldCode          string                      `gorm:"size:128;uniqueIndex:union_uni_table_id_field_code_index;comment:表字段名" json:"fieldCode"`
 	FieldType          enum.SysTableFieldType      `gorm:"type:tinyint;default:1;comment:字段类型" json:"type"`
 	FieldLength        int                         `gorm:"default:0;comment:字段长度" json:"fieldLength"`
 	FieldDecimalLength int                         `gorm:"default:0;comment:小数位数" json:"fieldDecimalLength"`
@@ -135,19 +135,19 @@ type SysTableIndexField struct {
 type SysTableRelation struct {
 	Basic
 	TableId        int                       `gorm:"index;comment:主表Id" json:"tableId"`
-	RelatedTableId int                       `gorm:"index;comment:关联表Id" json:"relatedTableId"`    // 关联的表的Id
-	ReferenceKey   string                    `gorm:"size:128;comment:引用主表的字段" json:"referenceKey"` // 主表对应字段
-	ForeignKey     string                    `gorm:"size:128;comment:外键字段" json:"foreignKey"`      // 关联表 字段
+	RelatedTableId int                       `gorm:"index;comment:关联表Id" json:"relatedTableId"` // 关联的表的Id
+	ReferenceKey   string                    `gorm:"size:128;comment:主表字段" json:"referenceKey"` // 主表对应字段
+	ForeignKey     string                    `gorm:"size:128;comment:关联表字段" json:"foreignKey"`  // 关联表 字段
 	OnDelete       string                    `gorm:"size:128;comment:删除时策略" json:"onDelete"`
 	OnUpdate       string                    `gorm:"size:128;comment:更新时策略" json:"onUpdate"`
 	RelationType   enum.SysTableRelationType `gorm:"size:128;comment:关系类型" json:"relationType"`
-	ManyTableCode  *string                   `gorm:"size:128;comment:多对多关系中间表" json:"manyTableCode"` // 多对多关系使用到的中间表
+	ManyTableCode  string                    `gorm:"size:128;comment:多对多关系中间表" json:"manyTableCode"` // 多对多关系使用到的中间表
 }
 
 type SysDict struct {
 	Basic
-	DictName  string        `gorm:"size:128;comment:字典名称;uniqueIndex:uni_dict_name" json:"dictName"`
-	DictCode  string        `gorm:"size:128;comment:字典编码;uniqueIndex:uni_dict_code" json:"dictCode"`
+	DictName  string        `gorm:"size:128;comment:字典名称;uniqueIndex:uni_dict_name_index" json:"dictName"`
+	DictCode  string        `gorm:"size:128;comment:字典编码;uniqueIndex:uni_dict_code_index" json:"dictCode"`
 	DictItems []SysDictItem `gorm:"foreignKey:DictId;references:Id" json:"dictItems"`
 }
 
@@ -155,11 +155,11 @@ type SysDictItem struct {
 	Basic
 	DictId    int    `gorm:"comment:dict_id" json:"dictId"`
 	ItemName  string `gorm:"size:128;comment:字典名称" json:"itemName"`
-	ItemCode  string `gorm:"size:128;comment:字典编码;uniqueIndex:uni_item_code" json:"itemCode"`
+	ItemCode  string `gorm:"size:128;comment:字典编码;uniqueIndex:uni_item_code_index" json:"itemCode"`
 	ItemValue string `gorm:"size:128;comment:字典值" json:"itemValue"`
 }
 
-type TableColumn struct {
+type TableColumnMate struct {
 	ColumnName             string         `gorm:"column:COLUMN_NAME" json:"columnName"`                          // 列名
 	OrdinalPosition        int            `gorm:"column:ORDINAL_POSITION" json:"ordinalPosition"`                // 列名所在位置，即排序-
 	ColumnDefault          sql.NullString `gorm:"column:COLUMN_DEFAULT" json:"columnDefault"`                    // 默认值
@@ -176,7 +176,7 @@ type TableColumn struct {
 	ColumnComment          string         `gorm:"column:COLUMN_COMMENT" json:"columnComment"`                    // 列备注
 }
 
-type TableIndex struct {
+type TableIndexMate struct {
 	ColumnName string `gorm:"column:COLUMN_NAME" json:"columnName"` // 列名
 	IndexName  string `gorm:"column:INDEX_NAME" json:"indexName"`   // 索引名称
 	NonUnique  bool   `gorm:"column:NON_UNIQUE" json:"nonUnique"`   // 是否唯一索引

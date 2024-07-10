@@ -274,9 +274,47 @@ func (s *SysTableRepositoryImpl) GetTableRelationByTableId(i int) (model.SysTabl
 	return relation, err
 }
 
-func (s *SysTableRepositoryImpl) InsertTableRelation(relation model.SysTableRelation, tableCode string) error {
-	//TODO 新增多对多关系，2张表都要调整
-	panic("implement me")
+func (s *SysTableRepositoryImpl) InsertTableRelation(relation model.SysTableRelation, referenceKeyField model.SysTableField, foreignKeyField model.SysTableField) (err error) {
+	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
+			tx.Rollback()                               // 回滚事务
+			// 设置返回的错误信息
+			if e, ok := r.(error); ok {
+				err = e // 如果 r 是 error 类型，直接返回
+			} else {
+				// 如果 r 不是 error 类型，转换为 error 后返回
+				err = fmt.Errorf("%v", r)
+			}
+		}
+	}()
+	if err := tx.Create(&relation).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// 如果是多对多 创建对应的表
+	if relation.RelationType == enum.MANY_TO_MANY {
+		var relationList []reflect.StructField
+		referenceKey := reflect.StructField{
+			Name: relation.ReferenceKey,
+			Type: utils.GetFieldType(referenceKeyField.FieldType),
+			Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
+		}
+		foreignKey := reflect.StructField{
+			Name: relation.ForeignKey,
+			Type: utils.GetFieldType(foreignKeyField.FieldType),
+			Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
+		}
+		relationList = append(relationList, referenceKey, foreignKey)
+
+		reflect.StructOf(relationList)
+
+		relationModel := reflect.New(reflect.StructOf(relationList)).Interface()
+		tableName := utils.GetTableName(tx, relation.ManyTableCode)
+		err = tx.Table(tableName).AutoMigrate(relationModel)
+	}
+	return err
 }
 
 func (s *SysTableRepositoryImpl) UpdateTableRelation(req request.TableRelationUpdateReq, tableCode string) error {
@@ -418,18 +456,18 @@ func (s *SysTableRepositoryImpl) DeleteTableIndex(index model.SysTableIndex, tab
 	return tx.Commit().Error
 }
 
-func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCode string) ([]model.TableColumn, error) {
-	var columns []model.TableColumn
+func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCode string) ([]model.TableColumnMate, error) {
+	var columns []model.TableColumnMate
 	query := `SELECT *  FROM INFORMATION_SCHEMA.COLUMNS  WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;`
 	err := s.db.Raw(query, tableSchema, tableCode).Scan(&columns).Error
 	if err != nil {
-		return []model.TableColumn{}, err
+		return []model.TableColumnMate{}, err
 	}
 	return columns, nil
 }
 
-func (s *SysTableRepositoryImpl) FetchTableIndexes(tableSchema string, tableCode string) ([]model.TableIndex, error) {
-	var indexes []model.TableIndex
+func (s *SysTableRepositoryImpl) FetchTableIndexes(tableSchema string, tableCode string) ([]model.TableIndexMate, error) {
+	var indexes []model.TableIndexMate
 	query := `  SELECT
     COLUMN_NAME,
     INDEX_NAME,
@@ -439,7 +477,7 @@ FROM
     INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME != 'PRIMARY';`
 	err := s.db.Raw(query, tableSchema, tableCode).Scan(&indexes).Error
 	if err != nil {
-		return []model.TableIndex{}, err
+		return []model.TableIndexMate{}, err
 	}
 	return indexes, nil
 }
@@ -464,10 +502,12 @@ func (s *SysTableRepositoryImpl) InitTable(table model.SysTable, indexFields []m
 		tx.Rollback()
 		return err
 	}
-	// 创建索引中间表sys_table_index_field数据
-	if err := tx.Create(&indexFields).Error; err != nil {
-		tx.Rollback()
-		return err
+	if indexFields != nil {
+		// 创建索引中间表sys_table_index_field数据
+		if err := tx.Create(&indexFields).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 	return tx.Commit().Error
 }

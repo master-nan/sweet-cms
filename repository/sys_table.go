@@ -27,7 +27,7 @@ type SysTableRepository interface {
 
 	GetTableRelationById(int) (model.SysTableRelation, error)
 	GetTableRelationByTableId(int) (model.SysTableRelation, error)
-	InsertTableRelation(model.SysTableRelation, string) error
+	InsertTableRelation(model.SysTableRelation, model.SysTableField, model.SysTableField) (err error)
 	UpdateTableRelation(request.TableRelationUpdateReq, string) error
 	DeleteTableRelation(model.SysTableRelation, string) error
 
@@ -36,7 +36,7 @@ type SysTableRepository interface {
 	InsertTableIndex(model.SysTableIndex, string) error
 	UpdateTableIndex(request.TableIndexUpdateReq, model.SysTableIndex, string) error
 	DeleteTableIndex(model.SysTableIndex, string) error
-	FetchTableMetadata(string, string) ([]model.TableColumn, error)
-	FetchTableIndexes(string, string) ([]model.TableIndex, error)
+	FetchTableMetadata(string, string) ([]model.TableColumnMate, error)
+	FetchTableIndexes(string, string) ([]model.TableIndexMate, error)
 	InitTable(model.SysTable, []model.SysTableIndexField) error
 }

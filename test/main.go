@@ -61,8 +61,8 @@ func main() {
 	m.Id = int(uniqueID)
 	db.Create(m)
 
-	db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.TableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
+	db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
 	// 迁移 schema
-	db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.TableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
+	db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
 
 }

@@ -201,8 +201,8 @@ func DynamicQuery(db *gorm.DB, basic request.Basic, table model.SysTable) (repos
 func CreateDynamicStruct(fields []model.SysTableField) reflect.Type {
 	var fieldsList []reflect.StructField
 	for _, field := range fields {
-		fieldType := getFieldType(field.FieldType)
-		fieldTag := buildTag(field)
+		fieldType := GetFieldType(field.FieldType)
+		fieldTag := BuildTag(field)
 		fieldsList = append(fieldsList, reflect.StructField{
 			Name: toCamelCaseGo(field.FieldCode),
 			Type: fieldType,
@@ -212,13 +212,13 @@ func CreateDynamicStruct(fields []model.SysTableField) reflect.Type {
 	return reflect.StructOf(fieldsList)
 }
 
-// getFieldType 获取对应类型
-func getFieldType(fieldType enum.SysTableFieldType) reflect.Type {
+// GetFieldType 获取对应类型
+func GetFieldType(fieldType enum.SysTableFieldType) reflect.Type {
 	switch fieldType {
 	case enum.INT:
-		return reflect.TypeOf(int(0)) // 或 reflect.TypeOf(int64(0)) 根据需要选择
+		return reflect.TypeOf(0) // 或 reflect.TypeOf(int64(0)) 根据需要选择
 	case enum.FLOAT:
-		return reflect.TypeOf(float64(0.0)) // 使用 float64 是 Go 中最常用的浮点类型
+		return reflect.TypeOf(0.0) // 使用 float64 是 Go 中最常用的浮点类型
 	case enum.VARCHAR, enum.TEXT:
 		return reflect.TypeOf("") // 字符串类型
 	case enum.BOOLEAN:
@@ -230,8 +230,8 @@ func getFieldType(fieldType enum.SysTableFieldType) reflect.Type {
 	}
 }
 
-// buildTag 构建结构体tag
-func buildTag(field model.SysTableField) string {
+// BuildTag 构建结构体tag
+func BuildTag(field model.SysTableField) string {
 	gormParts := []string{
 		fmt.Sprintf(`column:%s`, field.FieldCode),
 		fmt.Sprintf(`type:%s`, getSQLType(field.FieldType, field.FieldLength, field.FieldDecimalLength)),
