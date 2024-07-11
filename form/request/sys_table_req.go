@@ -36,6 +36,7 @@ type TableFieldCreateReq struct {
 	IsSort             bool                        `json:"isSort" binding:"required"`           // 是否可排序
 	IsNull             bool                        `json:"isNull" binding:"required"`           // 是否可空
 	OriginalFieldId    int                         `json:"originalFieldId"`                     // 原字段Id
+
 }
 
 type TableFieldUpdateReq struct {

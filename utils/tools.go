@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"strings"
 	"sweet-cms/enum"
+	"sweet-cms/model"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -257,4 +258,62 @@ func ContainsToken(existingTokens string, newToken string) bool {
 		}
 	}
 	return false // 没有找到，返回false
+}
+
+func ConvertColumnsToSysTableFields(columns []model.TableColumnMate) ([]model.SysTableField, error) {
+	var fields []model.SysTableField
+	for _, column := range columns {
+		field := model.SysTableField{
+			FieldCode:          column.ColumnName,              // 通常 FieldCode 会是数据库的真实列名
+			FieldDecimalLength: int(column.NumericScale.Int64), // 根据需要设置
+			IsNull:             column.IsNullable == "YES",
+			IsPrimaryKey:       column.ColumnKey == "PRI",
+			IsQuickSearch:      false,
+			IsAdvancedSearch:   false,
+			IsSort:             true,
+			IsListShow:         true,
+			IsInsertShow:       false,
+			IsUpdateShow:       false,
+			Sequence:           uint8(column.OrdinalPosition),
+			OriginalFieldId:    0,
+			FieldLength:        0,
+			FieldCategory:      enum.NORMAL_FIELD,
+			Binding:            "required", // 根据实际逻辑调整
+		}
+		if column.ColumnComment != "" {
+			field.FieldName = column.ColumnComment
+		} else {
+			field.FieldName = column.ColumnName
+		}
+		switch column.DataType {
+		case "int", "bigint":
+			field.FieldType = enum.INT
+		case "tinyint":
+			field.FieldType = enum.TINYINT
+			field.FieldLength = int(column.NumericPrecision.Int64)
+		case "varchar":
+			field.FieldType = enum.VARCHAR
+			field.FieldLength = int(column.CharacterMaximumLength.Int64)
+		case "text", "mediumtext", "longtext":
+			field.FieldType = enum.TEXT
+			field.FieldLength = int(column.CharacterMaximumLength.Int64)
+		case "boolean", "bool":
+			field.FieldType = enum.BOOLEAN
+		case "date":
+			field.FieldType = enum.DATE
+		case "datetime", "timestamp":
+			field.FieldType = enum.DATETIME
+		case "time":
+			field.FieldType = enum.TIME
+		default:
+			field.FieldType = enum.VARCHAR
+			field.FieldLength = int(column.NumericPrecision.Int64)
+		}
+		// 检查DefaultValue是否有值
+		if column.ColumnDefault.Valid {
+			field.DefaultValue = &column.ColumnDefault.String
+		}
+		fields = append(fields, field)
+	}
+	return fields, nil
 }

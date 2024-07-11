@@ -132,7 +132,7 @@ func (t *TableController) InsertSysTable(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.InsertTable(data)
+	err := t.sysTableService.InsertTable(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return

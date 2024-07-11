@@ -11,6 +11,7 @@ import (
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
 	"reflect"
+	"strconv"
 	"strings"
 	"sweet-cms/enum"
 	"sweet-cms/form/request"
@@ -240,7 +241,8 @@ func BuildTag(field model.SysTableField) string {
 		gormParts = append(gormParts, fmt.Sprintf(`size:%d`, field.FieldLength))
 	}
 	if field.DefaultValue != nil && *field.DefaultValue != "" {
-		gormParts = append(gormParts, fmt.Sprintf(`default:'%s'`, *field.DefaultValue))
+		str := getDefaultValue(*field.DefaultValue, field.FieldType)
+		gormParts = append(gormParts, str)
 	}
 	if field.IsPrimaryKey {
 		gormParts = append(gormParts, `primaryKey:true`)
@@ -264,6 +266,23 @@ func BuildTag(field model.SysTableField) string {
 	// 组合 GORM, JSON 和 Binding 标签
 	fullTag := fmt.Sprintf(`gorm:"%s" %s %s`, strings.Join(gormParts, ";"), jsonPart, bindingPart)
 	return fullTag
+}
+
+func getDefaultValue(defaultValue string, fieldType enum.SysTableFieldType) string {
+	switch fieldType {
+	case enum.INT, enum.TINYINT:
+		d, _ := strconv.Atoi(defaultValue)
+		return fmt.Sprintf(`default:%d`, d)
+	case enum.FLOAT:
+		f, _ := strconv.ParseFloat(defaultValue, 64)
+		return fmt.Sprintf(`default:%f`, f)
+	case enum.BOOLEAN:
+		return fmt.Sprintf(`default:%v`, defaultValue)
+	case enum.VARCHAR, enum.TEXT:
+		return fmt.Sprintf(`default:%s`, defaultValue)
+	default:
+		return fmt.Sprintf(`default:%v`, defaultValue)
+	}
 }
 
 // getSQLType 返回类型和长度

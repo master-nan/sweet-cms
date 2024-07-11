@@ -93,7 +93,12 @@ func (s *SysTableService) GetTableByTableCode(code string) (model.SysTable, erro
 	return data, nil
 }
 
-func (s *SysTableService) InsertTable(req request.TableCreateReq) error {
+func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateReq) error {
+	var user model.SysUser
+	obj, exists := ctx.Get("user")
+	if exists {
+		user, _ = obj.(model.SysUser)
+	}
 	var data model.SysTable
 	table, e := s.GetTableByTableCode(req.TableCode)
 	if e != nil {
@@ -116,6 +121,7 @@ func (s *SysTableService) InsertTable(req request.TableCreateReq) error {
 		return err
 	}
 	data.Id = int(id)
+	data.GmtCreateUser = &user.EmployeeId
 	return s.sysTableRepo.InsertTable(data)
 }
 
@@ -292,9 +298,9 @@ func (s *SysTableService) DeleteTableFieldById(id int) error {
 }
 
 func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
-	columns, err := s.sysTableRepo.FetchTableMetadata(s.serverConfig.DB.Name, s.serverConfig.DB.Prefix+tableCode)
-	tableIndexes, err := s.sysTableRepo.FetchTableIndexes(s.serverConfig.DB.Name, s.serverConfig.DB.Prefix+tableCode)
-	fields, err := ConvertColumnsToSysTableFields(columns)
+	columns, err := s.sysTableRepo.FetchTableMetadata(s.serverConfig.DB.Name, tableCode)
+	tableIndexes, err := s.sysTableRepo.FetchTableIndexes(s.serverConfig.DB.Name, tableCode)
+	fields, err := utils.ConvertColumnsToSysTableFields(columns)
 	if err != nil {
 		return err
 	}
@@ -307,7 +313,21 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	if err != nil {
 		return err
 	}
-	table := model.SysTable{
+	table, e := s.GetTableByTableCode(tableCode)
+	if err != nil {
+		return err
+	}
+	if e != nil {
+		return e
+	}
+	if table.Id != 0 {
+		e := &response.AdminError{
+			Code:    http.StatusBadRequest,
+			Message: "当前表已初始化，请勿重复操作",
+		}
+		return e
+	}
+	table = model.SysTable{
 		Basic: model.Basic{
 			Id:            int(id),
 			GmtCreateUser: &user.EmployeeId,
@@ -359,62 +379,4 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	table.TableIndexes = indexes
 	err = s.sysTableRepo.InitTable(table, indexFields)
 	return err
-}
-
-func ConvertColumnsToSysTableFields(columns []model.TableColumnMate) ([]model.SysTableField, error) {
-	var fields []model.SysTableField
-	for _, column := range columns {
-		field := model.SysTableField{
-			FieldCode:          column.ColumnName,              // 通常 FieldCode 会是数据库的真实列名
-			FieldDecimalLength: int(column.NumericScale.Int64), // 根据需要设置
-			IsNull:             column.IsNullable == "YES",
-			IsPrimaryKey:       column.ColumnKey == "PRI",
-			IsQuickSearch:      false,
-			IsAdvancedSearch:   false,
-			IsSort:             true,
-			IsListShow:         true,
-			IsInsertShow:       false,
-			IsUpdateShow:       false,
-			Sequence:           uint8(column.OrdinalPosition),
-			OriginalFieldId:    0,
-			FieldLength:        0,
-			FieldCategory:      enum.NORMAL_FIELD,
-			Binding:            "required", // 根据实际逻辑调整
-		}
-		if column.ColumnComment != "" {
-			field.FieldName = column.ColumnComment
-		} else {
-			field.FieldName = column.ColumnName
-		}
-		switch column.DataType {
-		case "int", "bigint":
-			field.FieldType = enum.INT
-		case "tinyint":
-			field.FieldType = enum.TINYINT
-			field.FieldLength = int(column.NumericPrecision.Int64)
-		case "varchar":
-			field.FieldType = enum.VARCHAR
-			field.FieldLength = int(column.CharacterMaximumLength.Int64)
-		case "text", "mediumtext", "longtext":
-			field.FieldType = enum.TEXT
-			field.FieldLength = int(column.CharacterMaximumLength.Int64)
-		case "boolean", "bool":
-			field.FieldType = enum.BOOLEAN
-		case "date":
-			field.FieldType = enum.DATE
-		case "datetime", "timestamp":
-			field.FieldType = enum.DATETIME
-		case "time":
-			field.FieldType = enum.TIME
-		default:
-			field.FieldType = enum.VARCHAR
-			field.FieldLength = int(column.NumericPrecision.Int64)
-		}
-		// 检查DefaultValue是否有值
-		if column.ColumnDefault.Valid {
-			field.DefaultValue = &column.ColumnDefault.String
-		}
-		fields = append(fields, field)
-	}
-	return fields, nil
 }
