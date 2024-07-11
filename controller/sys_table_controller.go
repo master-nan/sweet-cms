@@ -187,7 +187,7 @@ func (t *TableController) DeleteSysTableById(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.DeleteTableById(id)
+	err = t.sysTableService.DeleteTableById(ctx, id)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -261,7 +261,7 @@ func (t *TableController) InsertSysTableField(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.InsertTableField(data)
+	err := t.sysTableService.InsertTableField(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -300,7 +300,7 @@ func (t *TableController) UpdateSysTableField(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.UpdateTableField(data)
+	err := t.sysTableService.UpdateTableField(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -316,13 +316,109 @@ func (t *TableController) DeleteSysTableFieldById(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.DeleteTableFieldById(id)
+	err = t.sysTableService.DeleteTableFieldById(ctx, id)
 	if err != nil {
 		ctx.Error(err)
 		return
 	}
 	return
 }
+
+func (t *TableController) GetTableRelationsByTableId(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	data, err := t.sysTableService.GetTableRelationsByTableId(id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	resp.SetTotal(len(data))
+	resp.SetData(data)
+	return
+}
+
+func (t *TableController) GetTableRelationById(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	data, err := t.sysTableService.GetTableRelationById(id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	resp.SetData(data)
+	return
+}
+
+func (t *TableController) InsertTableRelation(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	var data request.TableRelationCreateReq
+	translator, _ := t.translators["zh"]
+	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
+		if err == io.EOF {
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数错误",
+			}
+			ctx.Error(e)
+			return
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			ctx.Error(e)
+			return
+		}
+		ctx.Error(err)
+		return
+	}
+	err := t.sysTableService.InsertTableRelation(ctx, data)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
+}
+
+func (t *TableController) DeleteTableRelation(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	err = t.sysTableService.DeleteTableRelation(ctx, id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
+}
+
+//GetTableIndexesByTableId(int) ([]model.SysTableIndex, error)
+//InsertTableIndex(*gorm.DB, model.SysTableIndex, string) error
+//UpdateTableIndex(*gorm.DB, request.TableIndexUpdateReq, model.SysTableIndex, string) error
+//DeleteTableIndex(*gorm.DB, int) error
+//DeleteTableIndexByTableId(*gorm.DB, int) error
 
 func (t *TableController) InitTable(ctx *gin.Context) {
 	resp := response.NewResponse()

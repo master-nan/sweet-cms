@@ -55,6 +55,7 @@ var Providers = wire.NewSet(
 	impl.NewSysUserRepositoryImpl,
 	impl.NewGeneralizationRepositoryImpl,
 	impl.NewCasbinRuleRepositoryImpl,
+	impl.NewBasicImpl,
 
 	wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)),
 	wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)),
@@ -65,6 +66,7 @@ var Providers = wire.NewSet(
 	wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)),
 	wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)),
 	wire.Bind(new(repository.CasbinRuleRepository), new(*impl.CasbinRuleRepositoryImpl)),
+	wire.Bind(new(repository.BasicRepository), new(*impl.BasicImpl)),
 
 	cache.NewSysConfigureCache,
 	cache.NewSysUserCache,

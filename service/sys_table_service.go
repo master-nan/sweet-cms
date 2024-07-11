@@ -14,7 +14,9 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"net/http"
+	"reflect"
 	"strconv"
+	"strings"
 	"sweet-cms/cache"
 	"sweet-cms/config"
 	"sweet-cms/enum"
@@ -121,8 +123,39 @@ func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateR
 		return err
 	}
 	data.Id = int(id)
-	data.GmtCreateUser = &user.EmployeeId
-	return s.sysTableRepo.InsertTable(data)
+	data.CreateUser = &user.EmployeeId
+	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
+	fields := []model.SysTableField{
+		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "id", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
+		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 2, IsListShow: true},
+		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 3, IsListShow: true},
+		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 4, IsListShow: true},
+		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 5, IsListShow: true},
+		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER, Sequence: 6},
+		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
+		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
+	}
+	for i := range fields {
+		fieldId, err := s.sf.GenerateUniqueID()
+		if err != nil {
+			return err
+		}
+		fields[i].Id = int(fieldId)
+	}
+	data.TableFields = fields
+	return s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		if e := s.sysTableRepo.InsertTable(tx, data); e != nil {
+			return e
+		}
+		// 动态创建结构体类型
+		dynamicType := utils.CreateDynamicStruct(table.TableFields)
+		// 创建实例
+		dynamicModel := reflect.New(dynamicType).Interface()
+		if e := s.sysTableRepo.CreateTable(tx, table.TableCode, dynamicModel); e != nil {
+			return e
+		}
+		return nil
+	})
 }
 
 func (s *SysTableService) UpdateTable(req request.TableUpdateReq) error {
@@ -141,16 +174,61 @@ func (s *SysTableService) UpdateTable(req request.TableUpdateReq) error {
 	return nil
 }
 
-func (s *SysTableService) DeleteTableById(id int) error {
+func (s *SysTableService) DeleteTableById(ctx *gin.Context, id int) error {
 	data, err := s.GetTableById(id)
 	if err != nil {
 		return err
 	}
-	err = s.sysTableRepo.DeleteTableById(id)
-	if err != nil {
-		return err
-	}
 	if data.Id != 0 {
+		err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+			if e := s.sysTableRepo.DeleteTableById(tx, id); e != nil {
+				return e
+			}
+			// 删除字段元数据
+			if e := s.sysTableRepo.DeleteTableFieldByTableId(tx, id); e != nil {
+				return e
+			}
+			// 查询表所有索引
+			tableIndexes, e := s.sysTableRepo.GetTableIndexesByTableId(id)
+			if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
+				return e
+			}
+			// 删除索引信息
+			if e := s.sysTableRepo.DeleteTableIndexByTableId(tx, id); e != nil {
+				return e
+			}
+			var indexIDs []int
+			for _, index := range tableIndexes {
+				indexIDs = append(indexIDs, index.Id)
+			}
+			// 删除索引中间表信息，需要使用 IN 查询
+			if len(indexIDs) > 0 {
+				if e := s.sysTableRepo.DeleteTableIndexFieldByIndexIds(tx, indexIDs); e != nil {
+					return e
+				}
+			}
+			// 查询关联表数据
+			relations, e := s.sysTableRepo.GetTableRelationsByTableId(id)
+			if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
+				return e
+			}
+			for _, relation := range relations {
+				// 删除关联关系表
+				if e := s.sysTableRepo.DeleteTableRelation(tx, relation.Id); e != nil {
+					return e
+				}
+				if relation.RelationType == enum.MANY_TO_MANY {
+					// 删除多对多中间表
+					if e := s.sysTableRepo.DropTable(tx, relation.ManyTableCode); e != nil {
+						return e
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 		s.sysTableCache.Delete(strconv.Itoa(data.Id))
 		s.sysTableCache.Delete(data.TableCode)
 	}
@@ -194,7 +272,7 @@ func (s *SysTableService) GetTableFieldsByTableId(tableId int) ([]model.SysTable
 	return fields, nil
 }
 
-func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) error {
+func (s *SysTableService) InsertTableField(ctx *gin.Context, req request.TableFieldCreateReq) error {
 	var data model.SysTableField
 	fields, e := s.GetTableFieldsByTableId(req.TableId)
 	if e != nil {
@@ -224,7 +302,31 @@ func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) erro
 	}
 
 	data.Id = int(id)
-	err = s.sysTableRepo.InsertTableField(data, table.TableCode)
+	err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		if e := s.sysTableRepo.InsertTableField(tx, data); err != nil {
+			return e
+		}
+		// 构建SQL类型字符串，包括长度、默认值、是否可为空和备注
+		sqlType := utils.SqlTypeFromFieldType(data.FieldType)
+		if data.FieldLength > 0 {
+			sqlType += fmt.Sprintf("(%d)", data.FieldLength)
+		}
+		if data.DefaultValue != nil {
+			sqlType += fmt.Sprintf(" DEFAULT '%s'", data.DefaultValue)
+		}
+		if data.IsNull {
+			sqlType += " NULL"
+		} else {
+			sqlType += " NOT NULL"
+		}
+		if data.FieldName != "" {
+			sqlType += fmt.Sprintf(" COMMENT '%s'", data.FieldName)
+		}
+		if e := s.sysTableRepo.CreateTableColumn(tx, table.TableCode, data.FieldCode, sqlType); e != nil {
+			return e
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -236,7 +338,7 @@ func (s *SysTableService) InsertTableField(req request.TableFieldCreateReq) erro
 	return nil
 }
 
-func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) error {
+func (s *SysTableService) UpdateTableField(ctx *gin.Context, req request.TableFieldUpdateReq) error {
 	table, err := s.GetTableById(req.Id)
 	if err != nil {
 		return err
@@ -261,7 +363,40 @@ func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) erro
 				break
 			}
 		}
-		err = s.sysTableRepo.UpdateTableField(req, data, table.TableCode)
+		err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+			if e := s.sysTableRepo.UpdateTableField(tx, req); e != nil {
+				return e
+			}
+			var sqlType string
+			if req.FieldType != data.FieldType || (req.FieldLength > 0 && req.FieldLength != data.FieldLength) {
+				sqlType += fmt.Sprintf("%s(%d)", utils.SqlTypeFromFieldType(req.FieldType), req.FieldLength)
+			}
+			if req.DefaultValue != "" && req.DefaultValue != *data.DefaultValue {
+				sqlType += fmt.Sprintf(" DEFAULT '%s'", req.DefaultValue)
+			}
+			if req.IsNull != data.IsNull {
+				if req.IsNull {
+					sqlType += " NULL"
+				} else {
+					sqlType += " NOT NULL"
+				}
+			}
+			if req.FieldName != "" && req.FieldName != data.FieldName {
+				sqlType += fmt.Sprintf(" COMMENT '%s'", req.FieldName)
+			}
+			if req.FieldCode == data.FieldCode {
+				if sqlType != "" {
+					if e := s.sysTableRepo.ModifyTableColumn(tx, table.TableCode, req.FieldCode, sqlType); e != nil {
+						return e
+					}
+				}
+			} else {
+				if err := s.sysTableRepo.ChangeTableColumn(tx, table.TableCode, data.FieldCode, req.FieldCode, sqlType); err != nil {
+					return e
+				}
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
@@ -273,7 +408,7 @@ func (s *SysTableService) UpdateTableField(req request.TableFieldUpdateReq) erro
 	return errors.New("数据不存在")
 }
 
-func (s *SysTableService) DeleteTableFieldById(id int) error {
+func (s *SysTableService) DeleteTableFieldById(ctx *gin.Context, id int) error {
 	field, err := s.GetTableFieldById(id)
 	if err != nil {
 		return err
@@ -284,7 +419,15 @@ func (s *SysTableService) DeleteTableFieldById(id int) error {
 			return err
 		}
 		if table.Id != 0 {
-			err = s.sysTableRepo.DeleteTableField(field, table.TableCode)
+			err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+				if e := s.sysTableRepo.DeleteTableField(tx, field.Id); e != nil {
+					return e
+				}
+				if e := s.sysTableRepo.DropTableColumn(tx, table.TableCode, field.FieldCode); e != nil {
+					return e
+				}
+				return nil
+			})
 			if err != nil {
 				return err
 			}
@@ -297,9 +440,151 @@ func (s *SysTableService) DeleteTableFieldById(id int) error {
 	return errors.New("数据不存在")
 }
 
+func (s *SysTableService) GetTableRelationsByTableId(tableId int) ([]model.SysTableRelation, error) {
+	return s.sysTableRepo.GetTableRelationsByTableId(tableId)
+}
+
+func (s *SysTableService) GetTableRelationById(id int) (model.SysTableRelation, error) {
+	return s.sysTableRepo.GetTableRelationById(id)
+}
+
+func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.TableRelationCreateReq) error {
+	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		var data model.SysTableRelation
+		e := mapstructure.Decode(req, &data)
+		if e != nil {
+			zap.L().Error("Error during struct mapping:", zap.Error(e))
+			return e
+		}
+		id, err := s.sf.GenerateUniqueID()
+		if err != nil {
+			return e
+		}
+		data.Id = int(id)
+		if e := s.sysTableRepo.InsertTableRelation(tx, data); e != nil {
+			return e
+		}
+		// 如果是多对多 创建对应的表
+		if data.RelationType == enum.MANY_TO_MANY {
+			mainTable, e := s.GetTableById(data.TableId)
+			if e != nil {
+				return e
+			}
+			relatedTable, e := s.GetTableById(data.RelatedTableId)
+			if e != nil {
+				return e
+			}
+			var referenceKeyField model.SysTableField
+			for _, field := range mainTable.TableFields {
+				if field.FieldCode == data.ReferenceKey {
+					referenceKeyField = field
+				}
+			}
+			var foreignKeyField model.SysTableField
+			for _, field := range relatedTable.TableFields {
+				if field.FieldCode == data.ForeignKey {
+					foreignKeyField = field
+				}
+			}
+			if referenceKeyField.Id == 0 || foreignKeyField.Id == 0 {
+				return errors.New("关联字段不存在")
+			}
+			var relationList []reflect.StructField
+			referenceKey := reflect.StructField{
+				Name: data.ReferenceKey,
+				Type: utils.GetFieldType(referenceKeyField.FieldType),
+				Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
+			}
+			foreignKey := reflect.StructField{
+				Name: data.ForeignKey,
+				Type: utils.GetFieldType(foreignKeyField.FieldType),
+				Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
+			}
+			relationList = append(relationList, referenceKey, foreignKey)
+			reflect.StructOf(relationList)
+			relationModel := reflect.New(reflect.StructOf(relationList)).Interface()
+			return s.sysTableRepo.CreateTable(tx, data.ManyTableCode, relationModel)
+		}
+		return nil
+	})
+	return err
+}
+func (s *SysTableService) DeleteTableRelation(ctx *gin.Context, id int) error {
+	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		if e := s.sysTableRepo.DeleteTableRelation(tx, id); e != nil {
+			return e
+		}
+		// TODO 删除表关系考虑是否需要删除多对多中间表
+		//relation, e := s.sysTableRepo.GetTableRelationById(id)
+		//if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
+		//	return e
+		//}
+		//if relation.RelationType == enum.MANY_TO_MANY {
+		//	if e := s.sysTableRepo.DropTable(tx, relation.ManyTableCode); e {
+		//		return e
+		//	}
+		//}
+		return nil
+	})
+	return err
+}
+
+func (s *SysTableService) GetTableIndexesByTableId(tableId int) ([]model.SysTableIndex, error) {
+	return s.sysTableRepo.GetTableIndexesByTableId(tableId)
+}
+
+func (s *SysTableService) InsertTableIndex(ctx *gin.Context, req request.TableIndexCreateReq) error {
+	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		var data model.SysTableIndex
+		e := mapstructure.Decode(req, &data)
+		if e != nil {
+			zap.L().Error("Error during struct mapping:", zap.Error(e))
+			return e
+		}
+		id, err := s.sf.GenerateUniqueID()
+		if err != nil {
+			return e
+		}
+		data.Id = int(id)
+		if e := s.sysTableRepo.InsertTableIndex(tx, data); e != nil {
+			return e
+		}
+		var indexFields []model.SysTableIndexField
+		fieldCodeList := make([]string, len(req.IndexFields))
+		for _, field := range req.IndexFields {
+			fieldCodeList = append(fieldCodeList, field.FieldCode)
+			indexField := model.SysTableIndexField{
+				IndexId: data.Id,
+				FieldId: field.FieldId,
+			}
+			indexFields = append(indexFields, indexField)
+		}
+		if e := s.sysTableRepo.InsertTableIndexFields(tx, indexFields); e != nil {
+			return e
+		}
+		table, err := s.GetTableById(data.TableId)
+		if err != nil {
+			return err
+		}
+		if table.Id == 0 {
+			return errors.New("操作的表不存在")
+		}
+		fields := strings.Join(fieldCodeList, ",")
+		if e := s.sysTableRepo.CreateTableIndex(tx, req.IsUnique, req.IndexName, table.TableCode, fields); e != nil {
+			return e
+		}
+		return nil
+	})
+	return err
+}
+
+//UpdateTableIndex(*gorm.DB, request.TableIndexUpdateReq, model.SysTableIndex, string) error
+//DeleteTableIndex(*gorm.DB, int) error
+//DeleteTableIndexByTableId(*gorm.DB, int) error
+
 func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	columns, err := s.sysTableRepo.FetchTableMetadata(s.serverConfig.DB.Name, tableCode)
-	tableIndexes, err := s.sysTableRepo.FetchTableIndexes(s.serverConfig.DB.Name, tableCode)
+	tableIndexes, err := s.sysTableRepo.FetchTableIndexMetadata(s.serverConfig.DB.Name, tableCode)
 	fields, err := utils.ConvertColumnsToSysTableFields(columns)
 	if err != nil {
 		return err
@@ -329,8 +614,8 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	}
 	table = model.SysTable{
 		Basic: model.Basic{
-			Id:            int(id),
-			GmtCreateUser: &user.EmployeeId,
+			Id:         int(id),
+			CreateUser: &user.EmployeeId,
 		},
 		TableName: tableCode,
 		TableCode: tableCode,
@@ -346,7 +631,7 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 			return err
 		}
 		fields[i].Id = int(fieldId)
-		fields[i].GmtCreateUser = &user.EmployeeId
+		fields[i].CreateUser = &user.EmployeeId
 
 		for j, _ := range tableIndexes {
 			if tableIndexes[j].ColumnName == fields[i].FieldCode {
@@ -357,8 +642,8 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 				if _, exists := indexesMap[tableIndexes[j].IndexName]; !exists {
 					indexesMap[tableIndexes[j].IndexName] = model.SysTableIndex{
 						Basic: model.Basic{
-							Id:            int(indexId),
-							GmtCreateUser: &user.EmployeeId,
+							Id:         int(indexId),
+							CreateUser: &user.EmployeeId,
 						},
 						TableId:   table.Id,
 						IndexName: tableIndexes[j].IndexName,
@@ -377,6 +662,15 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	}
 	table.TableFields = fields
 	table.TableIndexes = indexes
-	err = s.sysTableRepo.InitTable(table, indexFields)
-	return err
+	return s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		if e := s.sysTableRepo.InitTable(tx, table); e != nil {
+			return e
+		}
+		if indexFields != nil && len(indexFields) > 0 {
+			if e := s.sysTableRepo.InsertTableIndexFields(tx, indexFields); e != nil {
+				return e
+			}
+		}
+		return nil
+	})
 }

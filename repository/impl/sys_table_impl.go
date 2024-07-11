@@ -7,11 +7,8 @@ package impl
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"reflect"
 	"strings"
-	"sweet-cms/enum"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
@@ -20,13 +17,13 @@ import (
 
 type SysTableRepositoryImpl struct {
 	db *gorm.DB
-	sf *utils.Snowflake
+	*BasicImpl
 }
 
-func NewSysTableRepositoryImpl(db *gorm.DB, sf *utils.Snowflake) *SysTableRepositoryImpl {
+func NewSysTableRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysTableRepositoryImpl {
 	return &SysTableRepositoryImpl{
 		db,
-		sf,
+		basicImpl,
 	}
 }
 
@@ -46,121 +43,30 @@ func (s *SysTableRepositoryImpl) GetTableByTableCode(code string) (model.SysTabl
 	return table, err
 }
 
-func (s *SysTableRepositoryImpl) InsertTable(table model.SysTable) (err error) {
-	// 开始事务
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
+func (s *SysTableRepositoryImpl) InsertTable(tx *gorm.DB, table model.SysTable) (err error) {
+	if tx == nil {
+		tx = s.db
+	}
 	err = tx.Create(&table).Error
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
-	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
-	basicFields := []model.SysTableField{
-		{Basic: model.Basic{GmtCreateUser: table.GmtCreateUser}, TableId: table.Id, FieldName: "id", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
-		{Basic: model.Basic{GmtCreateUser: table.GmtCreateUser}, TableId: table.Id, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 2, IsListShow: true},
-		{Basic: model.Basic{GmtCreateUser: table.GmtCreateUser}, TableId: table.Id, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 3, IsListShow: true},
-		{Basic: model.Basic{GmtCreateUser: table.GmtCreateUser}, TableId: table.Id, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 4, IsListShow: true},
-		{Basic: model.Basic{GmtCreateUser: table.GmtCreateUser}, TableId: table.Id, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 5, IsListShow: true},
-		{Basic: model.Basic{GmtCreateUser: table.GmtCreateUser}, TableId: table.Id, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER, Sequence: 6},
-		{Basic: model.Basic{GmtCreateUser: table.GmtCreateUser}, TableId: table.Id, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
-		{Basic: model.Basic{GmtCreateUser: table.GmtCreateUser}, TableId: table.Id, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
-	}
-	// 动态创建结构体类型
-	dynamicType := utils.CreateDynamicStruct(basicFields)
-	// 创建实例
-	dynamicModel := reflect.New(dynamicType).Interface()
-	tableName := utils.GetTableName(tx, table.TableCode)
-	err = tx.Table(tableName).AutoMigrate(dynamicModel)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	for i := range basicFields {
-		fieldId, err := s.sf.GenerateUniqueID()
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-		basicFields[i].Id = int(fieldId)
-	}
-	if err := tx.Create(&basicFields).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	// 提交事务
-	return tx.Commit().Error
+	return nil
 }
 
 func (s *SysTableRepositoryImpl) UpdateTable(req request.TableUpdateReq) error {
 	return s.db.Model(model.SysTable{Basic: model.Basic{Id: req.Id}}).Updates(&req).Error
 }
 
-func (s *SysTableRepositoryImpl) DeleteTableById(i int) (err error) {
-	// 开始事务
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
-	// 删除表信息数据
+// DeleteTableById 删除表信息数据
+func (s *SysTableRepositoryImpl) DeleteTableById(tx *gorm.DB, i int) (err error) {
+	if tx == nil {
+		tx = s.db
+	}
 	if err = tx.Where("id = ? ", i).Delete(model.SysTable{}).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	// 删除字段信息
-	if err = tx.Where("table_id= ?", i).Delete(model.SysTableField{}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	var tableIndexes []model.SysTableIndex
-	if err = tx.Model(model.SysTableIndex{TableId: i}).Find(&tableIndexes).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	// 删除索引信息
-	if err = tx.Where("table_id= ?", i).Delete(model.SysTableIndex{}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	var indexIDs []int
-	for _, index := range tableIndexes {
-		indexIDs = append(indexIDs, index.Id)
-	}
-	// 删除索引中间表信息，需要使用 IN 查询
-	if len(indexIDs) > 0 {
-		if err = tx.Where("index_id IN ?", indexIDs).Delete(model.SysTableIndexField{}).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
-	// 删除关联关系表
-	if err = tx.Where("table_id= ?", i).Delete(model.SysTableRelation{}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return nil
 }
 
 func (s *SysTableRepositoryImpl) GetTableList(basic request.Basic) (response.ListResult[model.SysTable], error) {
@@ -186,130 +92,95 @@ func (s *SysTableRepositoryImpl) GetTableFieldsByTableId(id int) ([]model.SysTab
 	return items, err
 }
 
-func (s *SysTableRepositoryImpl) UpdateTableField(req request.TableFieldUpdateReq, field model.SysTableField, tableCode string) (err error) {
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
+func (s *SysTableRepositoryImpl) UpdateTableField(tx *gorm.DB, req request.TableFieldUpdateReq) error {
+	if tx == nil {
+		tx = s.db
+	}
 	if err := tx.Model(&model.SysTableField{}).Where("id = ?", req.Id).Updates(req).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	var sqlType string
-	if req.FieldType != field.FieldType || (req.FieldLength > 0 && req.FieldLength != field.FieldLength) {
-		sqlType += fmt.Sprintf("%s(%d)", utils.SqlTypeFromFieldType(req.FieldType), req.FieldLength)
+	return nil
+}
+
+func (s *SysTableRepositoryImpl) ModifyTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
+	if tx == nil {
+		tx = s.db
 	}
-	if req.DefaultValue != "" && req.DefaultValue != *field.DefaultValue {
-		sqlType += fmt.Sprintf(" DEFAULT '%s'", req.DefaultValue)
-	}
-	if req.IsNull != field.IsNull {
-		if req.IsNull {
-			sqlType += " NULL"
-		} else {
-			sqlType += " NOT NULL"
-		}
-	}
-	if req.FieldName != "" && req.FieldName != field.FieldName {
-		sqlType += fmt.Sprintf(" COMMENT '%s'", req.FieldName)
-	}
-	var alterColumnSQL string
-	if req.FieldCode == field.FieldCode {
-		if sqlType == "" {
-			return tx.Commit().Error
-		}
-		alterColumnSQL = fmt.Sprintf("ALTER TABLE `%s` MODIFY `%s` %s;", tableCode, req.FieldCode, sqlType)
-	} else {
-		alterColumnSQL = fmt.Sprintf("ALTER TABLE `%s` CHANGE `%s` `%s` %s;", tableCode, field.FieldCode, req.FieldCode, sqlType)
-	}
+	tableName := utils.GetTableName(tx, tableCode)
+	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` MODIFY `%s` %s;", tableName, fieldCode, sqlType)
 	if err := tx.Exec(alterColumnSQL).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	return tx.Commit().Error
+	return nil
 }
 
-func (s *SysTableRepositoryImpl) InsertTableField(field model.SysTableField, tableCode string) (err error) {
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
-	// 创建字段记录
+func (s *SysTableRepositoryImpl) ChangeTableColumn(tx *gorm.DB, tableCode string, originalFieldCode string, fieldCode string, sqlType string) error {
+	if tx == nil {
+		tx = s.db
+	}
+	tableName := utils.GetTableName(tx, tableCode)
+	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` CHANGE `%s` `%s` %s;", tableName, originalFieldCode, fieldCode, sqlType)
+	if err := tx.Exec(alterColumnSQL).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SysTableRepositoryImpl) InsertTableField(tx *gorm.DB, field model.SysTableField) error {
+	if tx == nil {
+		tx = s.db
+	}
 	if err := tx.Create(&field).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	// 构建SQL类型字符串，包括长度、默认值、是否可为空和备注
-	sqlType := utils.SqlTypeFromFieldType(field.FieldType)
-	if field.FieldLength > 0 {
-		sqlType += fmt.Sprintf("(%d)", field.FieldLength)
-	}
-	if field.DefaultValue != nil {
-		sqlType += fmt.Sprintf(" DEFAULT '%s'", field.DefaultValue)
-	}
-	if field.IsNull {
-		sqlType += " NULL"
-	} else {
-		sqlType += " NOT NULL"
-	}
-	if field.FieldName != "" {
-		sqlType += fmt.Sprintf(" COMMENT '%s'", field.FieldName)
-	}
-	// 添加字段
-	addColumnSQL := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s;", tableCode, field.FieldCode, sqlType)
-	if err := tx.Exec(addColumnSQL).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return nil
 }
 
-func (s *SysTableRepositoryImpl) DeleteTableField(field model.SysTableField, tableCode string) (err error) {
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
-	// 删除字段
-	if err := tx.Where("id = ?", field.Id).Delete(model.SysTableField{}).Error; err != nil {
-		tx.Rollback()
+func (s *SysTableRepositoryImpl) DeleteTableField(tx *gorm.DB, id int) error {
+	if tx == nil {
+		tx = s.db
+	}
+	if err := tx.Where("id = ?", id).Delete(model.SysTableField{}).Error; err != nil {
 		return err
 	}
+	return nil
+}
+
+func (s *SysTableRepositoryImpl) DeleteTableFieldByTableId(tx *gorm.DB, tableId int) error {
+	if tx == nil {
+		tx = s.db
+	}
+	if err := tx.Where("table_id = ?", tableId).Delete(model.SysTableField{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreateTableColumn 添加实体字段
+func (s *SysTableRepositoryImpl) CreateTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
+	if tx == nil {
+		tx = s.db
+	}
+	tableName := utils.GetTableName(tx, tableCode)
+	addColumnSQL := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s;", tableName, fieldCode, sqlType)
+	if err := tx.Exec(addColumnSQL).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DropTableColumn 删除实体字段
+func (s *SysTableRepositoryImpl) DropTableColumn(tx *gorm.DB, tableCode string, fieldCode string) error {
+	if tx == nil {
+		tx = s.db
+	}
+	tableName := utils.GetTableName(tx, tableCode)
 	// 构建删除字段的SQL语句
-	dropColumnSQL := fmt.Sprintf("ALTER TABLE `%s` DROP COLUMN `%s`;", tableCode, field.FieldCode)
+	dropColumnSQL := fmt.Sprintf("ALTER TABLE `%s` DROP COLUMN `%s`;", tableName, fieldCode)
 	if err := tx.Exec(dropColumnSQL).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	return tx.Commit().Error
+	return nil
 }
 
 func (s *SysTableRepositoryImpl) GetTableRelationById(i int) (model.SysTableRelation, error) {
@@ -318,185 +189,91 @@ func (s *SysTableRepositoryImpl) GetTableRelationById(i int) (model.SysTableRela
 	return relation, err
 }
 
-func (s *SysTableRepositoryImpl) GetTableRelationByTableId(i int) (model.SysTableRelation, error) {
-	var relation model.SysTableRelation
-	err := s.db.Where("table_id = ", i).First(&relation).Error
-	return relation, err
+func (s *SysTableRepositoryImpl) GetTableRelationsByTableId(i int) ([]model.SysTableRelation, error) {
+	var relations []model.SysTableRelation
+	err := s.db.Where("table_id = ", i).First(&relations).Error
+	return relations, err
 }
 
-func (s *SysTableRepositoryImpl) InsertTableRelation(relation model.SysTableRelation, referenceKeyField model.SysTableField, foreignKeyField model.SysTableField) (err error) {
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
+func (s *SysTableRepositoryImpl) InsertTableRelation(tx *gorm.DB, relation model.SysTableRelation) error {
+	if tx == nil {
+		tx = s.db
+	}
 	if err := tx.Create(&relation).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	// 如果是多对多 创建对应的表
-	if relation.RelationType == enum.MANY_TO_MANY {
-		var relationList []reflect.StructField
-		referenceKey := reflect.StructField{
-			Name: relation.ReferenceKey,
-			Type: utils.GetFieldType(referenceKeyField.FieldType),
-			Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
-		}
-		foreignKey := reflect.StructField{
-			Name: relation.ForeignKey,
-			Type: utils.GetFieldType(foreignKeyField.FieldType),
-			Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
-		}
-		relationList = append(relationList, referenceKey, foreignKey)
+	return nil
+}
 
-		reflect.StructOf(relationList)
-
-		relationModel := reflect.New(reflect.StructOf(relationList)).Interface()
-		tableName := utils.GetTableName(tx, relation.ManyTableCode)
-		err = tx.Table(tableName).AutoMigrate(relationModel)
+func (s *SysTableRepositoryImpl) DeleteTableRelation(tx *gorm.DB, id int) error {
+	if tx == nil {
+		tx = s.db
 	}
-	return err
-}
-
-func (s *SysTableRepositoryImpl) UpdateTableRelation(req request.TableRelationUpdateReq, tableCode string) error {
-	// TODO 判断是否修改成多对多关系，检查多对多关系表是否存在，修改多对多关心，2张表都要调整
-	// TODO 不让改变表关系，如果要改变，先删除后增加
-	return s.db.Model(model.SysTableRelation{}).Updates(&req).Error
-}
-
-func (s *SysTableRepositoryImpl) DeleteTableRelation(relation model.SysTableRelation) (err error) {
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
-	if err = tx.Where("id = ", relation.Id).Delete(model.SysTableRelation{}).Error; err != nil {
-		tx.Rollback()
+	if err := tx.Where("id = ", id).Delete(model.SysTableRelation{}).Error; err != nil {
 		return err
 	}
-	if relation.RelationType == enum.MANY_TO_MANY {
-		tableName := utils.GetTableName(tx, relation.ManyTableCode)
-		// 检查表是否存在
-		if tx.Migrator().HasTable(tableName) {
-			// 删除表
-			err := tx.Migrator().DropTable(tableName)
-			if err != nil {
-				return err
-			}
-		} else {
-			return errors.New("表不存在，无需删除")
+	return nil
+}
+
+func (s *SysTableRepositoryImpl) CreateTable(tx *gorm.DB, tableCode string, model any) error {
+	if tx == nil {
+		tx = s.db
+	}
+	tableName := utils.GetTableName(tx, tableCode)
+	return tx.Table(tableName).AutoMigrate(model)
+}
+
+func (s *SysTableRepositoryImpl) DropTable(tx *gorm.DB, tableCode string) error {
+	if tx == nil {
+		tx = s.db
+	}
+	tableName := utils.GetTableName(tx, tableCode)
+	// 检查表是否存在
+	if tx.Migrator().HasTable(tableName) {
+		// 删除表
+		err := tx.Migrator().DropTable(tableName)
+		if err != nil {
+			return err
 		}
 	}
-	return tx.Commit().Error
+	return nil
 }
 
-func (s *SysTableRepositoryImpl) GetTableIndexById(i int) (model.SysTableIndex, error) {
-	var index model.SysTableIndex
-	err := s.db.Where("id = ", i).First(&index).Error
-	return index, err
+func (s *SysTableRepositoryImpl) GetTableIndexesByTableId(i int) ([]model.SysTableIndex, error) {
+	var indexes []model.SysTableIndex
+	err := s.db.Where("table_id = ", i).Find(&indexes).Error
+	return indexes, err
 }
 
-func (s *SysTableRepositoryImpl) GetTableIndexByTableId(i int) (model.SysTableIndex, error) {
-	var index model.SysTableIndex
-	err := s.db.Where("table_id = ", i).First(&index).Error
-	return index, err
-}
-
-func (s *SysTableRepositoryImpl) InsertTableIndex(index model.SysTableIndex, tableCode string) (err error) {
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
+// InsertTableIndex 新增表索引
+func (s *SysTableRepositoryImpl) InsertTableIndex(tx *gorm.DB, index model.SysTableIndex) error {
+	if tx == nil {
+		tx = s.db
+	}
 	// 创建索引表数据
 	if err := tx.Create(&index).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	var indexFields []model.SysTableIndexField
-	fieldCodeList := make([]string, len(index.IndexFields))
-	for _, field := range index.IndexFields {
-		fieldCodeList = append(fieldCodeList, field.FieldCode)
-		indexField := model.SysTableIndexField{
-			IndexId: index.Id,
-			FieldId: field.Id,
-		}
-		indexFields = append(indexFields, indexField)
-	}
-	// 创建中间表数据
-	if err := tx.Create(&indexFields).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	var unique string
-	if index.IsUnique {
-		unique = "UNIQUE"
-	}
-	fields := strings.Join(fieldCodeList, ",")
-	createIndexSql := fmt.Sprintf("CREATE %s INDEX %s ON %s (%s)", unique, index.IndexName, tableCode, fields)
-	if err := tx.Exec(createIndexSql).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return nil
 }
 
-func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateReq, data model.SysTableIndex, tableCode string) (err error) {
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
-	// 删除中间表字段
-	if err := tx.Where("index_id = ?", req.Id).Delete(model.SysTableIndexField{}).Error; err != nil {
-		tx.Rollback()
+// UpdateTableIndex 修改表索引
+func (s *SysTableRepositoryImpl) UpdateTableIndex(tx *gorm.DB, req request.TableIndexUpdateReq, data model.SysTableIndex, tableCode string) error {
+	if tx == nil {
+		tx = s.db
+	}
+	// TODO 后期改造拆分，service层调用
+	// 删除中间表数据
+	if err := s.DeleteTableIndexFieldByIndexId(tx, req.Id); err != nil {
 		return err
 	}
 	// 修改表数据
 	if err := tx.Model(model.SysTableIndex{}).Where("id=?", req.Id).Updates(&req).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
+	// TODO 后期改造拆分，service层调用
 	// 使用原索引名称删除表索引
-	dropIndexSQL := fmt.Sprintf("DROP INDEX `%s` ON `%s`;", data.IndexName, tableCode)
-	if err := tx.Exec(dropIndexSQL).Error; err != nil {
-		tx.Rollback()
+	if err := s.DropTableIndex(tx, data.IndexName, tableCode); err != nil {
 		return err
 	}
 	var indexFields []model.SysTableIndexField
@@ -510,43 +287,98 @@ func (s *SysTableRepositoryImpl) UpdateTableIndex(req request.TableIndexUpdateRe
 		indexFields = append(indexFields, indexField)
 	}
 	// 创建中间表数据
-	if err := tx.Create(&indexFields).Error; err != nil {
-		tx.Rollback()
+	if err := s.InsertTableIndexFields(tx, indexFields); err != nil {
 		return err
-	}
-	var unique string
-	if req.IsUnique {
-		unique = "UNIQUE"
 	}
 	fields := strings.Join(fieldCodeList, ",")
+	// TODO 后期改造拆分，service层调用
 	// 创建表索引
-	createIndexSql := fmt.Sprintf("CREATE %s INDEX %s ON %s (%s)", unique, req.IndexName, tableCode, fields)
-	if err := tx.Exec(createIndexSql).Error; err != nil {
-		tx.Rollback()
+	if err := s.CreateTableIndex(tx, req.IsUnique, req.IndexName, tableCode, fields); err != nil {
 		return err
 	}
-	return tx.Commit().Error
+	return nil
 }
 
-func (s *SysTableRepositoryImpl) DeleteTableIndex(index model.SysTableIndex, tableCode string) error {
-	tx := s.db.Begin()
-	// 删除字段
-	if err := tx.Where("id = ?", index.Id).Delete(model.SysTableIndex{}).Error; err != nil {
-		tx.Rollback()
+func (s *SysTableRepositoryImpl) DeleteTableIndex(tx *gorm.DB, id int) error {
+	if tx == nil {
+		tx = s.db
+	}
+	if err := tx.Where("id = ?", id).Delete(model.SysTableIndex{}).Error; err != nil {
 		return err
 	}
-	// 删除中间表字段
-	if err := tx.Where("index_id = ?", index.Id).Delete(model.SysTableIndexField{}).Error; err != nil {
-		tx.Rollback()
+	return nil
+}
+
+func (s *SysTableRepositoryImpl) DeleteTableIndexByTableId(tx *gorm.DB, tableId int) error {
+	if tx == nil {
+		tx = s.db
+	}
+	if err := tx.Where("table_id = ?", tableId).Delete(model.SysTableIndex{}).Error; err != nil {
 		return err
+	}
+	return nil
+}
+
+func (s *SysTableRepositoryImpl) InsertTableIndexFields(tx *gorm.DB, indexFields []model.SysTableIndexField) error {
+	if tx == nil {
+		tx = s.db
+	}
+	if err := tx.Create(&indexFields).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreateTableIndex 删除实体表索引
+func (s *SysTableRepositoryImpl) CreateTableIndex(tx *gorm.DB, isUnique bool, indexName string, tableCode string, fields string) error {
+	if tx == nil {
+		tx = s.db
+	}
+	var unique string
+	if isUnique {
+		unique = "UNIQUE"
+	}
+	tableName := utils.GetTableName(tx, tableCode)
+	createIndexSql := fmt.Sprintf("CREATE %s INDEX %s ON %s (%s)", unique, indexName, tableName, fields)
+	if err := tx.Exec(createIndexSql).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DropTableIndex 删除实体表索引
+func (s *SysTableRepositoryImpl) DropTableIndex(tx *gorm.DB, indexName string, tableCode string) error {
+	if tx == nil {
+		tx = s.db
 	}
 	// 构建删除索引的SQL语句
-	dropIndexSQL := fmt.Sprintf("DROP INDEX %s ON %s", index.IndexName, tableCode)
+	dropIndexSQL := fmt.Sprintf("DROP INDEX %s ON %s", indexName, tableCode)
 	if err := tx.Exec(dropIndexSQL).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	return tx.Commit().Error
+	return nil
+}
+
+// DeleteTableIndexFieldByIndexId 根据单个indexId删除中间表字段
+func (s *SysTableRepositoryImpl) DeleteTableIndexFieldByIndexId(tx *gorm.DB, id int) error {
+	if tx == nil {
+		tx = s.db
+	}
+	if err := tx.Where("index_id = ?", id).Delete(model.SysTableIndexField{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteTableIndexFieldByIndexIds 根据所有indexId删除中间表字段
+func (s *SysTableRepositoryImpl) DeleteTableIndexFieldByIndexIds(tx *gorm.DB, ids []int) error {
+	if tx == nil {
+		tx = s.db
+	}
+	if err := tx.Where("index_id in?", ids).Delete(model.SysTableIndexField{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCode string) ([]model.TableColumnMate, error) {
@@ -560,10 +392,10 @@ func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCod
 	return columns, nil
 }
 
-func (s *SysTableRepositoryImpl) FetchTableIndexes(tableSchema string, tableCode string) ([]model.TableIndexMate, error) {
+func (s *SysTableRepositoryImpl) FetchTableIndexMetadata(tableSchema string, tableCode string) ([]model.TableIndexMate, error) {
 	var indexes []model.TableIndexMate
 	tableName := utils.GetTableName(s.db, tableCode)
-	query := `  SELECT COLUMN_NAME, INDEX_NAME, NON_UNIQUE, INDEX_TYPE FROM
+	query := `SELECT COLUMN_NAME, INDEX_NAME, NON_UNIQUE, INDEX_TYPE FROM
     INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME != 'PRIMARY';`
 	err := s.db.Raw(query, tableSchema, tableName).Scan(&indexes).Error
 	if err != nil {
@@ -572,32 +404,13 @@ func (s *SysTableRepositoryImpl) FetchTableIndexes(tableSchema string, tableCode
 	return indexes, nil
 }
 
-func (s *SysTableRepositoryImpl) InitTable(table model.SysTable, indexFields []model.SysTableIndexField) (err error) {
-	tx := s.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic: %v\n", r) // 打印错误信息
-			tx.Rollback()                               // 回滚事务
-			// 设置返回的错误信息
-			if e, ok := r.(error); ok {
-				err = e // 如果 r 是 error 类型，直接返回
-			} else {
-				// 如果 r 不是 error 类型，转换为 error 后返回
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
+func (s *SysTableRepositoryImpl) InitTable(tx *gorm.DB, table model.SysTable) error {
+	if tx == nil {
+		tx = s.db
+	}
 	// 创建sys_table数据
 	if err := tx.Create(&table).Error; err != nil {
-		tx.Rollback()
 		return err
 	}
-	if indexFields != nil {
-		// 创建索引中间表sys_table_index_field数据
-		if err := tx.Create(&indexFields).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
-	return tx.Commit().Error
+	return nil
 }

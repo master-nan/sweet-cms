@@ -63,6 +63,7 @@ type TableRelationCreateReq struct {
 	ReferenceKey   string                    `json:"reference_key" binding:"required"`    // 主表对应字段
 	ForeignKey     string                    `json:"foreign_key" binding:"required"`      // 关联表 字段
 	RelationType   enum.SysTableRelationType `json:"relation_type" binding:"required"`
+	ManyTableCode  string                    `gorm:"size:128;comment:多对多关系中间表" json:"manyTableCode"` // 多对多关系使用到的中间表
 }
 
 type TableRelationUpdateReq struct {

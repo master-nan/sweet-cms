@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql/driver"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"time"
 )
@@ -58,21 +59,56 @@ func (t *CustomTime) Scan(value interface{}) error {
 }
 
 type Basic struct {
-	Id            int            `gorm:"primaryKey;comment:ID" json:"id"`
-	GmtCreate     CustomTime     `gorm:"type:datetime;autoCreateTime;comment:创建时间" json:"gmtCreate"`
-	GmtCreateUser *int           `gorm:"comment:创建人ID" json:"gmtCreateUser"`
-	CreateName    *string        `gorm:"size:128;comment:创建人" json:"CreateName"`
-	GmtModify     CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime;comment:修改时间" json:"gmtModify"`
-	GmtModifyUser *int           `gorm:"comment:修改人ID" json:"gmtModifyUser"`
-	ModifyName    *string        `gorm:"size:128;comment:修改人" json:"modifyName"`
-	GmtDelete     gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
-	GmtDeleteUser *int           `gorm:"comment:删除人ID" json:"-"`
-	DeleteName    *string        `gorm:"size:128;comment:删除人" json:"deleteName"`
-	State         bool           `gorm:"default:true;comment:状态" json:"state"`
+	Id         int            `gorm:"primaryKey;comment:ID" json:"id"`
+	GmtCreate  CustomTime     `gorm:"type:datetime;autoCreateTime;comment:创建时间" json:"gmtCreate"`
+	CreateUser *int           `gorm:"comment:创建人ID" json:"createUser"`
+	CreateName *string        `gorm:"size:128;comment:创建人" json:"CreateName"`
+	GmtModify  CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime;comment:修改时间" json:"gmtModify"`
+	ModifyUser *int           `gorm:"comment:修改人ID" json:"modifyUser"`
+	ModifyName *string        `gorm:"size:128;comment:修改人" json:"modifyName"`
+	GmtDelete  gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
+	DeleteUser *int           `gorm:"comment:删除人ID" json:"-"`
+	DeleteName *string        `gorm:"size:128;comment:删除人" json:"-"`
+	State      bool           `gorm:"default:true;comment:状态" json:"state"`
 }
 
 func (b *Basic) BeforeCreate(tx *gorm.DB) (err error) {
+	var user SysUser
+	ctx, ok := tx.Statement.Context.(*gin.Context)
+	if ok {
+		obj, exists := ctx.Get("user")
+		if exists {
+			user, _ = obj.(SysUser)
+			tx.Statement.SetColumn("create_user", user.EmployeeId)
+		}
+	}
 	return
+}
+
+func (b *Basic) BeforeUpdate(tx *gorm.DB) error {
+	var user SysUser
+	ctx, ok := tx.Statement.Context.(*gin.Context)
+	if ok {
+		obj, exists := ctx.Get("user")
+		if exists {
+			user, _ = obj.(SysUser)
+			tx.Statement.SetColumn("modify_user", user.EmployeeId)
+		}
+	}
+	return nil
+}
+
+func (r *SysTableRelation) BeforeDelete(tx *gorm.DB) error {
+	var user SysUser
+	ctx, ok := tx.Statement.Context.(*gin.Context)
+	if ok {
+		obj, exists := ctx.Get("user")
+		if exists {
+			user, _ = obj.(SysUser)
+			tx.Statement.SetColumn("delete_user", user.EmployeeId)
+		}
+	}
+	return nil
 }
 
 func (b *Basic) AfterFind(tx *gorm.DB) (err error) {

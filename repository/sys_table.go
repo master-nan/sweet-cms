@@ -6,37 +6,56 @@
 package repository
 
 import (
+	"gorm.io/gorm"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
 )
 
 type SysTableRepository interface {
+	BasicRepository
 	GetTableById(int) (model.SysTable, error)
 	GetTableByTableCode(string) (model.SysTable, error)
-	InsertTable(model.SysTable) error
+	InsertTable(*gorm.DB, model.SysTable) error
+
 	UpdateTable(request.TableUpdateReq) error
-	DeleteTableById(int) error
+	DeleteTableById(*gorm.DB, int) error
 	GetTableList(request.Basic) (response.ListResult[model.SysTable], error)
 
 	GetTableFieldById(int) (model.SysTableField, error)
 	GetTableFieldsByTableId(int) ([]model.SysTableField, error)
-	UpdateTableField(request.TableFieldUpdateReq, model.SysTableField, string) error
-	InsertTableField(model.SysTableField, string) error
-	DeleteTableField(model.SysTableField, string) error
+	UpdateTableField(*gorm.DB, request.TableFieldUpdateReq) error
+	InsertTableField(*gorm.DB, model.SysTableField) error
+	DeleteTableField(*gorm.DB, int) error
+
+	DeleteTableFieldByTableId(*gorm.DB, int) error
 
 	GetTableRelationById(int) (model.SysTableRelation, error)
-	GetTableRelationByTableId(int) (model.SysTableRelation, error)
-	InsertTableRelation(model.SysTableRelation, model.SysTableField, model.SysTableField) error
-	UpdateTableRelation(request.TableRelationUpdateReq, string) error
-	DeleteTableRelation(model.SysTableRelation) error
+	GetTableRelationsByTableId(int) ([]model.SysTableRelation, error)
+	InsertTableRelation(*gorm.DB, model.SysTableRelation) error
+	DeleteTableRelation(*gorm.DB, int) error
 
-	GetTableIndexById(int) (model.SysTableIndex, error)
-	GetTableIndexByTableId(int) (model.SysTableIndex, error)
-	InsertTableIndex(model.SysTableIndex, string) error
-	UpdateTableIndex(request.TableIndexUpdateReq, model.SysTableIndex, string) error
-	DeleteTableIndex(model.SysTableIndex, string) error
+	GetTableIndexesByTableId(int) ([]model.SysTableIndex, error)
+	InsertTableIndex(*gorm.DB, model.SysTableIndex) error
+	UpdateTableIndex(*gorm.DB, request.TableIndexUpdateReq, model.SysTableIndex, string) error
+	DeleteTableIndex(*gorm.DB, int) error
+	DeleteTableIndexByTableId(*gorm.DB, int) error
+
+	InsertTableIndexFields(*gorm.DB, []model.SysTableIndexField) error
+	DeleteTableIndexFieldByIndexId(*gorm.DB, int) error
+	DeleteTableIndexFieldByIndexIds(*gorm.DB, []int) error
+
+	// InitTable 初始化数据库中已存在的表
+	InitTable(*gorm.DB, model.SysTable) error
+
 	FetchTableMetadata(string, string) ([]model.TableColumnMate, error)
-	FetchTableIndexes(string, string) ([]model.TableIndexMate, error)
-	InitTable(model.SysTable, []model.SysTableIndexField) error
+	FetchTableIndexMetadata(string, string) ([]model.TableIndexMate, error)
+	DropTableIndex(*gorm.DB, string, string) error
+	DropTable(*gorm.DB, string) error
+	DropTableColumn(*gorm.DB, string, string) error
+	ModifyTableColumn(*gorm.DB, string, string, string) error
+	ChangeTableColumn(*gorm.DB, string, string, string, string) error
+	CreateTableColumn(*gorm.DB, string, string, string) error
+	CreateTable(*gorm.DB, string, any) error
+	CreateTableIndex(*gorm.DB, bool, string, string, string) error
 }
