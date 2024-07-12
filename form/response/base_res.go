@@ -7,13 +7,15 @@ import (
 	"net/http"
 )
 
+// AdminError 失败返回值参数
 type AdminError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	ErrorCode    int    `json:"errorCode"`
+	ErrorMessage string `json:"message"`
+	Success      bool   `json:"success"`
 }
 
 func (e *AdminError) Error() string {
-	return fmt.Sprintf("Code: %d, Message: %s", e.Code, e.Message)
+	return fmt.Sprintf("ErrorCode: %d, ErrorMessage: %s", e.ErrorCode, e.ErrorMessage)
 }
 
 type BufferedResponseWriter struct {
@@ -31,7 +33,7 @@ func (w *BufferedResponseWriter) WriteString(s string) (int, error) {
 	return w.ResponseWriter.WriteString(s)
 }
 
-// Response 返回值参数
+// Response 成功返回值参数
 type Response struct {
 	Success bool        `json:"success"`
 	Data    interface{} `json:"data,omitempty"`

@@ -31,35 +31,35 @@ func (gc *GeneralizationController) Query(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	table, err := gc.sysTableService.GetTableById(id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	if table.Id == 0 {
 		e := &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: "ID资源错误",
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: "ID资源错误",
 		}
-		ctx.Error(e)
+		_ = ctx.Error(e)
 		return
 	}
 	var data request.Basic
 	if err := ctx.ShouldBindQuery(&data); err != nil {
 		e := &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
 		}
-		ctx.Error(e)
+		_ = ctx.Error(e)
 		return
 	}
 	data.TableCode = table.TableCode
 	result, err := gc.generalizationService.Query(data, table)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(result.Data).SetTotal(result.Total)

@@ -36,12 +36,12 @@ func (t *TableController) GetSysTableByID(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	data, err := t.sysTableService.GetTableById(id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -54,7 +54,7 @@ func (t *TableController) GetSysTableByCode(ctx *gin.Context) {
 	code := ctx.Param("code")
 	data, err := t.sysTableService.GetTableByTableCode(code)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -76,22 +76,22 @@ func (t *TableController) QuerySysTable(ctx *gin.Context) {
 				errorMessages = append(errorMessages, errMsg)
 			}
 			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: strings.Join(errorMessages, ","),
 			}
-			ctx.Error(e)
+			_ = ctx.Error(e)
 			return
 		}
 		e := &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
 		}
-		ctx.Error(e)
+		_ = ctx.Error(e)
 		return
 	}
 	result, err := t.sysTableService.GetTableList(data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(result.Data).SetTotal(result.Total)
@@ -105,12 +105,12 @@ func (t *TableController) InsertSysTable(ctx *gin.Context) {
 	translator, _ := t.translators["zh"]
 	err := utils.ValidatorBody[request.TableCreateReq](ctx, &data, translator)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.InsertTable(ctx, data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -123,12 +123,12 @@ func (t *TableController) UpdateSysTable(ctx *gin.Context) {
 	translator, _ := t.translators["zh"]
 	err := utils.ValidatorBody[request.TableUpdateReq](ctx, &data, translator)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.UpdateTable(data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -139,12 +139,12 @@ func (t *TableController) DeleteSysTableById(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.DeleteTableById(ctx, id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -155,12 +155,12 @@ func (t *TableController) GetSysTableFieldsByTableId(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	data, err := t.sysTableService.GetTableFieldsByTableId(id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -173,12 +173,12 @@ func (t *TableController) GetSysTableFieldById(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	data, err := t.sysTableService.GetTableFieldById(id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -192,12 +192,12 @@ func (t *TableController) InsertSysTableField(ctx *gin.Context) {
 	translator, _ := t.translators["zh"]
 	err := utils.ValidatorBody[request.TableFieldCreateReq](ctx, &data, translator)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.InsertTableField(ctx, data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -210,12 +210,12 @@ func (t *TableController) UpdateSysTableField(ctx *gin.Context) {
 	translator, _ := t.translators["zh"]
 	err := utils.ValidatorBody[request.TableFieldUpdateReq](ctx, &data, translator)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.UpdateTableField(ctx, data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -226,12 +226,12 @@ func (t *TableController) DeleteSysTableFieldById(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.DeleteTableFieldById(ctx, id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -242,12 +242,12 @@ func (t *TableController) GetTableRelationsByTableId(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	data, err := t.sysTableService.GetTableRelationsByTableId(id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetTotal(len(data))
@@ -260,12 +260,12 @@ func (t *TableController) GetTableRelationById(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	data, err := t.sysTableService.GetTableRelationById(id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -279,12 +279,12 @@ func (t *TableController) InsertTableRelation(ctx *gin.Context) {
 	translator, _ := t.translators["zh"]
 	err := utils.ValidatorBody[request.TableRelationCreateReq](ctx, &data, translator)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.InsertTableRelation(ctx, data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -295,12 +295,12 @@ func (t *TableController) DeleteTableRelation(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.DeleteTableRelation(ctx, id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -311,12 +311,12 @@ func (t *TableController) GetTableIndexesByTableId(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	data, err := t.sysTableService.GetTableIndexesByTableId(id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -330,12 +330,12 @@ func (t *TableController) InsertTableIndex(ctx *gin.Context) {
 	translator, _ := t.translators["zh"]
 	err := utils.ValidatorBody[request.TableIndexCreateReq](ctx, &data, translator)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.InsertTableIndex(ctx, data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -348,12 +348,12 @@ func (t *TableController) UpdateTableIndex(ctx *gin.Context) {
 	translator, _ := t.translators["zh"]
 	err := utils.ValidatorBody[request.TableIndexUpdateReq](ctx, &data, translator)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.UpdateTableIndex(ctx, data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -364,12 +364,12 @@ func (t *TableController) DeleteTableIndex(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.DeleteTableIndex(ctx, id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -380,12 +380,12 @@ func (t *TableController) DeleteTableIndexByTableId(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = t.sysTableService.DeleteTableIndexByTableId(ctx, id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -397,7 +397,7 @@ func (t *TableController) InitTable(ctx *gin.Context) {
 	code := ctx.Param("code")
 	err := t.sysTableService.InitTable(ctx, code)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return

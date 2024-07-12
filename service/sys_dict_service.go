@@ -91,8 +91,8 @@ func (s *SysDictService) InsertSysDict(ctx *gin.Context, req request.DictCreateR
 	}
 	if dict.Id != 0 {
 		e = &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: "存在重复的dictCode",
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: "存在重复的dictCode",
 		}
 		return e
 	}

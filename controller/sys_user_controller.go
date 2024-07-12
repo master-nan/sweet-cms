@@ -47,10 +47,10 @@ func (u *UserController) GetMe(ctx *gin.Context) {
 		return
 	} else {
 		e := &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: "请求参数错误",
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: "请求参数错误",
 		}
-		ctx.Error(e)
+		_ = ctx.Error(e)
 		return
 	}
 }
@@ -61,7 +61,7 @@ func (u *UserController) GetSysUserByUserName(ctx *gin.Context) {
 	username := ctx.Param("username")
 	data, err := u.sysUserService.GetByUserName(username)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	var userRes response.UserRes
@@ -75,12 +75,12 @@ func (u *UserController) GetSysUserById(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	data, err := u.sysUserService.GetById(id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(data)
@@ -96,10 +96,10 @@ func (u *UserController) InsertSysUser(ctx *gin.Context) {
 		if err == io.EOF {
 			// 客户端请求体为空
 			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: "请求参数错误",
 			}
-			ctx.Error(e)
+			_ = ctx.Error(e)
 			return
 		}
 		var ve validator.ValidationErrors
@@ -111,18 +111,18 @@ func (u *UserController) InsertSysUser(ctx *gin.Context) {
 				errorMessages = append(errorMessages, errMsg)
 			}
 			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: strings.Join(errorMessages, ","),
 			}
-			ctx.Error(e)
+			_ = ctx.Error(e)
 			return
 		}
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err := u.sysUserService.Insert(ctx, data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -136,10 +136,10 @@ func (u *UserController) UpdateSysUser(ctx *gin.Context) {
 	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
 		if err == io.EOF {
 			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: "请求参数错误",
 			}
-			ctx.Error(e)
+			_ = ctx.Error(e)
 			return
 		}
 		var ve validator.ValidationErrors
@@ -150,18 +150,18 @@ func (u *UserController) UpdateSysUser(ctx *gin.Context) {
 				errorMessages = append(errorMessages, errMsg)
 			}
 			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: strings.Join(errorMessages, ","),
 			}
-			ctx.Error(e)
+			_ = ctx.Error(e)
 			return
 		}
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err := u.sysUserService.Update(ctx, data)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return
@@ -172,12 +172,12 @@ func (u *UserController) DeleteSysUser(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	err = u.sysUserService.Delete(ctx, id)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	return

@@ -111,8 +111,8 @@ func (s *SysUserService) Insert(ctx *gin.Context, req request.UserCreateReq) err
 	}
 	if user.Id != 0 {
 		e = &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: "存在重复的用户",
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: "存在重复的用户",
 		}
 		return e
 	}

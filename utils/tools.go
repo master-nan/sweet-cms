@@ -334,8 +334,8 @@ func ValidatorBody[T any](ctx *gin.Context, data *T, translator ut.Translator) e
 		if err == io.EOF {
 			// 客户端请求体为空
 			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数数据",
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: "请求参数数据",
 			}
 			return e
 		}
@@ -348,8 +348,8 @@ func ValidatorBody[T any](ctx *gin.Context, data *T, translator ut.Translator) e
 				errorMessages = append(errorMessages, errMsg)
 			}
 			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: strings.Join(errorMessages, ","),
 			}
 			return e
 		}

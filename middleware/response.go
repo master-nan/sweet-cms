@@ -23,18 +23,16 @@ func ResponseHandler() gin.HandlerFunc {
 				switch {
 				case errors.As(e.Err, &err):
 					// 处理自定义API错误
-					c.JSON(err.Code, gin.H{
-						"success":      false,
-						"errorCode":    err.Code,
-						"errorMessage": err.Message,
-					})
+					err.Success = false
+					c.JSON(err.ErrorCode, err)
 				default:
 					// 处理未知错误
-					c.JSON(http.StatusInternalServerError, gin.H{
-						"success":      false,
-						"errorCode":    http.StatusInternalServerError,
-						"errorMessage": e.Error(),
-					})
+					newErr := &response.AdminError{
+						ErrorCode:    err.ErrorCode,
+						ErrorMessage: e.Error(),
+						Success:      false,
+					}
+					c.JSON(http.StatusInternalServerError, newErr)
 				}
 				return
 			}

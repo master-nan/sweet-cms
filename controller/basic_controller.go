@@ -48,22 +48,23 @@ func (b *BasicController) Login(ctx *gin.Context) {
 	translator, _ := b.translators["zh"]
 	err := utils.ValidatorBody[request.SignInReq](ctx, &data, translator)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	configUre, err := b.sysConfigureService.Query()
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	if configUre.EnableCaptcha {
 		boolean := captcha.VerifyString(data.CaptchaId, data.Captcha)
 		if boolean == false {
 			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "验证码错误",
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: "验证码错误",
+				Success:      false,
 			}
-			ctx.Error(e)
+			_ = ctx.Error(e)
 			return
 		}
 	}
@@ -82,15 +83,15 @@ func (b *BasicController) Login(ctx *gin.Context) {
 	user, err := b.sysUserService.GetByUserName(data.UserName)
 	if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password || !user.State {
 		e := &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: "用户名或密码错误",
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: "用户名或密码错误",
 		}
-		ctx.Error(e)
+		_ = ctx.Error(e)
 		return
 	} else {
 		token, err := b.tokenGenerator.GenerateToken(strconv.Itoa(user.Id))
 		if err != nil {
-			ctx.Error(err)
+			_ = ctx.Error(err)
 			return
 		} else {
 			go func() {
@@ -133,7 +134,7 @@ func (b *BasicController) Configure(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	configUre, err := b.sysConfigureService.Query()
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	resp.SetData(configUre)

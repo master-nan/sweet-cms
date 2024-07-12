@@ -25,8 +25,8 @@ func AuthHandler(tokenGenerator inter.TokenGenerator, userService *service.SysUs
 		zap.L().Info("AuthHandler start")
 		if len(authorization) < bearerLength {
 			e := &response.AdminError{
-				Code:    http.StatusUnauthorized,
-				Message: "请先登录",
+				ErrorCode:    http.StatusUnauthorized,
+				ErrorMessage: "请先登录",
 			}
 			c.Error(e)
 			c.Abort()
@@ -36,8 +36,8 @@ func AuthHandler(tokenGenerator inter.TokenGenerator, userService *service.SysUs
 		id, err := tokenGenerator.ParseToken(token)
 		if err != nil {
 			e := &response.AdminError{
-				Code:    http.StatusForbidden,
-				Message: err.Error(),
+				ErrorCode:    http.StatusForbidden,
+				ErrorMessage: err.Error(),
 			}
 			c.Error(e)
 			c.Abort()
@@ -46,8 +46,8 @@ func AuthHandler(tokenGenerator inter.TokenGenerator, userService *service.SysUs
 		i, err := strconv.Atoi(id)
 		if err != nil {
 			e := &response.AdminError{
-				Code:    http.StatusForbidden,
-				Message: err.Error(),
+				ErrorCode:    http.StatusForbidden,
+				ErrorMessage: err.Error(),
 			}
 			c.Error(e)
 			c.Abort()
@@ -56,8 +56,8 @@ func AuthHandler(tokenGenerator inter.TokenGenerator, userService *service.SysUs
 		user, err := userService.GetById(i)
 		if err != nil {
 			e := &response.AdminError{
-				Code:    http.StatusForbidden,
-				Message: err.Error(),
+				ErrorCode:    http.StatusForbidden,
+				ErrorMessage: err.Error(),
 			}
 			c.Error(e)
 			c.Abort()

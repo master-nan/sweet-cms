@@ -108,8 +108,8 @@ func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateR
 	}
 	if table.Id != 0 {
 		e := &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: "当前表已存在，请勿重复创建",
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: "当前表已存在，请勿重复创建",
 		}
 		return e
 	}
@@ -266,8 +266,8 @@ func (s *SysTableService) InsertTableField(ctx *gin.Context, req request.TableFi
 	for _, field := range fields {
 		if field.FieldCode == req.FieldCode {
 			e = &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "该字段已存在，请勿重复创建",
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: "该字段已存在，请勿重复创建",
 			}
 			return e
 		}
@@ -332,8 +332,8 @@ func (s *SysTableService) UpdateTableField(ctx *gin.Context, req request.TableFi
 				diff := cmp.Diff(req, field)
 				if diff == "" {
 					return &response.AdminError{
-						Code:    http.StatusBadRequest,
-						Message: "字段未发生变化，无需更新",
+						ErrorCode:    http.StatusBadRequest,
+						ErrorMessage: "字段未发生变化，无需更新",
 					}
 				}
 				zap.L().Info("变化值：", zap.String("diff", diff))
@@ -675,8 +675,8 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	}
 	if table.Id != 0 {
 		e := &response.AdminError{
-			Code:    http.StatusBadRequest,
-			Message: "当前表已初始化，请勿重复操作",
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: "当前表已初始化，请勿重复操作",
 		}
 		return e
 	}
