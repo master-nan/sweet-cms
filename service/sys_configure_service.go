@@ -6,6 +6,8 @@
 package service
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"sweet-cms/cache"
@@ -45,16 +47,23 @@ func (cs *SysConfigureService) Query() (model.SysConfigure, error) {
 	return data, err
 }
 
-func (cs *SysConfigureService) Update(id int, data request.ConfigureUpdateReq) error {
-	var d model.SysConfigure
-	d.Id = id
-	err := cs.sysConfigureRepo.UpdateSysConfigure(d)
+func (cs *SysConfigureService) Update(ctx *gin.Context, req request.ConfigureUpdateReq) error {
+	var data model.SysConfigure
+	e := mapstructure.Decode(req, &data)
+	if e != nil {
+		zap.L().Error("Error during struct mapping:", zap.Error(e))
+		return e
+	}
+	tx := cs.sysConfigureRepo.DBWithContext(ctx)
+	err := cs.sysConfigureRepo.UpdateSysConfigure(tx, data)
 	if err != nil {
+		zap.L().Error("Failed to sysConfigure update: %s", zap.Error(err))
 		return err
 	}
 	err = cs.sysConfigureCache.Delete("")
 	if err != nil {
 		zap.L().Error("Failed to cache sysConfigure delete: %s", zap.Error(err))
+		return err
 	}
 	return nil
 }

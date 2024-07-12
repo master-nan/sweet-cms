@@ -42,15 +42,8 @@ func (s *SysTableRepositoryImpl) GetTableByTableCode(code string) (model.SysTabl
 	return table, err
 }
 
-func (s *SysTableRepositoryImpl) InsertTable(tx *gorm.DB, table model.SysTable) (err error) {
-	if tx == nil {
-		tx = s.db
-	}
-	err = tx.Create(&table).Error
-	if err != nil {
-		return err
-	}
-	return nil
+func (s *SysTableRepositoryImpl) InsertTable(tx *gorm.DB, table model.SysTable) error {
+	return tx.Create(&table).Error
 }
 
 func (s *SysTableRepositoryImpl) UpdateTable(req request.TableUpdateReq) error {
@@ -58,14 +51,8 @@ func (s *SysTableRepositoryImpl) UpdateTable(req request.TableUpdateReq) error {
 }
 
 // DeleteTableById 删除表信息数据
-func (s *SysTableRepositoryImpl) DeleteTableById(tx *gorm.DB, i int) (err error) {
-	if tx == nil {
-		tx = s.db
-	}
-	if err = tx.Where("id = ? ", i).Delete(model.SysTable{}).Error; err != nil {
-		return err
-	}
-	return nil
+func (s *SysTableRepositoryImpl) DeleteTableById(tx *gorm.DB, i int) error {
+	return tx.Where("id = ? ", i).Delete(model.SysTable{}).Error
 }
 
 func (s *SysTableRepositoryImpl) GetTableList(basic request.Basic) (response.ListResult[model.SysTable], error) {
@@ -92,94 +79,31 @@ func (s *SysTableRepositoryImpl) GetTableFieldsByTableId(id int) ([]model.SysTab
 }
 
 func (s *SysTableRepositoryImpl) UpdateTableField(tx *gorm.DB, req request.TableFieldUpdateReq) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Model(&model.SysTableField{}).Where("id = ?", req.Id).Updates(req).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Model(&model.SysTableField{}).Where("id = ?", req.Id).Updates(req).Error
 }
 
 func (s *SysTableRepositoryImpl) ModifyTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
-	if tx == nil {
-		tx = s.db
-	}
 	tableName := utils.GetTableName(tx, tableCode)
 	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` MODIFY `%s` %s;", tableName, fieldCode, sqlType)
-	if err := tx.Exec(alterColumnSQL).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Exec(alterColumnSQL).Error
 }
 
 func (s *SysTableRepositoryImpl) ChangeTableColumn(tx *gorm.DB, tableCode string, originalFieldCode string, fieldCode string, sqlType string) error {
-	if tx == nil {
-		tx = s.db
-	}
 	tableName := utils.GetTableName(tx, tableCode)
 	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` CHANGE `%s` `%s` %s;", tableName, originalFieldCode, fieldCode, sqlType)
-	if err := tx.Exec(alterColumnSQL).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Exec(alterColumnSQL).Error
 }
 
 func (s *SysTableRepositoryImpl) InsertTableField(tx *gorm.DB, field model.SysTableField) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Create(&field).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Create(&field).Error
 }
 
 func (s *SysTableRepositoryImpl) DeleteTableField(tx *gorm.DB, id int) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Where("id = ?", id).Delete(model.SysTableField{}).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Where("id = ?", id).Delete(model.SysTableField{}).Error
 }
 
 func (s *SysTableRepositoryImpl) DeleteTableFieldByTableId(tx *gorm.DB, tableId int) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Where("table_id = ?", tableId).Delete(model.SysTableField{}).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-// CreateTableColumn 添加实体字段
-func (s *SysTableRepositoryImpl) CreateTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
-	if tx == nil {
-		tx = s.db
-	}
-	tableName := utils.GetTableName(tx, tableCode)
-	addColumnSQL := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s;", tableName, fieldCode, sqlType)
-	if err := tx.Exec(addColumnSQL).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-// DropTableColumn 删除实体字段
-func (s *SysTableRepositoryImpl) DropTableColumn(tx *gorm.DB, tableCode string, fieldCode string) error {
-	if tx == nil {
-		tx = s.db
-	}
-	tableName := utils.GetTableName(tx, tableCode)
-	// 构建删除字段的SQL语句
-	dropColumnSQL := fmt.Sprintf("ALTER TABLE `%s` DROP COLUMN `%s`;", tableName, fieldCode)
-	if err := tx.Exec(dropColumnSQL).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Where("table_id = ?", tableId).Delete(model.SysTableField{}).Error
 }
 
 func (s *SysTableRepositoryImpl) GetTableRelationById(i int) (model.SysTableRelation, error) {
@@ -195,47 +119,11 @@ func (s *SysTableRepositoryImpl) GetTableRelationsByTableId(i int) ([]model.SysT
 }
 
 func (s *SysTableRepositoryImpl) InsertTableRelation(tx *gorm.DB, relation model.SysTableRelation) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Create(&relation).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Create(&relation).Error
 }
 
 func (s *SysTableRepositoryImpl) DeleteTableRelation(tx *gorm.DB, id int) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Where("id = ?", id).Delete(model.SysTableRelation{}).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *SysTableRepositoryImpl) CreateTable(tx *gorm.DB, tableCode string, model any) error {
-	if tx == nil {
-		tx = s.db
-	}
-	tableName := utils.GetTableName(tx, tableCode)
-	return tx.Table(tableName).AutoMigrate(model)
-}
-
-func (s *SysTableRepositoryImpl) DropTable(tx *gorm.DB, tableCode string) error {
-	if tx == nil {
-		tx = s.db
-	}
-	tableName := utils.GetTableName(tx, tableCode)
-	// 检查表是否存在
-	if tx.Migrator().HasTable(tableName) {
-		// 删除表
-		err := tx.Migrator().DropTable(tableName)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return tx.Where("id = ?", id).Delete(model.SysTableRelation{}).Error
 }
 
 func (s *SysTableRepositoryImpl) GetTableIndexesByTableId(id int) ([]model.SysTableIndex, error) {
@@ -252,109 +140,88 @@ func (s *SysTableRepositoryImpl) GetTableIndexById(id int) (model.SysTableIndex,
 
 // InsertTableIndex 新增表索引
 func (s *SysTableRepositoryImpl) InsertTableIndex(tx *gorm.DB, index model.SysTableIndex) error {
-	if tx == nil {
-		tx = s.db
-	}
 	// 创建索引表数据
-	if err := tx.Create(&index).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Create(&index).Error
 }
 
 // UpdateTableIndex 修改表索引
 func (s *SysTableRepositoryImpl) UpdateTableIndex(tx *gorm.DB, req request.TableIndexUpdateReq) error {
-	if tx == nil {
-		tx = s.db
-	}
 	// 修改表数据
-	if err := tx.Model(model.SysTableIndex{}).Where("id = ?", req.Id).Updates(&req).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Model(model.SysTableIndex{}).Where("id = ?", req.Id).Updates(&req).Error
 }
 
 func (s *SysTableRepositoryImpl) DeleteTableIndex(tx *gorm.DB, id int) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Where("id = ?", id).Delete(model.SysTableIndex{}).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Where("id = ?", id).Delete(model.SysTableIndex{}).Error
 }
 
 func (s *SysTableRepositoryImpl) DeleteTableIndexByTableId(tx *gorm.DB, tableId int) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Where("table_id = ?", tableId).Delete(model.SysTableIndex{}).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Where("table_id = ?", tableId).Delete(model.SysTableIndex{}).Error
 }
 
 func (s *SysTableRepositoryImpl) InsertTableIndexFields(tx *gorm.DB, indexFields []model.SysTableIndexField) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Create(&indexFields).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Create(&indexFields).Error
 }
 
 // CreateTableIndex 删除实体表索引
 func (s *SysTableRepositoryImpl) CreateTableIndex(tx *gorm.DB, isUnique bool, indexName string, tableCode string, fields string) error {
-	if tx == nil {
-		tx = s.db
-	}
 	var unique string
 	if isUnique {
 		unique = "UNIQUE"
 	}
 	tableName := utils.GetTableName(tx, tableCode)
 	createIndexSql := fmt.Sprintf("CREATE %s INDEX %s ON %s (%s)", unique, indexName, tableName, fields)
-	if err := tx.Exec(createIndexSql).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Exec(createIndexSql).Error
 }
 
 // DropTableIndex 删除实体表索引
 func (s *SysTableRepositoryImpl) DropTableIndex(tx *gorm.DB, indexName string, tableCode string) error {
-	if tx == nil {
-		tx = s.db
-	}
 	tableName := utils.GetTableName(tx, tableCode)
 	// 构建删除索引的SQL语句
 	dropIndexSQL := fmt.Sprintf("DROP INDEX %s ON %s", indexName, tableName)
-	if err := tx.Exec(dropIndexSQL).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Exec(dropIndexSQL).Error
 }
 
 // DeleteTableIndexFieldByIndexId 根据单个indexId删除中间表字段
 func (s *SysTableRepositoryImpl) DeleteTableIndexFieldByIndexId(tx *gorm.DB, id int) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Where("index_id = ?", id).Delete(model.SysTableIndexField{}).Error; err != nil {
-		return err
-	}
-	return nil
+	return tx.Where("index_id = ?", id).Delete(model.SysTableIndexField{}).Error
 }
 
 // DeleteTableIndexFieldByIndexIds 根据所有indexId删除中间表字段
 func (s *SysTableRepositoryImpl) DeleteTableIndexFieldByIndexIds(tx *gorm.DB, ids []int) error {
-	if tx == nil {
-		tx = s.db
-	}
-	if err := tx.Where("index_id in ?", ids).Delete(model.SysTableIndexField{}).Error; err != nil {
-		return err
+	return tx.Where("index_id in ?", ids).Delete(model.SysTableIndexField{}).Error
+}
+
+func (s *SysTableRepositoryImpl) CreateTable(tx *gorm.DB, tableCode string, model any) error {
+	tableName := utils.GetTableName(tx, tableCode)
+	return tx.Table(tableName).AutoMigrate(model)
+}
+
+func (s *SysTableRepositoryImpl) DropTable(tx *gorm.DB, tableCode string) error {
+	tableName := utils.GetTableName(tx, tableCode)
+	// 检查表是否存在
+	if tx.Migrator().HasTable(tableName) {
+		// 删除表
+		err := tx.Migrator().DropTable(tableName)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+// CreateTableColumn 添加实体字段
+func (s *SysTableRepositoryImpl) CreateTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
+	tableName := utils.GetTableName(tx, tableCode)
+	addColumnSQL := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s;", tableName, fieldCode, sqlType)
+	return tx.Exec(addColumnSQL).Error
+}
+
+// DropTableColumn 删除实体字段
+func (s *SysTableRepositoryImpl) DropTableColumn(tx *gorm.DB, tableCode string, fieldCode string) error {
+	tableName := utils.GetTableName(tx, tableCode)
+	// 构建删除字段的SQL语句
+	dropColumnSQL := fmt.Sprintf("ALTER TABLE `%s` DROP COLUMN `%s`;", tableName, fieldCode)
+	return tx.Exec(dropColumnSQL).Error
 }
 
 func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCode string) ([]model.TableColumnMate, error) {
@@ -378,15 +245,4 @@ func (s *SysTableRepositoryImpl) FetchTableIndexMetadata(tableSchema string, tab
 		return []model.TableIndexMate{}, err
 	}
 	return indexes, nil
-}
-
-func (s *SysTableRepositoryImpl) InitTable(tx *gorm.DB, table model.SysTable) error {
-	if tx == nil {
-		tx = s.db
-	}
-	// 创建sys_table数据
-	if err := tx.Create(&table).Error; err != nil {
-		return err
-	}
-	return nil
 }

@@ -120,7 +120,7 @@ func (u *UserController) InsertSysUser(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err := u.sysUserService.Insert(data)
+	err := u.sysUserService.Insert(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -159,7 +159,7 @@ func (u *UserController) UpdateSysUser(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err := u.sysUserService.Update(data)
+	err := u.sysUserService.Update(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -175,7 +175,7 @@ func (u *UserController) DeleteSysUser(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = u.sysUserService.Delete(id)
+	err = u.sysUserService.Delete(ctx, id)
 	if err != nil {
 		ctx.Error(err)
 		return

@@ -161,7 +161,7 @@ func (t *DictController) InsertSysDict(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.InsertSysDict(dictCreateReq)
+	err = t.sysDictService.InsertSysDict(ctx, dictCreateReq)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -224,7 +224,7 @@ func (t *DictController) UpdateSysDict(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.UpdateSysDict(dictUpdateReq)
+	err = t.sysDictService.UpdateSysDict(ctx, dictUpdateReq)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -240,7 +240,7 @@ func (t *DictController) DeleteSysDictById(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.DeleteSysDictById(id)
+	err = t.sysDictService.DeleteSysDictById(ctx, id)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -317,7 +317,7 @@ func (t *DictController) InsertSysDictItem(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.InsertSysDictItem(dictItemCreateReq)
+	err = t.sysDictService.InsertSysDictItem(ctx, dictItemCreateReq)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -359,7 +359,7 @@ func (t *DictController) UpdateSysDictItem(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.UpdateSysDictItem(dictItemUpdateReq)
+	err = t.sysDictService.UpdateSysDictItem(ctx, dictItemUpdateReq)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -375,7 +375,7 @@ func (t *DictController) DeleteSysDictItemById(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.DeleteSysDictItemById(id)
+	err = t.sysDictService.DeleteSysDictItemById(ctx, id)
 	if err != nil {
 		ctx.Error(err)
 		return

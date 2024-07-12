@@ -46,15 +46,13 @@ type SysTableRepository interface {
 	DeleteTableIndexFieldByIndexId(*gorm.DB, int) error
 	DeleteTableIndexFieldByIndexIds(*gorm.DB, []int) error
 
-	// InitTable 初始化数据库中已存在的表
-	InitTable(*gorm.DB, model.SysTable) error
-
 	FetchTableMetadata(string, string) ([]model.TableColumnMate, error)
 	FetchTableIndexMetadata(string, string) ([]model.TableIndexMate, error)
 	DropTableIndex(*gorm.DB, string, string) error
 	DropTable(*gorm.DB, string) error
 	DropTableColumn(*gorm.DB, string, string) error
 	ModifyTableColumn(*gorm.DB, string, string, string) error
+	// ChangeTableColumn 修改字段
 	ChangeTableColumn(*gorm.DB, string, string, string, string) error
 	CreateTableColumn(*gorm.DB, string, string, string) error
 	CreateTable(*gorm.DB, string, any) error

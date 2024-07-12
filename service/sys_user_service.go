@@ -7,6 +7,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -101,7 +102,7 @@ func (s *SysUserService) GetList(basic request.Basic) (response.ListResult[model
 	return result, err
 }
 
-func (s *SysUserService) Insert(req request.UserCreateReq) error {
+func (s *SysUserService) Insert(ctx *gin.Context, req request.UserCreateReq) error {
 	var data model.SysUser
 	//user, e := s.GetByUserName(req.UserName)
 	user, e := s.GetByEmployeeId(req.EmployeeId)
@@ -125,39 +126,39 @@ func (s *SysUserService) Insert(req request.UserCreateReq) error {
 		return err
 	}
 	data.Id = int(id)
-	return s.sysUserRepo.Insert(data)
+	tx := s.sysUserRepo.DBWithContext(ctx)
+	return s.sysUserRepo.Insert(tx, data)
 }
 
-func (s *SysUserService) Update(req request.UserUpdateReq) error {
-	err := s.sysUserRepo.Update(req)
+func (s *SysUserService) Update(ctx *gin.Context, req request.UserUpdateReq) error {
+	tx := s.sysUserRepo.DBWithContext(ctx)
+	err := s.sysUserRepo.Update(tx, req)
 	if err != nil {
 		return err
 	}
-	data, err := s.GetById(req.Id)
-	if err != nil {
-		return err
-	}
-	if data.Id != 0 {
-		s.sysUserCache.Delete(strconv.Itoa(data.Id))
-		s.sysUserCache.Delete(data.UserName)
-		s.sysUserCache.Delete(data.PhoneNumber)
-	}
+	// 删除缓存
+	s.DeleteCache(req.Id)
 	return nil
 }
 
-func (s *SysUserService) Delete(id int) error {
-	data, err := s.GetById(id)
+func (s *SysUserService) Delete(ctx *gin.Context, id int) error {
+	tx := s.sysUserRepo.DBWithContext(ctx)
+	err := s.sysUserRepo.DeleteById(tx, id)
 	if err != nil {
 		return err
 	}
-	err = s.sysUserRepo.DeleteById(id)
-	if err != nil {
-		return err
-	}
-	if data.Id != 0 {
-		s.sysUserCache.Delete(strconv.Itoa(data.Id))
-		s.sysUserCache.Delete(data.UserName)
-		s.sysUserCache.Delete(data.PhoneNumber)
-	}
+	// 删除缓存
+	s.DeleteCache(id)
 	return nil
+}
+
+func (s *SysUserService) DeleteCache(userId int) {
+	go func() {
+		data, _ := s.GetById(userId)
+		if data.Id != 0 {
+			s.sysUserCache.Delete(strconv.Itoa(data.Id))
+			s.sysUserCache.Delete(data.UserName)
+			s.sysUserCache.Delete(data.PhoneNumber)
+		}
+	}()
 }

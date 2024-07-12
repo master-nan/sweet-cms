@@ -5,10 +5,13 @@
 
 package repository
 
-import "sweet-cms/model"
+import (
+	"gorm.io/gorm"
+	"sweet-cms/model"
+)
 
 type SysConfigureRepository interface {
 	BasicRepository
 	GetSysConfigure() (model.SysConfigure, error)
-	UpdateSysConfigure(d model.SysConfigure) error
+	UpdateSysConfigure(*gorm.DB, model.SysConfigure) error
 }

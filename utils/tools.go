@@ -49,7 +49,6 @@ func ConvertStruct(source, target interface{}) error {
 			}
 		}
 	}
-
 	return nil
 }
 

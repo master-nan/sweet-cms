@@ -40,17 +40,16 @@ func (s *SysUserRepositoryImpl) GetByEmployeeID(id int) (model.SysUser, error) {
 	return user, result.Error
 }
 
-func (s *SysUserRepositoryImpl) Insert(d model.SysUser) error {
-	result := s.db.Create(&d)
-	return result.Error
+func (s *SysUserRepositoryImpl) Insert(tx *gorm.DB, d model.SysUser) error {
+	return tx.Create(&d).Error
 }
 
-func (s *SysUserRepositoryImpl) Update(req request.UserUpdateReq) error {
-	return s.db.Model(model.SysUser{}).Where("id=?", req.Id).Updates(&req).Error
+func (s *SysUserRepositoryImpl) Update(tx *gorm.DB, req request.UserUpdateReq) error {
+	return tx.Model(model.SysUser{}).Where("id=?", req.Id).Updates(&req).Error
 }
 
-func (s *SysUserRepositoryImpl) DeleteById(i int) error {
-	return s.db.Where("id = ", i).Delete(model.SysUser{}).Error
+func (s *SysUserRepositoryImpl) DeleteById(tx *gorm.DB, i int) error {
+	return tx.Where("id = ", i).Delete(model.SysUser{}).Error
 }
 
 func (s *SysUserRepositoryImpl) GetList(basic request.Basic) (response.ListResult[model.SysUser], error) {

@@ -107,7 +107,6 @@ func (b *BasicController) Login(ctx *gin.Context) {
 				zap.L().Error("login log err", zap.Error(err))
 			}
 		}(log)
-
 		user, err := b.sysUserService.GetByUserName(data.UserName)
 		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password || !user.State {
 			e := &response.AdminError{
@@ -122,15 +121,14 @@ func (b *BasicController) Login(ctx *gin.Context) {
 				ctx.Error(err)
 				return
 			} else {
-				var up request.UserUpdateReq
-				up.Id = user.Id
-				up.AccessTokens = utils.UpdateAccessTokens(user.AccessTokens, token)
-				up.GmtLastLogin = model.CustomTime(time.Now())
-				err = b.sysUserService.Update(up)
-				if err != nil {
-					ctx.Error(err)
-					return
-				}
+				go func() {
+					var up request.UserUpdateReq
+					up.Id = user.Id
+					up.AccessTokens = utils.UpdateAccessTokens(user.AccessTokens, token)
+					up.GmtLastLogin = model.CustomTime(time.Now())
+					err := b.sysUserService.Update(ctx, up)
+					zap.L().Error("login update err", zap.Error(err))
+				}()
 				var userRes response.UserRes
 				utils.Assignment(&user, &userRes)
 				signInRes := response.SignInRes{

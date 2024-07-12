@@ -650,8 +650,6 @@ func (s *SysTableService) DeleteTableIndexByTableId(ctx *gin.Context, id int) er
 	return err
 }
 
-//DeleteTableIndexByTableId(*gorm.DB, int) error
-
 func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	columns, err := s.sysTableRepo.FetchTableMetadata(s.serverConfig.DB.Name, tableCode)
 	tableIndexes, err := s.sysTableRepo.FetchTableIndexMetadata(s.serverConfig.DB.Name, tableCode)
@@ -733,7 +731,7 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	table.TableFields = fields
 	table.TableIndexes = indexes
 	return s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
-		if e := s.sysTableRepo.InitTable(tx, table); e != nil {
+		if e := s.sysTableRepo.InsertTable(tx, table); e != nil {
 			return e
 		}
 		if indexFields != nil && len(indexFields) > 0 {

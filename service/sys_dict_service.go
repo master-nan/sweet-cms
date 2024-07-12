@@ -7,6 +7,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -82,7 +83,7 @@ func (s *SysDictService) GetSysDictByCode(code string) (model.SysDict, error) {
 	return dict, nil
 }
 
-func (s *SysDictService) InsertSysDict(req request.DictCreateReq) error {
+func (s *SysDictService) InsertSysDict(ctx *gin.Context, req request.DictCreateReq) error {
 	var data model.SysDict
 	dict, e := s.GetSysDictByCode(req.DictCode)
 	if e != nil {
@@ -91,7 +92,7 @@ func (s *SysDictService) InsertSysDict(req request.DictCreateReq) error {
 	if dict.Id != 0 {
 		e = &response.AdminError{
 			Code:    http.StatusBadRequest,
-			Message: "存在重复的dict_code",
+			Message: "存在重复的dictCode",
 		}
 		return e
 	}
@@ -105,11 +106,13 @@ func (s *SysDictService) InsertSysDict(req request.DictCreateReq) error {
 		return err
 	}
 	data.Id = int(id)
-	return s.sysDictRepo.InsertSysDict(data)
+	tx := s.sysDictRepo.DBWithContext(ctx)
+	return s.sysDictRepo.InsertSysDict(tx, data)
 }
 
-func (s *SysDictService) UpdateSysDict(req request.DictUpdateReq) error {
-	err := s.sysDictRepo.UpdateSysDict(req)
+func (s *SysDictService) UpdateSysDict(ctx *gin.Context, req request.DictUpdateReq) error {
+	tx := s.sysDictRepo.DBWithContext(ctx)
+	err := s.sysDictRepo.UpdateSysDict(tx, req)
 	if err != nil {
 		return err
 	}
@@ -124,8 +127,9 @@ func (s *SysDictService) UpdateSysDict(req request.DictUpdateReq) error {
 	return nil
 }
 
-func (s *SysDictService) DeleteSysDictById(id int) error {
-	err := s.sysDictRepo.DeleteSysDictById(id)
+func (s *SysDictService) DeleteSysDictById(ctx *gin.Context, id int) error {
+	tx := s.sysDictRepo.DBWithContext(ctx)
+	err := s.sysDictRepo.DeleteSysDictById(tx, id)
 	return err
 }
 
@@ -142,7 +146,7 @@ func (s *SysDictService) GetSysDictItemsByDictId(id int) ([]model.SysDictItem, e
 	return result, err
 }
 
-func (s *SysDictService) InsertSysDictItem(req request.DictItemCreateReq) error {
+func (s *SysDictService) InsertSysDictItem(ctx *gin.Context, req request.DictItemCreateReq) error {
 	var data model.SysDictItem
 	err := mapstructure.Decode(req, &data)
 	if err != nil {
@@ -154,7 +158,8 @@ func (s *SysDictService) InsertSysDictItem(req request.DictItemCreateReq) error 
 		return err
 	}
 	data.Id = int(id)
-	err = s.sysDictRepo.InsertSysDictItem(data)
+	tx := s.sysDictRepo.DBWithContext(ctx)
+	err = s.sysDictRepo.InsertSysDictItem(tx, data)
 	if err != nil {
 		zap.L().Error("InsertSysDictItem err:", zap.Error(err))
 		return err
@@ -171,8 +176,9 @@ func (s *SysDictService) InsertSysDictItem(req request.DictItemCreateReq) error 
 	return nil
 }
 
-func (s *SysDictService) UpdateSysDictItem(req request.DictItemUpdateReq) error {
-	err := s.sysDictRepo.UpdateSysDictItem(req)
+func (s *SysDictService) UpdateSysDictItem(ctx *gin.Context, req request.DictItemUpdateReq) error {
+	tx := s.sysDictRepo.DBWithContext(ctx)
+	err := s.sysDictRepo.UpdateSysDictItem(tx, req)
 	if err != nil {
 		zap.L().Error("UpdateSysDictItem err:", zap.Error(err))
 		return err
@@ -194,8 +200,9 @@ func (s *SysDictService) UpdateSysDictItem(req request.DictItemUpdateReq) error 
 	return nil
 }
 
-func (s *SysDictService) DeleteSysDictItemById(id int) error {
-	err := s.sysDictRepo.DeleteSysDictItemById(id)
+func (s *SysDictService) DeleteSysDictItemById(ctx *gin.Context, id int) error {
+	tx := s.sysDictRepo.DBWithContext(ctx)
+	err := s.sysDictRepo.DeleteSysDictItemById(tx, id)
 	if err != nil {
 		zap.L().Error("DeleteSysDictItemById err:", zap.Error(err))
 		return err
