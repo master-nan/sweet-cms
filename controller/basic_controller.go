@@ -5,16 +5,11 @@ import (
 	"fmt"
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"sweet-cms/config"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
@@ -51,92 +46,68 @@ func (b *BasicController) Login(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	translator, _ := b.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			// 客户端请求体为空
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数数据",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			// 如果是验证错误，则翻译错误信息
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
+	err := utils.ValidatorBody[request.SignInReq](ctx, &data, translator)
+	if err != nil {
 		ctx.Error(err)
 		return
+	}
+	configUre, err := b.sysConfigureService.Query()
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	if configUre.EnableCaptcha {
+		boolean := captcha.VerifyString(data.CaptchaId, data.Captcha)
+		if boolean == false {
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "验证码错误",
+			}
+			ctx.Error(e)
+			return
+		}
+	}
+	var log = model.LoginLog{
+		Ip:       ctx.ClientIP(),
+		Locality: "",
+		UserName: data.UserName,
+	}
+	// 异步保存登录日志
+	go func(log model.LoginLog) {
+		e := b.logService.CreateLoginLog(log)
+		if e != nil {
+			zap.L().Error("login log err", zap.Error(err))
+		}
+	}(log)
+	user, err := b.sysUserService.GetByUserName(data.UserName)
+	if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password || !user.State {
+		e := &response.AdminError{
+			Code:    http.StatusBadRequest,
+			Message: "用户名或密码错误",
+		}
+		ctx.Error(e)
+		return
 	} else {
-		configUre, err := b.sysConfigureService.Query()
+		token, err := b.tokenGenerator.GenerateToken(strconv.Itoa(user.Id))
 		if err != nil {
 			ctx.Error(err)
 			return
-		}
-		if configUre.EnableCaptcha {
-			boolean := captcha.VerifyString(data.CaptchaId, data.Captcha)
-			if boolean == false {
-				e := &response.AdminError{
-					Code:    http.StatusBadRequest,
-					Message: "验证码错误",
-				}
-				ctx.Error(e)
-				return
-			}
-		}
-		var log = model.LoginLog{
-			Ip:       ctx.ClientIP(),
-			Locality: "",
-			UserName: data.UserName,
-		}
-		// 异步保存登录日志
-		go func(log model.LoginLog) {
-			e := b.logService.CreateLoginLog(log)
-			if e != nil {
-				zap.L().Error("login log err", zap.Error(err))
-			}
-		}(log)
-		user, err := b.sysUserService.GetByUserName(data.UserName)
-		if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password || !user.State {
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "用户名或密码错误",
-			}
-			ctx.Error(e)
-			return
 		} else {
-			token, err := b.tokenGenerator.GenerateToken(strconv.Itoa(user.Id))
-			if err != nil {
-				ctx.Error(err)
-				return
-			} else {
-				go func() {
-					var up request.UserUpdateReq
-					up.Id = user.Id
-					up.AccessTokens = utils.UpdateAccessTokens(user.AccessTokens, token)
-					up.GmtLastLogin = model.CustomTime(time.Now())
-					err := b.sysUserService.Update(ctx, up)
-					zap.L().Error("login update err", zap.Error(err))
-				}()
-				var userRes response.UserRes
-				utils.Assignment(&user, &userRes)
-				signInRes := response.SignInRes{
-					AccessToken: token,
-				}
-				resp.SetData(signInRes)
-				return
+			go func() {
+				var up request.UserUpdateReq
+				up.Id = user.Id
+				up.AccessTokens = utils.UpdateAccessTokens(user.AccessTokens, token)
+				up.GmtLastLogin = model.CustomTime(time.Now())
+				err := b.sysUserService.Update(ctx, up)
+				zap.L().Error("login update err", zap.Error(err))
+			}()
+			var userRes response.UserRes
+			utils.Assignment(&user, &userRes)
+			signInRes := response.SignInRes{
+				AccessToken: token,
 			}
+			resp.SetData(signInRes)
+			return
 		}
 	}
 }

@@ -18,6 +18,7 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/service"
+	"sweet-cms/utils"
 )
 
 type DictController struct {
@@ -192,39 +193,15 @@ func (t *DictController) UpdateSysDict(ctx *gin.Context) {
 		ctx.Error(e)
 		return
 	}
-	var dictUpdateReq request.DictUpdateReq
-	dictUpdateReq.Id = id
-	err = ctx.ShouldBindBodyWith(&dictUpdateReq, binding.JSON)
+	var data request.DictUpdateReq
+	data.Id = id
 	translator, _ := t.translators["zh"]
+	err = utils.ValidatorBody[request.DictUpdateReq](ctx, &data, translator)
 	if err != nil {
-		if err == io.EOF {
-			// 客户端请求体为空
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			// 如果是验证错误，则翻译错误信息
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.UpdateSysDict(ctx, dictUpdateReq)
+	err = t.sysDictService.UpdateSysDict(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -286,38 +263,14 @@ func (t *DictController) GetSysDictItemById(ctx *gin.Context) {
 func (t *DictController) InsertSysDictItem(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
-	var dictItemCreateReq request.DictItemCreateReq
-	err := ctx.ShouldBindBodyWith(&dictItemCreateReq, binding.JSON)
+	var data request.DictItemCreateReq
 	translator, _ := t.translators["zh"]
+	err := utils.ValidatorBody[request.DictItemCreateReq](ctx, &data, translator)
 	if err != nil {
-		if err == io.EOF {
-			// 客户端请求体为空
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			// 如果是验证错误，则翻译错误信息
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.InsertSysDictItem(ctx, dictItemCreateReq)
+	err = t.sysDictService.InsertSysDictItem(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -329,37 +282,13 @@ func (t *DictController) UpdateSysDictItem(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	translator, _ := t.translators["zh"]
-	var dictItemUpdateReq request.DictItemUpdateReq
-	err := ctx.ShouldBindBodyWith(&dictItemUpdateReq, binding.JSON)
+	var data request.DictItemUpdateReq
+	err := utils.ValidatorBody[request.DictItemUpdateReq](ctx, &data, translator)
 	if err != nil {
-		if err == io.EOF {
-			// 客户端请求体为空
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			// 如果是验证错误，则翻译错误信息
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
 		ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.UpdateSysDictItem(ctx, dictItemUpdateReq)
+	err = t.sysDictService.UpdateSysDictItem(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return

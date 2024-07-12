@@ -30,7 +30,7 @@ type Snowflake struct {
 // NewSnowflake 创建一个新的 Snowflake 实例
 func NewSnowflake(workerID int64) (*Snowflake, error) {
 	if workerID < 0 || workerID > maxWorkerID {
-		return nil, fmt.Errorf("Worker ID 超出范围")
+		return nil, fmt.Errorf("worker ID 超出范围")
 	}
 
 	return &Snowflake{

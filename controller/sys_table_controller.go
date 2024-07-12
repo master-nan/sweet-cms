@@ -7,17 +7,16 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/pkg/errors"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/service"
+	"sweet-cms/utils"
 )
 
 type TableController struct {
@@ -104,35 +103,12 @@ func (t *TableController) InsertSysTable(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.TableCreateReq
 	translator, _ := t.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			// 客户端请求体为空
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			// 如果是验证错误，则翻译错误信息
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
+	err := utils.ValidatorBody[request.TableCreateReq](ctx, &data, translator)
+	if err != nil {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.InsertTable(ctx, data)
+	err = t.sysTableService.InsertTable(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -145,33 +121,12 @@ func (t *TableController) UpdateSysTable(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.TableUpdateReq
 	translator, _ := t.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
+	err := utils.ValidatorBody[request.TableUpdateReq](ctx, &data, translator)
+	if err != nil {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.UpdateTable(data)
+	err = t.sysTableService.UpdateTable(data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -235,33 +190,12 @@ func (t *TableController) InsertSysTableField(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.TableFieldCreateReq
 	translator, _ := t.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
+	err := utils.ValidatorBody[request.TableFieldCreateReq](ctx, &data, translator)
+	if err != nil {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.InsertTableField(ctx, data)
+	err = t.sysTableService.InsertTableField(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -274,33 +208,12 @@ func (t *TableController) UpdateSysTableField(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.TableFieldUpdateReq
 	translator, _ := t.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
+	err := utils.ValidatorBody[request.TableFieldUpdateReq](ctx, &data, translator)
+	if err != nil {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.UpdateTableField(ctx, data)
+	err = t.sysTableService.UpdateTableField(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -364,33 +277,12 @@ func (t *TableController) InsertTableRelation(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.TableRelationCreateReq
 	translator, _ := t.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
+	err := utils.ValidatorBody[request.TableRelationCreateReq](ctx, &data, translator)
+	if err != nil {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.InsertTableRelation(ctx, data)
+	err = t.sysTableService.InsertTableRelation(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -436,33 +328,12 @@ func (t *TableController) InsertTableIndex(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.TableIndexCreateReq
 	translator, _ := t.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
+	err := utils.ValidatorBody[request.TableIndexCreateReq](ctx, &data, translator)
+	if err != nil {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.InsertTableIndex(ctx, data)
+	err = t.sysTableService.InsertTableIndex(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -475,33 +346,12 @@ func (t *TableController) UpdateTableIndex(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.TableIndexUpdateReq
 	translator, _ := t.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: "请求参数错误",
-			}
-			ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				Code:    http.StatusBadRequest,
-				Message: strings.Join(errorMessages, ","),
-			}
-			ctx.Error(e)
-			return
-		}
+	err := utils.ValidatorBody[request.TableIndexUpdateReq](ctx, &data, translator)
+	if err != nil {
 		ctx.Error(err)
 		return
 	}
-	err := t.sysTableService.UpdateTableIndex(ctx, data)
+	err = t.sysTableService.UpdateTableIndex(ctx, data)
 	if err != nil {
 		ctx.Error(err)
 		return

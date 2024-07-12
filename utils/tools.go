@@ -5,10 +5,16 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin/binding"
+	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"github.com/pkg/errors"
+	"io"
 	"math/rand"
+	"net/http"
 	"strings"
 	"sweet-cms/enum"
+	"sweet-cms/form/response"
 	"sweet-cms/model"
 	"time"
 
@@ -220,6 +226,10 @@ func SqlTypeFromFieldType(fieldType enum.SysTableFieldType) string {
 	}
 }
 
+// UpdateAccessTokens 替换当前token字符串
+// existingTokens string: 现有token字符串
+// newToken string: 新token
+// 返回更新后的token字符串
 func UpdateAccessTokens(existingTokens string, newToken string) string {
 	// 分隔符
 	delimiter := ","
@@ -240,6 +250,7 @@ func UpdateAccessTokens(existingTokens string, newToken string) string {
 	return updatedTokens
 }
 
+// ContainsToken 查找token是否在当前token集合内
 func ContainsToken(existingTokens string, newToken string) bool {
 	// 如果现有的tokens字符串为空，直接返回false
 	if existingTokens == "" {
@@ -315,4 +326,34 @@ func ConvertColumnsToSysTableFields(columns []model.TableColumnMate) ([]model.Sy
 		fields = append(fields, field)
 	}
 	return fields, nil
+}
+
+func ValidatorBody[T any](ctx *gin.Context, data *T, translator ut.Translator) error {
+	err := ctx.ShouldBindBodyWith(data, binding.JSON)
+	if err != nil {
+		if err == io.EOF {
+			// 客户端请求体为空
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数数据",
+			}
+			return e
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			// 如果是验证错误，则翻译错误信息
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			return e
+		}
+		return err
+	}
+	return nil
 }
