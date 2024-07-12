@@ -6,5 +6,6 @@
 package inter
 
 type TokenGenerator interface {
-	GenerateToken(id string) (string, error)
+	GenerateToken(id string) (token string, err error)
+	ParseToken(token string) (id string, err error)
 }

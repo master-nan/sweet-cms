@@ -15,10 +15,11 @@ import (
 
 type SysUserRepositoryImpl struct {
 	db *gorm.DB
+	*BasicImpl
 }
 
-func NewSysUserRepositoryImpl(db *gorm.DB) *SysUserRepositoryImpl {
-	return &SysUserRepositoryImpl{db}
+func NewSysUserRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysUserRepositoryImpl {
+	return &SysUserRepositoryImpl{db, basicImpl}
 }
 
 func (s *SysUserRepositoryImpl) GetByUserName(username string) (model.SysUser, error) {

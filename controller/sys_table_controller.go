@@ -414,11 +414,132 @@ func (t *TableController) DeleteTableRelation(ctx *gin.Context) {
 	return
 }
 
-//GetTableIndexesByTableId(int) ([]model.SysTableIndex, error)
-//InsertTableIndex(*gorm.DB, model.SysTableIndex, string) error
-//UpdateTableIndex(*gorm.DB, request.TableIndexUpdateReq, model.SysTableIndex, string) error
-//DeleteTableIndex(*gorm.DB, int) error
-//DeleteTableIndexByTableId(*gorm.DB, int) error
+func (t *TableController) GetTableIndexesByTableId(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	data, err := t.sysTableService.GetTableIndexesByTableId(id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	resp.SetData(data)
+	return
+}
+
+func (t *TableController) InsertTableIndex(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	var data request.TableIndexCreateReq
+	translator, _ := t.translators["zh"]
+	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
+		if err == io.EOF {
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数错误",
+			}
+			ctx.Error(e)
+			return
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			ctx.Error(e)
+			return
+		}
+		ctx.Error(err)
+		return
+	}
+	err := t.sysTableService.InsertTableIndex(ctx, data)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
+}
+
+func (t *TableController) UpdateTableIndex(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	var data request.TableIndexUpdateReq
+	translator, _ := t.translators["zh"]
+	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
+		if err == io.EOF {
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: "请求参数错误",
+			}
+			ctx.Error(e)
+			return
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				Code:    http.StatusBadRequest,
+				Message: strings.Join(errorMessages, ","),
+			}
+			ctx.Error(e)
+			return
+		}
+		ctx.Error(err)
+		return
+	}
+	err := t.sysTableService.UpdateTableIndex(ctx, data)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
+}
+
+func (t *TableController) DeleteTableIndex(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	err = t.sysTableService.DeleteTableIndex(ctx, id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
+}
+
+func (t *TableController) DeleteTableIndexByTableId(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	err = t.sysTableService.DeleteTableIndexByTableId(ctx, id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	return
+}
 
 func (t *TableController) InitTable(ctx *gin.Context) {
 	resp := response.NewResponse()

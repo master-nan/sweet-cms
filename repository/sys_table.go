@@ -36,8 +36,9 @@ type SysTableRepository interface {
 	DeleteTableRelation(*gorm.DB, int) error
 
 	GetTableIndexesByTableId(int) ([]model.SysTableIndex, error)
+	GetTableIndexById(int) (model.SysTableIndex, error)
 	InsertTableIndex(*gorm.DB, model.SysTableIndex) error
-	UpdateTableIndex(*gorm.DB, request.TableIndexUpdateReq, model.SysTableIndex, string) error
+	UpdateTableIndex(*gorm.DB, request.TableIndexUpdateReq) error
 	DeleteTableIndex(*gorm.DB, int) error
 	DeleteTableIndexByTableId(*gorm.DB, int) error
 

@@ -11,13 +11,13 @@ import (
 	"net/http"
 	"strconv"
 	"sweet-cms/form/response"
+	"sweet-cms/inter"
 	"sweet-cms/service"
-	"sweet-cms/utils"
 )
 
 const bearerLength = len("Bearer ")
 
-func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gin.HandlerFunc {
+func AuthHandler(tokenGenerator inter.TokenGenerator, userService *service.SysUserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
 		resp := response.NewResponse()
@@ -33,7 +33,7 @@ func AuthHandler(jwt *utils.JWTTokenGen, userService *service.SysUserService) gi
 			return
 		}
 		token := authorization[bearerLength:]
-		id, err := jwt.ParseToken(token)
+		id, err := tokenGenerator.ParseToken(token)
 		if err != nil {
 			e := &response.AdminError{
 				Code:    http.StatusForbidden,

@@ -8,7 +8,6 @@ package impl
 import (
 	"fmt"
 	"gorm.io/gorm"
-	"strings"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
@@ -39,7 +38,7 @@ func (s *SysTableRepositoryImpl) GetTableByTableCode(code string) (model.SysTabl
 	var table model.SysTable
 	err := s.db.Preload("TableFields", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sequence")
-	}).Where("table_code=?", code).First(&table).Error
+	}).Where("table_code = ? ", code).First(&table).Error
 	return table, err
 }
 
@@ -185,13 +184,13 @@ func (s *SysTableRepositoryImpl) DropTableColumn(tx *gorm.DB, tableCode string, 
 
 func (s *SysTableRepositoryImpl) GetTableRelationById(i int) (model.SysTableRelation, error) {
 	var relation model.SysTableRelation
-	err := s.db.Where("id = ", i).First(&relation).Error
+	err := s.db.Where("id = ?", i).First(&relation).Error
 	return relation, err
 }
 
 func (s *SysTableRepositoryImpl) GetTableRelationsByTableId(i int) ([]model.SysTableRelation, error) {
 	var relations []model.SysTableRelation
-	err := s.db.Where("table_id = ", i).First(&relations).Error
+	err := s.db.Where("table_id = ?", i).First(&relations).Error
 	return relations, err
 }
 
@@ -209,7 +208,7 @@ func (s *SysTableRepositoryImpl) DeleteTableRelation(tx *gorm.DB, id int) error 
 	if tx == nil {
 		tx = s.db
 	}
-	if err := tx.Where("id = ", id).Delete(model.SysTableRelation{}).Error; err != nil {
+	if err := tx.Where("id = ?", id).Delete(model.SysTableRelation{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -239,10 +238,16 @@ func (s *SysTableRepositoryImpl) DropTable(tx *gorm.DB, tableCode string) error 
 	return nil
 }
 
-func (s *SysTableRepositoryImpl) GetTableIndexesByTableId(i int) ([]model.SysTableIndex, error) {
+func (s *SysTableRepositoryImpl) GetTableIndexesByTableId(id int) ([]model.SysTableIndex, error) {
 	var indexes []model.SysTableIndex
-	err := s.db.Where("table_id = ", i).Find(&indexes).Error
+	err := s.db.Where("table_id = ?", id).Find(&indexes).Error
 	return indexes, err
+}
+
+func (s *SysTableRepositoryImpl) GetTableIndexById(id int) (model.SysTableIndex, error) {
+	var index model.SysTableIndex
+	err := s.db.Where("id = ?", id).Find(&index).Error
+	return index, err
 }
 
 // InsertTableIndex 新增表索引
@@ -258,42 +263,12 @@ func (s *SysTableRepositoryImpl) InsertTableIndex(tx *gorm.DB, index model.SysTa
 }
 
 // UpdateTableIndex 修改表索引
-func (s *SysTableRepositoryImpl) UpdateTableIndex(tx *gorm.DB, req request.TableIndexUpdateReq, data model.SysTableIndex, tableCode string) error {
+func (s *SysTableRepositoryImpl) UpdateTableIndex(tx *gorm.DB, req request.TableIndexUpdateReq) error {
 	if tx == nil {
 		tx = s.db
 	}
-	// TODO 后期改造拆分，service层调用
-	// 删除中间表数据
-	if err := s.DeleteTableIndexFieldByIndexId(tx, req.Id); err != nil {
-		return err
-	}
 	// 修改表数据
-	if err := tx.Model(model.SysTableIndex{}).Where("id=?", req.Id).Updates(&req).Error; err != nil {
-		return err
-	}
-	// TODO 后期改造拆分，service层调用
-	// 使用原索引名称删除表索引
-	if err := s.DropTableIndex(tx, data.IndexName, tableCode); err != nil {
-		return err
-	}
-	var indexFields []model.SysTableIndexField
-	fieldCodeList := make([]string, len(req.IndexFields))
-	for _, field := range req.IndexFields {
-		fieldCodeList = append(fieldCodeList, field.FieldCode)
-		indexField := model.SysTableIndexField{
-			IndexId: req.Id,
-			FieldId: field.FieldId,
-		}
-		indexFields = append(indexFields, indexField)
-	}
-	// 创建中间表数据
-	if err := s.InsertTableIndexFields(tx, indexFields); err != nil {
-		return err
-	}
-	fields := strings.Join(fieldCodeList, ",")
-	// TODO 后期改造拆分，service层调用
-	// 创建表索引
-	if err := s.CreateTableIndex(tx, req.IsUnique, req.IndexName, tableCode, fields); err != nil {
+	if err := tx.Model(model.SysTableIndex{}).Where("id = ?", req.Id).Updates(&req).Error; err != nil {
 		return err
 	}
 	return nil
@@ -351,8 +326,9 @@ func (s *SysTableRepositoryImpl) DropTableIndex(tx *gorm.DB, indexName string, t
 	if tx == nil {
 		tx = s.db
 	}
+	tableName := utils.GetTableName(tx, tableCode)
 	// 构建删除索引的SQL语句
-	dropIndexSQL := fmt.Sprintf("DROP INDEX %s ON %s", indexName, tableCode)
+	dropIndexSQL := fmt.Sprintf("DROP INDEX %s ON %s", indexName, tableName)
 	if err := tx.Exec(dropIndexSQL).Error; err != nil {
 		return err
 	}
@@ -375,7 +351,7 @@ func (s *SysTableRepositoryImpl) DeleteTableIndexFieldByIndexIds(tx *gorm.DB, id
 	if tx == nil {
 		tx = s.db
 	}
-	if err := tx.Where("index_id in?", ids).Delete(model.SysTableIndexField{}).Error; err != nil {
+	if err := tx.Where("index_id in ?", ids).Delete(model.SysTableIndexField{}).Error; err != nil {
 		return err
 	}
 	return nil

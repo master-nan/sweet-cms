@@ -8,6 +8,7 @@ package repository
 import "sweet-cms/model"
 
 type SysConfigureRepository interface {
+	BasicRepository
 	GetSysConfigure() (model.SysConfigure, error)
 	UpdateSysConfigure(d model.SysConfigure) error
 }

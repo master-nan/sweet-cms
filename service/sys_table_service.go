@@ -163,76 +163,61 @@ func (s *SysTableService) UpdateTable(req request.TableUpdateReq) error {
 	if err != nil {
 		return err
 	}
-	data, err := s.GetTableById(req.Id)
-	if err != nil {
-		return err
-	}
-	if data.Id != 0 {
-		s.sysTableCache.Delete(strconv.Itoa(data.Id))
-		s.sysTableCache.Delete(data.TableCode)
-	}
+	// 删除缓存
+	s.DeleteCache(req.Id)
 	return nil
 }
 
 func (s *SysTableService) DeleteTableById(ctx *gin.Context, id int) error {
-	data, err := s.GetTableById(id)
-	if err != nil {
-		return err
-	}
-	if data.Id != 0 {
-		err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
-			if e := s.sysTableRepo.DeleteTableById(tx, id); e != nil {
-				return e
-			}
-			// 删除字段元数据
-			if e := s.sysTableRepo.DeleteTableFieldByTableId(tx, id); e != nil {
-				return e
-			}
-			// 查询表所有索引
-			tableIndexes, e := s.sysTableRepo.GetTableIndexesByTableId(id)
-			if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
-				return e
-			}
-			// 删除索引信息
-			if e := s.sysTableRepo.DeleteTableIndexByTableId(tx, id); e != nil {
-				return e
-			}
-			var indexIDs []int
-			for _, index := range tableIndexes {
-				indexIDs = append(indexIDs, index.Id)
-			}
-			// 删除索引中间表信息，需要使用 IN 查询
-			if len(indexIDs) > 0 {
-				if e := s.sysTableRepo.DeleteTableIndexFieldByIndexIds(tx, indexIDs); e != nil {
-					return e
-				}
-			}
-			// 查询关联表数据
-			relations, e := s.sysTableRepo.GetTableRelationsByTableId(id)
-			if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
-				return e
-			}
-			for _, relation := range relations {
-				// 删除关联关系表
-				if e := s.sysTableRepo.DeleteTableRelation(tx, relation.Id); e != nil {
-					return e
-				}
-				if relation.RelationType == enum.MANY_TO_MANY {
-					// 删除多对多中间表
-					if e := s.sysTableRepo.DropTable(tx, relation.ManyTableCode); e != nil {
-						return e
-					}
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
+	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		if e := s.sysTableRepo.DeleteTableById(tx, id); e != nil {
+			return e
 		}
-		s.sysTableCache.Delete(strconv.Itoa(data.Id))
-		s.sysTableCache.Delete(data.TableCode)
-	}
-	return nil
+		// 删除字段元数据
+		if e := s.sysTableRepo.DeleteTableFieldByTableId(tx, id); e != nil {
+			return e
+		}
+		// 查询表所有索引
+		tableIndexes, e := s.sysTableRepo.GetTableIndexesByTableId(id)
+		if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
+			return e
+		}
+		// 删除索引信息
+		if e := s.sysTableRepo.DeleteTableIndexByTableId(tx, id); e != nil {
+			return e
+		}
+		var indexIDs []int
+		for _, index := range tableIndexes {
+			indexIDs = append(indexIDs, index.Id)
+		}
+		// 删除索引中间表信息，需要使用 IN 查询
+		if len(indexIDs) > 0 {
+			if e := s.sysTableRepo.DeleteTableIndexFieldByIndexIds(tx, indexIDs); e != nil {
+				return e
+			}
+		}
+		// 查询关联表数据
+		relations, e := s.sysTableRepo.GetTableRelationsByTableId(id)
+		if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
+			return e
+		}
+		for _, relation := range relations {
+			// 删除关联关系表
+			if e := s.sysTableRepo.DeleteTableRelation(tx, relation.Id); e != nil {
+				return e
+			}
+			if relation.RelationType == enum.MANY_TO_MANY {
+				// 删除多对多中间表
+				if e := s.sysTableRepo.DropTable(tx, relation.ManyTableCode); e != nil {
+					return e
+				}
+			}
+		}
+		return nil
+	})
+	// 删除缓存
+	s.DeleteCache(id)
+	return err
 }
 
 func (s *SysTableService) GetTableFieldById(id int) (model.SysTableField, error) {
@@ -300,7 +285,6 @@ func (s *SysTableService) InsertTableField(ctx *gin.Context, req request.TableFi
 	if err != nil {
 		return err
 	}
-
 	data.Id = int(id)
 	err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
 		if e := s.sysTableRepo.InsertTableField(tx, data); err != nil {
@@ -327,15 +311,9 @@ func (s *SysTableService) InsertTableField(ctx *gin.Context, req request.TableFi
 		}
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	if table.Id != 0 {
-		s.sysTableCache.Delete(strconv.Itoa(table.Id))
-		s.sysTableCache.Delete(table.TableCode)
-	}
-	return nil
+	// 删除缓存
+	s.DeleteCache(table.Id)
+	return err
 }
 
 func (s *SysTableService) UpdateTableField(ctx *gin.Context, req request.TableFieldUpdateReq) error {
@@ -397,13 +375,9 @@ func (s *SysTableService) UpdateTableField(ctx *gin.Context, req request.TableFi
 			}
 			return nil
 		})
-		if err != nil {
-			return err
-		}
-		s.sysTableCache.Delete(strconv.Itoa(table.Id))
-		s.sysTableCache.Delete(table.TableCode)
-		s.sysTableFieldCache.Delete(strconv.Itoa(req.Id))
-		return nil
+		// 删除缓存
+		s.DeleteCache(table.Id)
+		return err
 	}
 	return errors.New("数据不存在")
 }
@@ -431,9 +405,8 @@ func (s *SysTableService) DeleteTableFieldById(ctx *gin.Context, id int) error {
 			if err != nil {
 				return err
 			}
-			s.sysTableFieldCache.Delete(strconv.Itoa(field.Id))
-			s.sysTableCache.Delete(strconv.Itoa(table.Id))
-			s.sysTableCache.Delete(table.TableCode)
+			// 删除缓存
+			s.DeleteCache(table.Id)
 			return nil
 		}
 	}
@@ -507,6 +480,8 @@ func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.Tabl
 		}
 		return nil
 	})
+	// 删除缓存
+	s.DeleteCache(req.TableId)
 	return err
 }
 func (s *SysTableService) DeleteTableRelation(ctx *gin.Context, id int) error {
@@ -514,11 +489,13 @@ func (s *SysTableService) DeleteTableRelation(ctx *gin.Context, id int) error {
 		if e := s.sysTableRepo.DeleteTableRelation(tx, id); e != nil {
 			return e
 		}
+		relation, e := s.sysTableRepo.GetTableRelationById(id)
+		if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
+			return e
+		}
+		// 删除缓存
+		s.DeleteCache(relation.TableId)
 		// TODO 删除表关系考虑是否需要删除多对多中间表
-		//relation, e := s.sysTableRepo.GetTableRelationById(id)
-		//if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
-		//	return e
-		//}
 		//if relation.RelationType == enum.MANY_TO_MANY {
 		//	if e := s.sysTableRepo.DropTable(tx, relation.ManyTableCode); e {
 		//		return e
@@ -575,11 +552,104 @@ func (s *SysTableService) InsertTableIndex(ctx *gin.Context, req request.TableIn
 		}
 		return nil
 	})
+	// 删除缓存
+	s.DeleteCache(req.TableId)
 	return err
 }
 
-//UpdateTableIndex(*gorm.DB, request.TableIndexUpdateReq, model.SysTableIndex, string) error
-//DeleteTableIndex(*gorm.DB, int) error
+func (s *SysTableService) UpdateTableIndex(ctx *gin.Context, req request.TableIndexUpdateReq) error {
+	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		// 删除中间表数据
+		if e := s.sysTableRepo.DeleteTableIndexFieldByIndexId(tx, req.Id); e != nil {
+			return e
+		}
+		if e := s.sysTableRepo.UpdateTableIndex(tx, req); e != nil {
+			return e
+		}
+		table, e := s.GetTableById(req.TableId)
+		if e != nil {
+			return e
+		}
+		// 使用原索引名称删除表索引
+		if e := s.sysTableRepo.DropTableIndex(tx, req.IndexName, table.TableCode); e != nil {
+			return e
+		}
+		var indexFields []model.SysTableIndexField
+		fieldCodeList := make([]string, len(req.IndexFields))
+		for _, field := range req.IndexFields {
+			fieldCodeList = append(fieldCodeList, field.FieldCode)
+			indexField := model.SysTableIndexField{
+				IndexId: req.Id,
+				FieldId: field.FieldId,
+			}
+			indexFields = append(indexFields, indexField)
+		}
+		// 创建中间表数据
+		if e := s.sysTableRepo.InsertTableIndexFields(tx, indexFields); e != nil {
+			return e
+		}
+		fields := strings.Join(fieldCodeList, ",")
+		// 创建表索引
+		if err := s.sysTableRepo.CreateTableIndex(tx, req.IsUnique, req.IndexName, table.TableCode, fields); err != nil {
+			return err
+		}
+		return nil
+	})
+	// 删除缓存
+	s.DeleteCache(req.TableId)
+	return err
+}
+
+func (s *SysTableService) DeleteTableIndex(ctx *gin.Context, id int) error {
+	index, e := s.sysTableRepo.GetTableIndexById(id)
+	if e != nil {
+		return e
+	}
+	table, e := s.GetTableById(index.TableId)
+	if e != nil {
+		return e
+	}
+	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		if e := s.sysTableRepo.DeleteTableIndex(tx, id); e != nil {
+			return e
+		}
+		// 使用索引名称删除表索引
+		if e := s.sysTableRepo.DropTableIndex(tx, index.IndexName, table.TableCode); e != nil {
+			return e
+		}
+		return nil
+	})
+	// 删除缓存
+	s.DeleteCache(table.Id)
+	return err
+}
+
+func (s *SysTableService) DeleteTableIndexByTableId(ctx *gin.Context, id int) error {
+	table, e := s.GetTableById(id)
+	if e != nil {
+		return e
+	}
+	indexes, e := s.sysTableRepo.GetTableIndexesByTableId(id)
+	if e != nil {
+		return e
+	}
+	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
+		if e := s.sysTableRepo.DeleteTableIndexByTableId(tx, id); e != nil {
+			return e
+		}
+		for _, index := range indexes {
+			// 使用索引名称删除表索引
+			if e := s.sysTableRepo.DropTableIndex(tx, index.IndexName, table.TableCode); e != nil {
+				return e
+			}
+		}
+		return nil
+	})
+	// 删除缓存
+	s.DeleteCache(table.Id)
+	return err
+}
+
 //DeleteTableIndexByTableId(*gorm.DB, int) error
 
 func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
@@ -673,4 +743,17 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 		}
 		return nil
 	})
+}
+
+func (s *SysTableService) DeleteCache(tableId int) {
+	go func() {
+		table, _ := s.GetTableById(tableId)
+		if table.Id != 0 {
+			s.sysTableCache.Delete(strconv.Itoa(table.Id))
+			s.sysTableCache.Delete(table.TableCode)
+			for _, field := range table.TableFields {
+				s.sysTableFieldCache.Delete(strconv.Itoa(field.Id))
+			}
+		}
+	}()
 }

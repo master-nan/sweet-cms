@@ -12,6 +12,7 @@ import (
 )
 
 type SysUserRepository interface {
+	BasicRepository
 	GetByUserName(string) (model.SysUser, error)
 	GetById(int) (model.SysUser, error)
 	Update(request.UserUpdateReq) error

@@ -12,6 +12,7 @@ import (
 )
 
 type SysDictRepository interface {
+	BasicRepository
 	GetSysDictById(int) (model.SysDict, error)
 	GetSysDictList(request.Basic) (response.ListResult[model.SysDict], error)
 	InsertSysDict(model.SysDict) error

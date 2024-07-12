@@ -15,11 +15,13 @@ import (
 
 type SysDictRepositoryImpl struct {
 	db *gorm.DB
+	*BasicImpl
 }
 
-func NewSysDictRepositoryImpl(db *gorm.DB) *SysDictRepositoryImpl {
+func NewSysDictRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysDictRepositoryImpl {
 	return &SysDictRepositoryImpl{
 		db,
+		basicImpl,
 	}
 }
 

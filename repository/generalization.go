@@ -16,5 +16,6 @@ type GeneralizationListResult struct {
 }
 
 type GeneralizationRepository interface {
+	BasicRepository
 	Query(request.Basic, model.SysTable) (GeneralizationListResult, error)
 }

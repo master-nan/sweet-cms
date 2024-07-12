@@ -12,11 +12,13 @@ import (
 
 type LogRepositoryImpl struct {
 	db *gorm.DB
+	*BasicImpl
 }
 
-func NewLogRepositoryImpl(db *gorm.DB) *LogRepositoryImpl {
+func NewLogRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *LogRepositoryImpl {
 	return &LogRepositoryImpl{
 		db,
+		basicImpl,
 	}
 }
 

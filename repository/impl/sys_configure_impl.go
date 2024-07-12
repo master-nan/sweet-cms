@@ -12,10 +12,11 @@ import (
 
 type SysConfigureRepositoryImpl struct {
 	db *gorm.DB
+	*BasicImpl
 }
 
-func NewSysConfigureRepositoryImpl(db *gorm.DB) *SysConfigureRepositoryImpl {
-	return &SysConfigureRepositoryImpl{db: db}
+func NewSysConfigureRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysConfigureRepositoryImpl {
+	return &SysConfigureRepositoryImpl{db, basicImpl}
 }
 
 func (c *SysConfigureRepositoryImpl) GetSysConfigure() (model.SysConfigure, error) {

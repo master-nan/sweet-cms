@@ -49,7 +49,8 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl(db)
+	basicImpl := impl.NewBasicImpl(db)
+	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl(db, basicImpl)
 	redisUtil := utils.NewRedisUtil(client)
 	sysDictCache := cache.NewSysDictCache(redisUtil)
 	sysDictService := service.NewSysDictService(sysDictRepositoryImpl, snowflake, sysDictCache)
@@ -58,23 +59,22 @@ func InitializeApp() (*App, error) {
 		return nil, err
 	}
 	dictController := controller.NewDictController(sysDictService, v)
-	sysConfigureRepositoryImpl := impl.NewSysConfigureRepositoryImpl(db)
+	sysConfigureRepositoryImpl := impl.NewSysConfigureRepositoryImpl(db, basicImpl)
 	sysConfigureCache := cache.NewSysConfigureCache(redisUtil)
 	sysConfigureService := service.NewSysConfigureService(sysConfigureRepositoryImpl, sysConfigureCache)
-	logRepositoryImpl := impl.NewLogRepositoryImpl(db)
+	logRepositoryImpl := impl.NewLogRepositoryImpl(db, basicImpl)
 	logService := service.NewLogServer(logRepositoryImpl, snowflake)
-	sysUserRepositoryImpl := impl.NewSysUserRepositoryImpl(db)
+	sysUserRepositoryImpl := impl.NewSysUserRepositoryImpl(db, basicImpl)
 	sysUserCache := cache.NewSysUserCache(redisUtil)
 	sysUserService := service.NewSysUserService(sysUserRepositoryImpl, snowflake, sysUserCache)
 	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureService, logService, sysUserService, v)
-	basicImpl := impl.NewBasicImpl(db)
 	sysTableRepositoryImpl := impl.NewSysTableRepositoryImpl(db, basicImpl)
 	sysTableCache := cache.NewSysTableCache(redisUtil)
 	sysTableFieldCache := cache.NewSysTableFieldCache(redisUtil)
 	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake, sysTableCache, sysTableFieldCache, server)
 	tableController := controller.NewTableController(sysTableService, v)
 	userController := controller.NewUserController(sysUserService, v)
-	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db)
+	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db, basicImpl)
 	generalizationService := service.NewGeneralizationService(generalizationRepositoryImpl)
 	generalizationController := controller.NewGeneralizationController(generalizationService, sysTableService)
 	blackCache := cache.NewBlackCache(redisUtil)

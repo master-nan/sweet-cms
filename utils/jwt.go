@@ -21,20 +21,19 @@ func NewJWTTokenGen() *JWTTokenGen {
 	return &JWTTokenGen{issuer: "master-nan", privateKey: []byte("123455")}
 }
 
-func (t *JWTTokenGen) GenerateToken(accountID string) (string, error) {
+func (t *JWTTokenGen) GenerateToken(id string) (token string, err error) {
 	nowSec := time.Now()
 	tkn := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.RegisteredClaims{
 		Issuer:    t.issuer,
 		IssuedAt:  jwt.NewNumericDate(nowSec),
 		ExpiresAt: jwt.NewNumericDate(nowSec.Add(3 * time.Hour * time.Duration(1))),
 		NotBefore: jwt.NewNumericDate(nowSec),
-		Subject:   accountID,
+		Subject:   id,
 	})
-
 	return tkn.SignedString(t.privateKey)
 }
 
-func (t *JWTTokenGen) ParseToken(token string) (string, error) {
+func (t *JWTTokenGen) ParseToken(token string) (id string, err error) {
 	res, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return t.privateKey, nil
 	})
