@@ -96,11 +96,6 @@ func (s *SysTableService) GetTableByTableCode(code string) (model.SysTable, erro
 }
 
 func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateReq) error {
-	var user model.SysUser
-	obj, exists := ctx.Get("user")
-	if exists {
-		user, _ = obj.(model.SysUser)
-	}
 	var data model.SysTable
 	table, e := s.GetTableByTableCode(req.TableCode)
 	if e != nil {
@@ -123,17 +118,16 @@ func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateR
 		return err
 	}
 	data.Id = int(id)
-	data.CreateUser = &user.EmployeeId
 	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
 	fields := []model.SysTableField{
-		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "id", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
-		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 2, IsListShow: true},
-		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 3, IsListShow: true},
-		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 4, IsListShow: true},
-		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 5, IsListShow: true},
-		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER, Sequence: 6},
-		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
-		{Basic: model.Basic{CreateUser: data.CreateUser}, TableId: data.Id, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
+		{TableId: data.Id, FieldName: "id", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
+		{TableId: data.Id, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 2, IsListShow: true},
+		{TableId: data.Id, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 3, IsListShow: true},
+		{TableId: data.Id, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 4, IsListShow: true},
+		{TableId: data.Id, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 5, IsListShow: true},
+		{TableId: data.Id, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER, Sequence: 6},
+		{TableId: data.Id, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
+		{TableId: data.Id, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
 	}
 	for i := range fields {
 		fieldId, err := s.sf.GenerateUniqueID()
@@ -657,11 +651,6 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	if err != nil {
 		return err
 	}
-	var user model.SysUser
-	obj, exists := ctx.Get("user")
-	if exists {
-		user, _ = obj.(model.SysUser)
-	}
 	id, err := s.sf.GenerateUniqueID()
 	if err != nil {
 		return err
@@ -682,8 +671,7 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	}
 	table = model.SysTable{
 		Basic: model.Basic{
-			Id:         int(id),
-			CreateUser: &user.EmployeeId,
+			Id: int(id),
 		},
 		TableName: tableCode,
 		TableCode: tableCode,
@@ -699,8 +687,6 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 			return err
 		}
 		fields[i].Id = int(fieldId)
-		fields[i].CreateUser = &user.EmployeeId
-
 		for j, _ := range tableIndexes {
 			if tableIndexes[j].ColumnName == fields[i].FieldCode {
 				indexId, err := s.sf.GenerateUniqueID()
@@ -710,8 +696,7 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 				if _, exists := indexesMap[tableIndexes[j].IndexName]; !exists {
 					indexesMap[tableIndexes[j].IndexName] = model.SysTableIndex{
 						Basic: model.Basic{
-							Id:         int(indexId),
-							CreateUser: &user.EmployeeId,
+							Id: int(indexId),
 						},
 						TableId:   table.Id,
 						IndexName: tableIndexes[j].IndexName,

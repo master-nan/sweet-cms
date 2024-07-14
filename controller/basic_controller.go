@@ -68,18 +68,18 @@ func (b *BasicController) Login(ctx *gin.Context) {
 			return
 		}
 	}
-	var log = model.LoginLog{
+	var loginLog = model.LoginLog{
 		Ip:       ctx.ClientIP(),
 		Locality: "",
 		UserName: data.UserName,
 	}
 	// 异步保存登录日志
-	go func(log model.LoginLog) {
-		e := b.logService.CreateLoginLog(log)
+	go func(loginLog model.LoginLog) {
+		e := b.logService.CreateLoginLog(loginLog)
 		if e != nil {
-			zap.L().Error("login log err", zap.Error(err))
+			zap.L().Error("login loginLog err", zap.Error(err))
 		}
-	}(log)
+	}(loginLog)
 	user, err := b.sysUserService.GetByUserName(data.UserName)
 	if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password || !user.State {
 		e := &response.AdminError{
@@ -146,7 +146,6 @@ func (b *BasicController) Logout(ctx *gin.Context) {
 }
 
 func (b *BasicController) Test(ctx *gin.Context) {
-	// 示例：解析 SQL 语句
 	sql := "SELECT u.id as user_id, u.name as username, o.order_id FROM users u JOIN orders o ON u.id = o.user_id"
 	parser := sqlparser.NewTestParser()
 	stmt, err := parser.Parse(sql)
