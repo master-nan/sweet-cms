@@ -142,10 +142,14 @@ func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateR
 			return e
 		}
 		// 动态创建结构体类型
-		dynamicType := utils.CreateDynamicStruct(table.TableFields)
+		dynamicType := utils.CreateDynamicStruct(data.TableFields)
 		// 创建实例
 		dynamicModel := reflect.New(dynamicType).Interface()
-		if e := s.sysTableRepo.CreateTable(tx, table.TableCode, dynamicModel); e != nil {
+		// 先删除再创建
+		if e := s.sysTableRepo.DropTable(tx, data.TableCode); e != nil {
+			return e
+		}
+		if e := s.sysTableRepo.CreateTable(tx, data.TableCode, dynamicModel); e != nil {
 			return e
 		}
 		return nil
@@ -470,6 +474,10 @@ func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.Tabl
 			relationList = append(relationList, referenceKey, foreignKey)
 			reflect.StructOf(relationList)
 			relationModel := reflect.New(reflect.StructOf(relationList)).Interface()
+			// 先删除再创建
+			if e := s.sysTableRepo.DropTable(tx, data.ManyTableCode); e != nil {
+				return e
+			}
 			return s.sysTableRepo.CreateTable(tx, data.ManyTableCode, relationModel)
 		}
 		return nil

@@ -19,5 +19,5 @@ redis:
   conn_max_idle_time: 3600
 session:
   secret: '123456'
-configure:
+conf:
   salt: '123456'

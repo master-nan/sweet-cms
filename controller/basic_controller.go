@@ -81,7 +81,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 		}
 	}(loginLog)
 	user, err := b.sysUserService.GetByUserName(data.UserName)
-	if err != nil || utils.Encryption(data.Password, b.serverConfig.Config.Salt) != user.Password || !user.State {
+	if err != nil || utils.Encryption(data.Password, data.UserName+b.serverConfig.Conf.Salt) != user.Password || !user.State {
 		e := &response.AdminError{
 			ErrorCode:    http.StatusBadRequest,
 			ErrorMessage: "用户名或密码错误",

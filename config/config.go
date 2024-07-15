@@ -7,7 +7,7 @@ type Server struct {
 	DB      DB      `mapStructure:"db"`
 	Redis   Redis   `mapStructure:"redis"`
 	Session Session `mapStructure:"session"`
-	Config  Config  `mapStructure:"conf"`
+	Conf    Conf    `mapStructure:"conf"`
 }
 
 type DB struct {
@@ -34,6 +34,6 @@ type Session struct {
 	Secret string `mapStructure:"secret"`
 }
 
-type Config struct {
+type Conf struct {
 	Salt string `mapStructure:"salt"`
 }

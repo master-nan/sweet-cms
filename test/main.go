@@ -48,21 +48,32 @@ func main() {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	db.Migrator().DropTable(&model.SysConfigure{})
-	db.AutoMigrate(&model.SysConfigure{})
+	db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{}, &model.SysConfigure{}, model.SysUser{}, model.SysUserRole{}, model.SysMenu{}, model.SysMenuButton{}, model.SysRoleMenu{})
+	// 迁移 schema
+	db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{}, &model.SysConfigure{}, model.SysUser{}, model.SysUserRole{}, model.SysMenu{}, model.SysMenuButton{}, model.SysRoleMenu{})
 
-	// Create
+	// Create SysConfigure
 	m := &model.SysConfigure{EnableCaptcha: false}
 	sf, err := utils.NewSnowflake(1)
 	if err != nil {
 		panic(err)
 	}
-	uniqueID, err := sf.GenerateUniqueID()
+	uniqueID, _ := sf.GenerateUniqueID()
 	m.Id = int(uniqueID)
 	db.Create(m)
 
-	db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
-	// 迁移 schema
-	db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{})
-
+	// Create SysUser
+	u := &model.SysUser{
+		UserName:     "admin",
+		Email:        "admin@admin.com",
+		PhoneNumber:  "12345678910",
+		Password:     "123456",
+		EmployeeId:   3,
+		Language:     "zh-CN",
+		GmtLastLogin: model.CustomTime(time.Now()),
+	}
+	u.Password = utils.Encryption(u.Password, u.UserName+"123456")
+	uniqueID, _ = sf.GenerateUniqueID()
+	u.Id = int(uniqueID)
+	db.Create(u)
 }

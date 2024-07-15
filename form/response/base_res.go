@@ -10,7 +10,7 @@ import (
 // AdminError 失败返回值参数
 type AdminError struct {
 	ErrorCode    int    `json:"errorCode"`
-	ErrorMessage string `json:"message"`
+	ErrorMessage string `json:"errorMessage"`
 	Success      bool   `json:"success"`
 }
 
