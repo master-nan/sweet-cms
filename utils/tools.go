@@ -207,22 +207,22 @@ func StringPtr(s string) *string {
 
 func SqlTypeFromFieldType(fieldType enum.SysTableFieldType) string {
 	switch fieldType {
-	case enum.INT:
-		return "INT"
-	case enum.VARCHAR:
-		return "VARCHAR" // 长度将在外部指定
-	case enum.DATETIME:
-		return "DATETIME"
-	case enum.BOOLEAN:
-		return "BOOLEAN"
-	case enum.TEXT:
-		return "TEXT"
-	case enum.DATE:
-		return "DATE"
-	case enum.TIME:
-		return "TIME"
+	case enum.IntFieldType:
+		return "IntFieldType"
+	case enum.VarcharFieldType:
+		return "VarcharFieldType" // 长度将在外部指定
+	case enum.DatetimeFieldType:
+		return "DatetimeFieldType"
+	case enum.BooleanFieldType:
+		return "BooleanFieldType"
+	case enum.TextFieldType:
+		return "TextFieldType"
+	case enum.DateFieldType:
+		return "DateFieldType"
+	case enum.TimeFieldType:
+		return "TimeFieldType"
 	default:
-		return "TEXT"
+		return "TextFieldType"
 	}
 }
 
@@ -287,7 +287,7 @@ func ConvertColumnsToSysTableFields(columns []model.TableColumnMate) ([]model.Sy
 			Sequence:           uint8(column.OrdinalPosition),
 			OriginalFieldId:    0,
 			FieldLength:        0,
-			FieldCategory:      enum.NORMAL_FIELD,
+			FieldCategory:      enum.NormalField,
 			Binding:            "required", // 根据实际逻辑调整
 		}
 		if column.ColumnComment != "" {
@@ -297,26 +297,26 @@ func ConvertColumnsToSysTableFields(columns []model.TableColumnMate) ([]model.Sy
 		}
 		switch column.DataType {
 		case "int", "bigint":
-			field.FieldType = enum.INT
+			field.FieldType = enum.IntFieldType
 		case "tinyint":
-			field.FieldType = enum.TINYINT
+			field.FieldType = enum.TinyintFieldType
 			field.FieldLength = int(column.NumericPrecision.Int64)
 		case "varchar":
-			field.FieldType = enum.VARCHAR
+			field.FieldType = enum.VarcharFieldType
 			field.FieldLength = int(column.CharacterMaximumLength.Int64)
 		case "text", "mediumtext", "longtext":
-			field.FieldType = enum.TEXT
+			field.FieldType = enum.TextFieldType
 			field.FieldLength = int(column.CharacterMaximumLength.Int64)
 		case "boolean", "bool":
-			field.FieldType = enum.BOOLEAN
+			field.FieldType = enum.BooleanFieldType
 		case "date":
-			field.FieldType = enum.DATE
+			field.FieldType = enum.DateFieldType
 		case "datetime", "timestamp":
-			field.FieldType = enum.DATETIME
+			field.FieldType = enum.DatetimeFieldType
 		case "time":
-			field.FieldType = enum.TIME
+			field.FieldType = enum.TimeFieldType
 		default:
-			field.FieldType = enum.VARCHAR
+			field.FieldType = enum.VarcharFieldType
 			field.FieldLength = int(column.NumericPrecision.Int64)
 		}
 		// 检查DefaultValue是否有值

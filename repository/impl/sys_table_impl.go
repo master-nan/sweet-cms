@@ -82,18 +82,6 @@ func (s *SysTableRepositoryImpl) UpdateTableField(tx *gorm.DB, req request.Table
 	return tx.Model(&model.SysTableField{}).Where("id = ?", req.Id).Updates(req).Error
 }
 
-func (s *SysTableRepositoryImpl) ModifyTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
-	tableName := utils.GetTableName(tx, tableCode)
-	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` MODIFY `%s` %s;", tableName, fieldCode, sqlType)
-	return tx.Exec(alterColumnSQL).Error
-}
-
-func (s *SysTableRepositoryImpl) ChangeTableColumn(tx *gorm.DB, tableCode string, originalFieldCode string, fieldCode string, sqlType string) error {
-	tableName := utils.GetTableName(tx, tableCode)
-	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` CHANGE `%s` `%s` %s;", tableName, originalFieldCode, fieldCode, sqlType)
-	return tx.Exec(alterColumnSQL).Error
-}
-
 func (s *SysTableRepositoryImpl) InsertTableField(tx *gorm.DB, field model.SysTableField) error {
 	return tx.Create(&field).Error
 }
@@ -222,6 +210,18 @@ func (s *SysTableRepositoryImpl) DropTableColumn(tx *gorm.DB, tableCode string, 
 	// 构建删除字段的SQL语句
 	dropColumnSQL := fmt.Sprintf("ALTER TABLE `%s` DROP COLUMN `%s`;", tableName, fieldCode)
 	return tx.Exec(dropColumnSQL).Error
+}
+
+func (s *SysTableRepositoryImpl) ModifyTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
+	tableName := utils.GetTableName(tx, tableCode)
+	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` MODIFY `%s` %s;", tableName, fieldCode, sqlType)
+	return tx.Exec(alterColumnSQL).Error
+}
+
+func (s *SysTableRepositoryImpl) ChangeTableColumn(tx *gorm.DB, tableCode string, originalFieldCode string, fieldCode string, sqlType string) error {
+	tableName := utils.GetTableName(tx, tableCode)
+	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` CHANGE `%s` `%s` %s;", tableName, originalFieldCode, fieldCode, sqlType)
+	return tx.Exec(alterColumnSQL).Error
 }
 
 func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCode string) ([]model.TableColumnMate, error) {

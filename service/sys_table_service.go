@@ -120,14 +120,14 @@ func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateR
 	data.Id = int(id)
 	// 自动在sys_table_field中为Basic结构体中的每个字段创建记录
 	fields := []model.SysTableField{
-		{TableId: data.Id, FieldName: "id", FieldCode: "id", FieldType: enum.INT, IsPrimaryKey: true, IsNull: false, InputType: enum.INPUT_NUMBER, IsSort: true, Sequence: 1, IsListShow: true},
-		{TableId: data.Id, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 2, IsListShow: true},
-		{TableId: data.Id, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 3, IsListShow: true},
-		{TableId: data.Id, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DATETIME, IsNull: false, InputType: enum.DATETIME_PICKER, IsSort: true, Sequence: 4, IsListShow: true},
-		{TableId: data.Id, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.INT, IsNull: false, InputType: enum.INPUT_NUMBER, Sequence: 5, IsListShow: true},
-		{TableId: data.Id, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DATETIME, IsNull: true, InputType: enum.DATETIME_PICKER, Sequence: 6},
-		{TableId: data.Id, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.INT, IsNull: true, InputType: enum.INPUT_NUMBER, Sequence: 7},
-		{TableId: data.Id, FieldName: "状态", FieldCode: "state", FieldType: enum.BOOLEAN, IsNull: false, InputType: enum.SELECT, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
+		{TableId: data.Id, FieldName: "id", FieldCode: "id", FieldType: enum.IntFieldType, IsPrimaryKey: true, IsNull: false, InputType: enum.InputNumberInputType, IsSort: true, Sequence: 1, IsListShow: true},
+		{TableId: data.Id, FieldName: "创建时间", FieldCode: "gmt_create", FieldType: enum.DatetimeFieldType, IsNull: false, InputType: enum.DatetimePickerInputType, IsSort: true, Sequence: 2, IsListShow: true},
+		{TableId: data.Id, FieldName: "创建者", FieldCode: "gmt_create_user", FieldType: enum.IntFieldType, IsNull: false, InputType: enum.InputNumberInputType, Sequence: 3, IsListShow: true},
+		{TableId: data.Id, FieldName: "修改时间", FieldCode: "gmt_modify", FieldType: enum.DatetimeFieldType, IsNull: false, InputType: enum.DatetimePickerInputType, IsSort: true, Sequence: 4, IsListShow: true},
+		{TableId: data.Id, FieldName: "修改者", FieldCode: "gmt_modify_user", FieldType: enum.IntFieldType, IsNull: false, InputType: enum.InputNumberInputType, Sequence: 5, IsListShow: true},
+		{TableId: data.Id, FieldName: "删除时间", FieldCode: "gmt_delete", FieldType: enum.DatetimeFieldType, IsNull: true, InputType: enum.DatetimePickerInputType, Sequence: 6},
+		{TableId: data.Id, FieldName: "删除者", FieldCode: "gmt_delete_user", FieldType: enum.IntFieldType, IsNull: true, InputType: enum.InputNumberInputType, Sequence: 7},
+		{TableId: data.Id, FieldName: "状态", FieldCode: "state", FieldType: enum.BooleanFieldType, IsNull: false, InputType: enum.SelectInputType, IsSort: true, DefaultValue: utils.StringPtr("true"), DictCode: utils.StringPtr("whether"), Sequence: 8, IsListShow: true},
 	}
 	for i := range fields {
 		fieldId, err := s.sf.GenerateUniqueID()
@@ -200,7 +200,7 @@ func (s *SysTableService) DeleteTableById(ctx *gin.Context, id int) error {
 			if e := s.sysTableRepo.DeleteTableRelation(tx, relation.Id); e != nil {
 				return e
 			}
-			if relation.RelationType == enum.MANY_TO_MANY {
+			if relation.RelationType == enum.ManyToMany {
 				// 删除多对多中间表
 				if e := s.sysTableRepo.DropTable(tx, relation.ManyTableCode); e != nil {
 					return e
@@ -432,7 +432,7 @@ func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.Tabl
 			return e
 		}
 		// 如果是多对多 创建对应的表
-		if data.RelationType == enum.MANY_TO_MANY {
+		if data.RelationType == enum.ManyToMany {
 			mainTable, e := s.GetTableById(data.TableId)
 			if e != nil {
 				return e
@@ -675,7 +675,7 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 		},
 		TableName: tableCode,
 		TableCode: tableCode,
-		TableType: enum.SYSTEM,
+		TableType: enum.System,
 	}
 	indexesMap := make(map[string]model.SysTableIndex)
 	var indexes []model.SysTableIndex

@@ -9,101 +9,99 @@ package enum
 type DataPermissionsEnum uint8
 
 const (
-	WHOLE   DataPermissionsEnum = iota + 1 //全部
-	CUSTOM                                 //自定义
-	TACITLY                                // 默认
+	Whole   DataPermissionsEnum = iota + 1 //全部
+	Custom                                 //自定义
+	Tacitly                                // 默认
 )
 
+// SysMenuButtonPosition 按钮位置字典
 type SysMenuButtonPosition uint8
 
 const (
-	COLUMN SysMenuButtonPosition = iota + 1
-	LINE
+	Column SysMenuButtonPosition = iota + 1
+	Line
 )
 
+// SysTableType 表类型字典
 type SysTableType uint8
 
 const (
-	SYSTEM SysTableType = iota + 1
-	VIEW
+	System SysTableType = iota + 1 // 系统表
+	View                           // 视图
 )
 
+// SysTableFieldType 字段数据库存储类型
 type SysTableFieldType uint8
 
 const (
-	INT SysTableFieldType = iota + 1
-	FLOAT
-	VARCHAR
-	TEXT
-	BOOLEAN
-	DATE
-	DATETIME
-	TIME
-	TINYINT
+	IntFieldType SysTableFieldType = iota + 1 //
+	FloatFieldType
+	VarcharFieldType
+	TextFieldType
+	BooleanFieldType
+	DateFieldType
+	DatetimeFieldType
+	TimeFieldType
+	TinyintFieldType
 )
 
+// SysTableFieldInputType 字段页面输入类型
 type SysTableFieldInputType uint8
 
 const (
-	INPUT SysTableFieldInputType = iota + 1
-	INPUT_NUMBER
-	TEXTAREA
-	SELECT
-	DATE_PICKER
-	DATETIME_PICKER
-	TIME_PICKER
-	YEAR_PICKER
-	YREA_MONTH_PICKER
-	FILE_PICKER
+	InputInputType SysTableFieldInputType = iota + 1
+	InputNumberInputType
+	TextareaInputType
+	SelectInputType
+	DatePickerInputType
+	DatetimePickerInputType
+	TimePickerInputType
+	YearPickerInputType
+	YearMonthPickerInputType
+	FilePickerInputType
 )
 
 // ExpressionType 表达式
 type ExpressionType uint8
 
 const (
-	GT  ExpressionType = iota + 1 // GT
-	LT                            // LT
-	GTE                           // GTE
-	LTE
-	EQ
-	NE
-	LIKE
-	NOT_LIKE
-	IN
-	NOT_IN
-	IS_NULL
-	IS_NOT_NULL
+	Gt  ExpressionType = iota + 1 // Gt
+	Lt                            // Lt
+	Gte                           // Gte
+	Lte
+	Eq
+	Ne
+	Like
+	NotLike
+	In
+	NotIn
+	IsNull
+	IsNotNull
 )
 
+// ExpressionLogic 关联方式
 type ExpressionLogic uint8
 
 const (
-	AND ExpressionLogic = iota + 1
-	OR
+	And ExpressionLogic = iota + 1
+	Or
 )
 
+// SysTableRelationType 表关系
 type SysTableRelationType uint8
 
 const (
-	ONE_TO_ONE SysTableRelationType = iota + 1
-	ONE_TO_MANY
-	MANY_TO_ONE
-	MANY_TO_MANY
+	OneToOne SysTableRelationType = iota + 1
+	OneToMany
+	ManyToOne
+	ManyToMany
 )
 
-type ArticleType string
-
-const (
-	DRAFT   ArticleType = "draft"
-	REVIEW  ArticleType = "review"
-	RELEASE ArticleType = "release"
-	REJECT  ArticleType = "reject"
-)
-
+// SysTableFieldCategory 表字段类型
 type SysTableFieldCategory string
 
 const (
-	NORMAL_FIELD     SysTableFieldCategory = "normal_field"     // 默认字段
-	VIRTUAL_FIELD    SysTableFieldCategory = "virtual_field"    // 虚拟列
-	CALCULATED_FIELD SysTableFieldCategory = "calculated_field" // 计算字段
+	NormalField     SysTableFieldCategory = "normal_field"     // 默认字段
+	VirtualField    SysTableFieldCategory = "virtual_field"    // 虚拟列
+	CalculatedField SysTableFieldCategory = "calculated_field" // 计算字段
 )

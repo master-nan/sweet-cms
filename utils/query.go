@@ -22,23 +22,23 @@ import (
 
 func parseValue(value interface{}, valueType enum.SysTableFieldType) interface{} {
 	switch valueType {
-	case enum.INT:
+	case enum.IntFieldType:
 		return value.(int)
-	case enum.FLOAT:
+	case enum.FloatFieldType:
 		return value.(float64)
-	case enum.VARCHAR:
+	case enum.VarcharFieldType:
 		return value.(string)
-	case enum.BOOLEAN:
+	case enum.BooleanFieldType:
 		return value.(bool)
-	case enum.TEXT:
+	case enum.TextFieldType:
 		return value.(string)
-	case enum.DATE:
+	case enum.DateFieldType:
 		t, _ := time.Parse(time.DateOnly, value.(string))
 		return t
-	case enum.DATETIME:
+	case enum.DatetimeFieldType:
 		t, _ := time.Parse(time.DateTime, value.(string))
 		return t
-	case enum.TIME:
+	case enum.TimeFieldType:
 		t, _ := time.Parse(time.TimeOnly, value.(string))
 		return t
 	default:
@@ -66,29 +66,29 @@ func buildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 		for _, rule := range exprGroup.Rules {
 			value := parseValue(rule.Value, rule.Type)
 			switch rule.ExpressionType {
-			case enum.GT:
+			case enum.Gt:
 				subQuery = query.Where(rule.Field+" > ?", value)
-			case enum.LT:
+			case enum.Lt:
 				subQuery = query.Where(rule.Field+" < ?", value)
-			case enum.GTE:
+			case enum.Gte:
 				subQuery = query.Where(rule.Field+" >= ?", value)
-			case enum.LTE:
+			case enum.Lte:
 				subQuery = query.Where(rule.Field+" <= ?", value)
-			case enum.EQ:
+			case enum.Eq:
 				subQuery = query.Where(rule.Field+" = ?", value)
-			case enum.NE:
+			case enum.Ne:
 				subQuery = query.Where(rule.Field+" != ?", value)
-			case enum.LIKE:
-				subQuery = query.Where(rule.Field+" LIKE %?%", value)
-			case enum.NOT_LIKE:
-				subQuery = query.Where(rule.Field+" NOT LIKE %?%", value)
-			case enum.IN:
-				subQuery = query.Where(rule.Field+" IN (?)", value)
-			case enum.NOT_IN:
-				subQuery = query.Where(rule.Field+" NOT IN (?)", value)
-			case enum.IS_NULL:
+			case enum.Like:
+				subQuery = query.Where(rule.Field+" Like %?%", value)
+			case enum.NotLike:
+				subQuery = query.Where(rule.Field+" NOT Like %?%", value)
+			case enum.In:
+				subQuery = query.Where(rule.Field+" In (?)", value)
+			case enum.NotIn:
+				subQuery = query.Where(rule.Field+" NOT In (?)", value)
+			case enum.IsNull:
 				subQuery = query.Where(rule.Field + " IS NULL")
-			case enum.IS_NOT_NULL:
+			case enum.IsNotNull:
 				subQuery = query.Where(rule.Field + " IS NOT NULL")
 			default:
 				continue
@@ -99,13 +99,13 @@ func buildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 		for _, nestedExpr := range exprGroup.Nested {
 			nestedQuery := buildQuery(db, request.Basic{Expressions: []request.ExpressionGroup{nestedExpr}}) // 递归处理嵌套表达式
 			switch exprGroup.Logic {
-			case enum.OR:
+			case enum.Or:
 				if subQuery == nil {
 					subQuery = nestedQuery
 				} else {
 					subQuery = subQuery.Or(nestedQuery)
 				}
-			case enum.AND:
+			case enum.And:
 				if subQuery == nil {
 					subQuery = nestedQuery
 				} else {
@@ -117,9 +117,9 @@ func buildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 		// 应用当前表达式组的逻辑
 		if subQuery != nil {
 			switch exprGroup.Logic {
-			case enum.AND:
+			case enum.And:
 				query = query.Where(subQuery)
-			case enum.OR:
+			case enum.Or:
 				query = query.Or(subQuery)
 			default:
 				continue
@@ -216,15 +216,15 @@ func CreateDynamicStruct(fields []model.SysTableField) reflect.Type {
 // GetFieldType 获取对应类型
 func GetFieldType(fieldType enum.SysTableFieldType) reflect.Type {
 	switch fieldType {
-	case enum.INT:
+	case enum.IntFieldType:
 		return reflect.TypeOf(0) // 或 reflect.TypeOf(int64(0)) 根据需要选择
-	case enum.FLOAT:
+	case enum.FloatFieldType:
 		return reflect.TypeOf(0.0) // 使用 float64 是 Go 中最常用的浮点类型
-	case enum.VARCHAR, enum.TEXT:
+	case enum.VarcharFieldType, enum.TextFieldType:
 		return reflect.TypeOf("") // 字符串类型
-	case enum.BOOLEAN:
+	case enum.BooleanFieldType:
 		return reflect.TypeOf(false)
-	case enum.DATE, enum.DATETIME, enum.TIME:
+	case enum.DateFieldType, enum.DatetimeFieldType, enum.TimeFieldType:
 		return reflect.TypeOf(time.Time{}) // 对于所有的时间类型使用 time.Time
 	default:
 		return reflect.TypeOf(nil) // 未知类型返回 nil 类型，可能需要处理错误
@@ -270,15 +270,15 @@ func BuildTag(field model.SysTableField) string {
 
 func getDefaultValue(defaultValue string, fieldType enum.SysTableFieldType) string {
 	switch fieldType {
-	case enum.INT, enum.TINYINT:
+	case enum.IntFieldType, enum.TinyintFieldType:
 		d, _ := strconv.Atoi(defaultValue)
 		return fmt.Sprintf(`default:%d`, d)
-	case enum.FLOAT:
+	case enum.FloatFieldType:
 		f, _ := strconv.ParseFloat(defaultValue, 64)
 		return fmt.Sprintf(`default:%f`, f)
-	case enum.BOOLEAN:
+	case enum.BooleanFieldType:
 		return fmt.Sprintf(`default:%v`, defaultValue)
-	case enum.VARCHAR, enum.TEXT:
+	case enum.VarcharFieldType, enum.TextFieldType:
 		return fmt.Sprintf(`default:%s`, defaultValue)
 	default:
 		return fmt.Sprintf(`default:%v`, defaultValue)
@@ -288,24 +288,24 @@ func getDefaultValue(defaultValue string, fieldType enum.SysTableFieldType) stri
 // getSQLType 返回类型和长度
 func getSQLType(fieldType enum.SysTableFieldType, length int, decimal int) string {
 	switch fieldType {
-	case enum.INT:
+	case enum.IntFieldType:
 		return "int"
-	case enum.FLOAT:
+	case enum.FloatFieldType:
 		if decimal > 0 {
 			return fmt.Sprintf("decimal(%d,%d)", length, decimal)
 		}
 		return "float"
-	case enum.VARCHAR:
+	case enum.VarcharFieldType:
 		return fmt.Sprintf("varchar(%d)", length)
-	case enum.TEXT:
+	case enum.TextFieldType:
 		return "text"
-	case enum.BOOLEAN:
+	case enum.BooleanFieldType:
 		return "boolean"
-	case enum.DATE:
+	case enum.DateFieldType:
 		return "date"
-	case enum.DATETIME:
+	case enum.DatetimeFieldType:
 		return "datetime"
-	case enum.TIME:
+	case enum.TimeFieldType:
 		return "time"
 	default:
 		return "text"
