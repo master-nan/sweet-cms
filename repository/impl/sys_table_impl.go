@@ -181,7 +181,15 @@ func (s *SysTableRepositoryImpl) DeleteTableIndexFieldByIndexIds(tx *gorm.DB, id
 
 func (s *SysTableRepositoryImpl) CreateTable(tx *gorm.DB, tableCode string, model any) error {
 	tableName := utils.GetTableName(tx, tableCode)
-	return tx.Table(tableName).AutoMigrate(model)
+	// 检查表是否存在
+	if !tx.Migrator().HasTable(tableName) {
+		// 不存在则创建表
+		err := tx.Table(tableName).AutoMigrate(model)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *SysTableRepositoryImpl) DropTable(tx *gorm.DB, tableCode string) error {
