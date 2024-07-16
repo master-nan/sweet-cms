@@ -117,6 +117,7 @@ type SysTableField struct {
 	Binding            string                      `gorm:"size:256;comment:验证器" json:"binding"`        // 用于存储绑定规则
 	FieldCategory      enum.SysTableFieldCategory  `gorm:"size:64;comment:字段类别" json:"fieldCategory"`  // 字段类别（普通字段、虚拟列、计算字段）
 	Expression         *string                     `gorm:"size:256;comment:计算字段表达式" json:"expression"` // 计算字段表达式或虚拟列表达式
+	Tag                *string                     `gorm:"size:256;comment:标签" json:"tag"`
 }
 
 type SysTableIndex struct {

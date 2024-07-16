@@ -204,6 +204,9 @@ func CreateDynamicStruct(fields []model.SysTableField) reflect.Type {
 	for _, field := range fields {
 		fieldType := GetFieldType(field.FieldType)
 		fieldTag := BuildTag(field)
+		if field.Tag != nil {
+			fieldTag = *field.Tag
+		}
 		fieldsList = append(fieldsList, reflect.StructField{
 			Name: toCamelCaseGo(field.FieldCode),
 			Type: fieldType,

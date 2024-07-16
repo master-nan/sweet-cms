@@ -14,7 +14,6 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"net/http"
-	"reflect"
 	"strconv"
 	"strings"
 	"sweet-cms/cache"
@@ -25,7 +24,6 @@ import (
 	"sweet-cms/inter"
 	"sweet-cms/model"
 	"sweet-cms/repository"
-	"sweet-cms/repository/util"
 	"sweet-cms/utils"
 )
 
@@ -448,31 +446,38 @@ func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.Tabl
 			for _, field := range mainTable.TableFields {
 				if field.FieldCode == data.ReferenceKey {
 					referenceKeyField = field
+					referenceKeyField.Tag = utils.StringPtr(`gorm:"primaryKey;autoIncrement:false"`)
 				}
 			}
 			var foreignKeyField model.SysTableField
 			for _, field := range relatedTable.TableFields {
 				if field.FieldCode == data.ForeignKey {
 					foreignKeyField = field
+					foreignKeyField.Tag = utils.StringPtr(`gorm:"primaryKey;autoIncrement:false"`)
 				}
 			}
 			if referenceKeyField.Id == 0 || foreignKeyField.Id == 0 {
 				return errors.New("关联字段不存在")
 			}
-			var relationList []reflect.StructField
-			referenceKey := reflect.StructField{
-				Name: data.ReferenceKey,
-				Type: util.GetFieldType(referenceKeyField.FieldType),
-				Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
-			}
-			foreignKey := reflect.StructField{
-				Name: data.ForeignKey,
-				Type: util.GetFieldType(foreignKeyField.FieldType),
-				Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
-			}
-			relationList = append(relationList, referenceKey, foreignKey)
-			reflect.StructOf(relationList)
-			relationModel := reflect.New(reflect.StructOf(relationList)).Interface()
+
+			//var relationList []reflect.StructField
+			//referenceKey := reflect.StructField{
+			//	Name: data.ReferenceKey,
+			//	Type: util.GetFieldType(referenceKeyField.FieldType),
+			//	Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
+			//}
+			//foreignKey := reflect.StructField{
+			//	Name: data.ForeignKey,
+			//	Type: util.GetFieldType(foreignKeyField.FieldType),
+			//	Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
+			//}
+			//relationList = append(relationList, referenceKey, foreignKey)
+			//reflect.StructOf(relationList)
+			//relationModel := reflect.New(reflect.StructOf(relationList)).Interface()
+
+			var relationFields []model.SysTableField
+			relationFields = append(relationFields, referenceKeyField, foreignKeyField)
+			relationModel := s.sysTableRepo.Model(relationFields)
 			// 先删除再创建
 			if e := s.sysTableRepo.DropTable(tx, data.ManyTableCode); e != nil {
 				return e
@@ -496,12 +501,6 @@ func (s *SysTableService) DeleteTableRelation(ctx *gin.Context, id int) error {
 		}
 		// 删除缓存
 		s.DeleteCache(relation.TableId)
-		// TODO 删除表关系考虑是否需要删除多对多中间表
-		//if relation.RelationType == enum.MANY_TO_MANY {
-		//	if e := s.sysTableRepo.DropTable(tx, relation.ManyTableCode); e {
-		//		return e
-		//	}
-		//}
 		return nil
 	})
 	return err
