@@ -8,10 +8,11 @@ package impl
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"reflect"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
-	"sweet-cms/utils"
+	"sweet-cms/repository/util"
 )
 
 type SysTableRepositoryImpl struct {
@@ -57,7 +58,7 @@ func (s *SysTableRepositoryImpl) DeleteTableById(tx *gorm.DB, i int) error {
 
 func (s *SysTableRepositoryImpl) GetTableList(basic request.Basic) (response.ListResult[model.SysTable], error) {
 	var repo response.ListResult[model.SysTable]
-	query := utils.ExecuteQuery(s.db, basic)
+	query := util.ExecuteQuery(s.db, basic)
 	var sysTableList []model.SysTable
 	var total int64 = 0
 	err := query.Find(&sysTableList).Limit(-1).Offset(-1).Count(&total).Error
@@ -156,14 +157,14 @@ func (s *SysTableRepositoryImpl) CreateTableIndex(tx *gorm.DB, isUnique bool, in
 	if isUnique {
 		unique = "UNIQUE"
 	}
-	tableName := utils.GetTableName(tx, tableCode)
+	tableName := util.GetTableName(tx, tableCode)
 	createIndexSql := fmt.Sprintf("CREATE %s INDEX %s ON %s (%s)", unique, indexName, tableName, fields)
 	return tx.Exec(createIndexSql).Error
 }
 
 // DropTableIndex 删除实体表索引
 func (s *SysTableRepositoryImpl) DropTableIndex(tx *gorm.DB, indexName string, tableCode string) error {
-	tableName := utils.GetTableName(tx, tableCode)
+	tableName := util.GetTableName(tx, tableCode)
 	// 构建删除索引的SQL语句
 	dropIndexSQL := fmt.Sprintf("DROP INDEX %s ON %s", indexName, tableName)
 	return tx.Exec(dropIndexSQL).Error
@@ -180,7 +181,7 @@ func (s *SysTableRepositoryImpl) DeleteTableIndexFieldByIndexIds(tx *gorm.DB, id
 }
 
 func (s *SysTableRepositoryImpl) CreateTable(tx *gorm.DB, tableCode string, model any) error {
-	tableName := utils.GetTableName(tx, tableCode)
+	tableName := util.GetTableName(tx, tableCode)
 	// 检查表是否存在
 	if !tx.Migrator().HasTable(tableName) {
 		// 不存在则创建表
@@ -193,7 +194,7 @@ func (s *SysTableRepositoryImpl) CreateTable(tx *gorm.DB, tableCode string, mode
 }
 
 func (s *SysTableRepositoryImpl) DropTable(tx *gorm.DB, tableCode string) error {
-	tableName := utils.GetTableName(tx, tableCode)
+	tableName := util.GetTableName(tx, tableCode)
 	// 检查表是否存在
 	if tx.Migrator().HasTable(tableName) {
 		// 删除表
@@ -207,34 +208,34 @@ func (s *SysTableRepositoryImpl) DropTable(tx *gorm.DB, tableCode string) error 
 
 // CreateTableColumn 添加实体字段
 func (s *SysTableRepositoryImpl) CreateTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
-	tableName := utils.GetTableName(tx, tableCode)
+	tableName := util.GetTableName(tx, tableCode)
 	addColumnSQL := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s;", tableName, fieldCode, sqlType)
 	return tx.Exec(addColumnSQL).Error
 }
 
 // DropTableColumn 删除实体字段
 func (s *SysTableRepositoryImpl) DropTableColumn(tx *gorm.DB, tableCode string, fieldCode string) error {
-	tableName := utils.GetTableName(tx, tableCode)
+	tableName := util.GetTableName(tx, tableCode)
 	// 构建删除字段的SQL语句
 	dropColumnSQL := fmt.Sprintf("ALTER TABLE `%s` DROP COLUMN `%s`;", tableName, fieldCode)
 	return tx.Exec(dropColumnSQL).Error
 }
 
 func (s *SysTableRepositoryImpl) ModifyTableColumn(tx *gorm.DB, tableCode string, fieldCode string, sqlType string) error {
-	tableName := utils.GetTableName(tx, tableCode)
+	tableName := util.GetTableName(tx, tableCode)
 	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` MODIFY `%s` %s;", tableName, fieldCode, sqlType)
 	return tx.Exec(alterColumnSQL).Error
 }
 
 func (s *SysTableRepositoryImpl) ChangeTableColumn(tx *gorm.DB, tableCode string, originalFieldCode string, fieldCode string, sqlType string) error {
-	tableName := utils.GetTableName(tx, tableCode)
+	tableName := util.GetTableName(tx, tableCode)
 	alterColumnSQL := fmt.Sprintf("ALTER TABLE `%s` CHANGE `%s` `%s` %s;", tableName, originalFieldCode, fieldCode, sqlType)
 	return tx.Exec(alterColumnSQL).Error
 }
 
 func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCode string) ([]model.TableColumnMate, error) {
 	var columns []model.TableColumnMate
-	tableName := utils.GetTableName(s.db, tableCode)
+	tableName := util.GetTableName(s.db, tableCode)
 	query := `SELECT *  FROM INFORMATION_SCHEMA.COLUMNS  WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;`
 	err := s.db.Raw(query, tableSchema, tableName).Scan(&columns).Error
 	if err != nil {
@@ -245,7 +246,7 @@ func (s *SysTableRepositoryImpl) FetchTableMetadata(tableSchema string, tableCod
 
 func (s *SysTableRepositoryImpl) FetchTableIndexMetadata(tableSchema string, tableCode string) ([]model.TableIndexMate, error) {
 	var indexes []model.TableIndexMate
-	tableName := utils.GetTableName(s.db, tableCode)
+	tableName := util.GetTableName(s.db, tableCode)
 	query := `SELECT COLUMN_NAME, INDEX_NAME, NON_UNIQUE, INDEX_TYPE FROM
     INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME != 'PRIMARY';`
 	err := s.db.Raw(query, tableSchema, tableName).Scan(&indexes).Error
@@ -253,4 +254,12 @@ func (s *SysTableRepositoryImpl) FetchTableIndexMetadata(tableSchema string, tab
 		return []model.TableIndexMate{}, err
 	}
 	return indexes, nil
+}
+
+func (s *SysTableRepositoryImpl) Model(data []model.SysTableField) interface{} {
+	// 动态创建结构体类型
+	dynamicType := util.CreateDynamicStruct(data)
+	// 创建实例
+	dynamicModel := reflect.New(dynamicType).Interface()
+	return dynamicModel
 }

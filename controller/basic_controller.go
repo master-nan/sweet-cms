@@ -142,7 +142,6 @@ func (b *BasicController) Configure(ctx *gin.Context) {
 }
 
 func (b *BasicController) Logout(ctx *gin.Context) {
-	utils.DeleteSession(ctx, "captcha")
 }
 
 func (b *BasicController) Test(ctx *gin.Context) {

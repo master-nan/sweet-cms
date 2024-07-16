@@ -25,6 +25,7 @@ import (
 	"sweet-cms/inter"
 	"sweet-cms/model"
 	"sweet-cms/repository"
+	"sweet-cms/repository/util"
 	"sweet-cms/utils"
 )
 
@@ -141,10 +142,8 @@ func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateR
 		if e := s.sysTableRepo.InsertTable(tx, data); e != nil {
 			return e
 		}
-		// 动态创建结构体类型
-		dynamicType := utils.CreateDynamicStruct(data.TableFields)
 		// 创建实例
-		dynamicModel := reflect.New(dynamicType).Interface()
+		dynamicModel := s.sysTableRepo.Model(data.TableFields)
 		// 先删除再创建
 		if e := s.sysTableRepo.DropTable(tx, data.TableCode); e != nil {
 			return e
@@ -463,12 +462,12 @@ func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.Tabl
 			var relationList []reflect.StructField
 			referenceKey := reflect.StructField{
 				Name: data.ReferenceKey,
-				Type: utils.GetFieldType(referenceKeyField.FieldType),
+				Type: util.GetFieldType(referenceKeyField.FieldType),
 				Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
 			}
 			foreignKey := reflect.StructField{
 				Name: data.ForeignKey,
-				Type: utils.GetFieldType(foreignKeyField.FieldType),
+				Type: util.GetFieldType(foreignKeyField.FieldType),
 				Tag:  reflect.StructTag(`gorm:"primaryKey;autoIncrement:false"`),
 			}
 			relationList = append(relationList, referenceKey, foreignKey)
@@ -655,10 +654,7 @@ func (s *SysTableService) DeleteTableIndexByTableId(ctx *gin.Context, id int) er
 func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	columns, err := s.sysTableRepo.FetchTableMetadata(s.serverConfig.DB.Name, tableCode)
 	tableIndexes, err := s.sysTableRepo.FetchTableIndexMetadata(s.serverConfig.DB.Name, tableCode)
-	fields, err := utils.ConvertColumnsToSysTableFields(columns)
-	if err != nil {
-		return err
-	}
+	fields := convertColumnsToSysTableFields(columns)
 	id, err := s.sf.GenerateUniqueID()
 	if err != nil {
 		return err
@@ -747,4 +743,62 @@ func (s *SysTableService) DeleteCache(tableId int) {
 			}
 		}
 	}()
+}
+
+func convertColumnsToSysTableFields(columns []model.TableColumnMate) []model.SysTableField {
+	var fields []model.SysTableField
+	for _, column := range columns {
+		field := model.SysTableField{
+			FieldCode:          column.ColumnName,              // 通常 FieldCode 会是数据库的真实列名
+			FieldDecimalLength: int(column.NumericScale.Int64), // 根据需要设置
+			IsNull:             column.IsNullable == "YES",
+			IsPrimaryKey:       column.ColumnKey == "PRI",
+			IsQuickSearch:      false,
+			IsAdvancedSearch:   false,
+			IsSort:             true,
+			IsListShow:         true,
+			IsInsertShow:       false,
+			IsUpdateShow:       false,
+			Sequence:           uint8(column.OrdinalPosition),
+			OriginalFieldId:    0,
+			FieldLength:        0,
+			FieldCategory:      enum.NormalField,
+			Binding:            "required", // 根据实际逻辑调整
+		}
+		if column.ColumnComment != "" {
+			field.FieldName = column.ColumnComment
+		} else {
+			field.FieldName = column.ColumnName
+		}
+		switch column.DataType {
+		case "int", "bigint":
+			field.FieldType = enum.IntFieldType
+		case "tinyint":
+			field.FieldType = enum.TinyintFieldType
+			field.FieldLength = int(column.NumericPrecision.Int64)
+		case "varchar":
+			field.FieldType = enum.VarcharFieldType
+			field.FieldLength = int(column.CharacterMaximumLength.Int64)
+		case "text", "mediumtext", "longtext":
+			field.FieldType = enum.TextFieldType
+			field.FieldLength = int(column.CharacterMaximumLength.Int64)
+		case "boolean", "bool":
+			field.FieldType = enum.BooleanFieldType
+		case "date":
+			field.FieldType = enum.DateFieldType
+		case "datetime", "timestamp":
+			field.FieldType = enum.DatetimeFieldType
+		case "time":
+			field.FieldType = enum.TimeFieldType
+		default:
+			field.FieldType = enum.VarcharFieldType
+			field.FieldLength = int(column.NumericPrecision.Int64)
+		}
+		// 检查DefaultValue是否有值
+		if column.ColumnDefault.Valid {
+			field.DefaultValue = &column.ColumnDefault.String
+		}
+		fields = append(fields, field)
+	}
+	return fields
 }

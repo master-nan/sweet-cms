@@ -10,7 +10,7 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
-	"sweet-cms/utils"
+	"sweet-cms/repository/util"
 )
 
 type SysDictRepositoryImpl struct {
@@ -33,7 +33,7 @@ func (i *SysDictRepositoryImpl) GetSysDictById(id int) (model.SysDict, error) {
 
 func (i *SysDictRepositoryImpl) GetSysDictList(basic request.Basic) (response.ListResult[model.SysDict], error) {
 	var repo response.ListResult[model.SysDict]
-	query := utils.ExecuteQuery(i.db, basic)
+	query := util.ExecuteQuery(i.db, basic)
 	var sysDictList []model.SysDict
 	var total int64 = 0
 	err := query.Find(&sysDictList).Limit(-1).Offset(-1).Count(&total).Error

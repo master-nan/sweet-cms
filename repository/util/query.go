@@ -3,7 +3,7 @@
  * @Date: 2024/5/29 上午11:44
  */
 
-package utils
+package util
 
 import (
 	"fmt"

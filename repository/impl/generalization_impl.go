@@ -10,7 +10,7 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/model"
 	"sweet-cms/repository"
-	"sweet-cms/utils"
+	"sweet-cms/repository/util"
 )
 
 type GeneralizationRepositoryImpl struct {
@@ -23,7 +23,7 @@ func NewGeneralizationRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *General
 }
 
 func (g GeneralizationRepositoryImpl) Query(basic request.Basic, table model.SysTable) (repository.GeneralizationListResult, error) {
-	result, err := utils.DynamicQuery(g.db, basic, table)
+	result, err := util.DynamicQuery(g.db, basic, table)
 	if err != nil {
 		return repository.GeneralizationListResult{}, err
 	}

@@ -10,7 +10,7 @@ import (
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
-	"sweet-cms/utils"
+	"sweet-cms/repository/util"
 )
 
 type SysUserRepositoryImpl struct {
@@ -54,7 +54,7 @@ func (s *SysUserRepositoryImpl) DeleteById(tx *gorm.DB, i int) error {
 
 func (s *SysUserRepositoryImpl) GetList(basic request.Basic) (response.ListResult[model.SysUser], error) {
 	var repo response.ListResult[model.SysUser]
-	query := utils.ExecuteQuery(s.db, basic)
+	query := util.ExecuteQuery(s.db, basic)
 	var sysUserList []model.SysUser
 	var total int64 = 0
 	err := query.Find(&sysUserList).Limit(-1).Offset(-1).Count(&total).Error

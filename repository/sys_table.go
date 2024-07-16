@@ -57,4 +57,6 @@ type SysTableRepository interface {
 	CreateTableColumn(*gorm.DB, string, string, string) error
 	CreateTable(*gorm.DB, string, any) error
 	CreateTableIndex(*gorm.DB, bool, string, string, string) error
+
+	Model([]model.SysTableField) interface{}
 }
