@@ -7,14 +7,9 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
-	"github.com/pkg/errors"
-	"io"
 	"net/http"
 	"strconv"
-	"strings"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
@@ -92,35 +87,8 @@ func (u *UserController) InsertSysUser(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.UserCreateReq
 	translator, _ := u.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			// 客户端请求体为空
-			e := &response.AdminError{
-				ErrorCode:    http.StatusBadRequest,
-				ErrorMessage: "请求参数错误",
-			}
-			_ = ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			// 如果是验证错误，则翻译错误信息
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				ErrorCode:    http.StatusBadRequest,
-				ErrorMessage: strings.Join(errorMessages, ","),
-			}
-			_ = ctx.Error(e)
-			return
-		}
-		_ = ctx.Error(err)
-		return
-	}
-	err := u.sysUserService.Insert(ctx, data)
+	err := utils.ValidatorBody[request.UserCreateReq](ctx, &data, translator)
+	err = u.sysUserService.Insert(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -133,33 +101,8 @@ func (u *UserController) UpdateSysUser(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.UserUpdateReq
 	translator, _ := u.translators["zh"]
-	if err := ctx.ShouldBindBodyWith(&data, binding.JSON); err != nil {
-		if err == io.EOF {
-			e := &response.AdminError{
-				ErrorCode:    http.StatusBadRequest,
-				ErrorMessage: "请求参数错误",
-			}
-			_ = ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				ErrorCode:    http.StatusBadRequest,
-				ErrorMessage: strings.Join(errorMessages, ","),
-			}
-			_ = ctx.Error(e)
-			return
-		}
-		_ = ctx.Error(err)
-		return
-	}
-	err := u.sysUserService.Update(ctx, data)
+	err := utils.ValidatorBody[request.UserUpdateReq](ctx, &data, translator)
+	err = u.sysUserService.Update(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

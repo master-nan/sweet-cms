@@ -1,5 +1,6 @@
 name: 'sweet-cms'
 version: '1.0'
+port: 8990
 db:
   host: '127.0.0.1'
   port: 3306
@@ -10,6 +11,12 @@ db:
 redis:
   host: '127.0.0.1'
   port: 6379
+  db: 9
+  password:
+  pool_size: 10
+  min_idle_conns: 5
+  max_idle_conns: 5
+  conn_max_idle_time: 3600
 session:
   secret: '123456'
 conf:

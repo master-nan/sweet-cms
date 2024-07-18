@@ -6,15 +6,10 @@
 package controller
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
-	"io"
 	"net/http"
 	"strconv"
-	"strings"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/service"
@@ -43,9 +38,9 @@ func NewDictController(sysDictService *service.SysDictService, translators map[s
 // @Success 200 {object} response.Response "请求成功"
 // @Router /dict/id/{id} [get]
 func (t *DictController) GetSysDictById(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -131,38 +126,10 @@ func (t *DictController) QuerySysDict(ctx *gin.Context) {
 func (t *DictController) InsertSysDict(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
-	var dictCreateReq request.DictCreateReq
+	var data request.DictCreateReq
 	translator, _ := t.translators["zh"]
-	err := ctx.ShouldBindBodyWith(&dictCreateReq, binding.JSON)
-	if err != nil {
-		if err == io.EOF {
-			// 客户端请求体为空
-			e := &response.AdminError{
-				ErrorCode:    http.StatusBadRequest,
-				ErrorMessage: "请求参数错误",
-			}
-			_ = ctx.Error(e)
-			return
-		}
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			// 如果是验证错误，则翻译错误信息
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				ErrorCode:    http.StatusBadRequest,
-				ErrorMessage: strings.Join(errorMessages, ","),
-			}
-			_ = ctx.Error(e)
-			return
-		}
-		_ = ctx.Error(err)
-		return
-	}
-	err = t.sysDictService.InsertSysDict(ctx, dictCreateReq)
+	err := utils.ValidatorBody[request.DictCreateReq](ctx, &data, translator)
+	err = t.sysDictService.InsertSysDict(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

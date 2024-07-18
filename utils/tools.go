@@ -191,15 +191,17 @@ func TranslateError(err validator.FieldError) string {
 	}
 }
 
-// 辅助函数用于创建各种类型的指针
+// BoolPtr 辅助函数用于创建各种类型的指针
 func BoolPtr(b bool) *bool {
 	return &b
 }
 
+// IntPtr 辅助函数用于创建各种类型的指针
 func IntPtr(i int) *int {
 	return &i
 }
 
+// StringPtr 辅助函数用于创建各种类型的指针
 func StringPtr(s string) *string {
 	return &s
 }
@@ -207,28 +209,25 @@ func StringPtr(s string) *string {
 func SqlTypeFromFieldType(fieldType enum.SysTableFieldType) string {
 	switch fieldType {
 	case enum.IntFieldType:
-		return "IntFieldType"
+		return "INT"
 	case enum.VarcharFieldType:
-		return "VarcharFieldType" // 长度将在外部指定
+		return "VARCHAR" // 长度将在外部指定
 	case enum.DatetimeFieldType:
-		return "DatetimeFieldType"
+		return "DATETIME"
 	case enum.BooleanFieldType:
-		return "BooleanFieldType"
+		return "BOOLEAN"
 	case enum.TextFieldType:
-		return "TextFieldType"
+		return "TEXT"
 	case enum.DateFieldType:
-		return "DateFieldType"
+		return "DATE"
 	case enum.TimeFieldType:
-		return "TimeFieldType"
+		return "TIME"
 	default:
-		return "TextFieldType"
+		return "TEXT"
 	}
 }
 
 // UpdateAccessTokens 替换当前token字符串
-// existingTokens string: 现有token字符串
-// newToken string: 新token
-// 返回更新后的token字符串
 func UpdateAccessTokens(existingTokens string, newToken string) string {
 	// 分隔符
 	delimiter := ","

@@ -4,7 +4,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
-	"time"
 )
 
 func Logger() {
@@ -25,8 +24,4 @@ func Logger() {
 
 	logger := zap.New(core)
 	zap.ReplaceGlobals(logger)
-}
-
-func zapTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-	enc.AppendString(t.Format("2006-01-02T15:04:05.000Z0700"))
 }
