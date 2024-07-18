@@ -75,11 +75,11 @@
     │   └── wire_gen.go                         依赖注入程序自动生成无需修改
     ├── inter                                   接口
     │   ├── cache.go                            缓存接口
-    │   └── token_generator.go                  token接口                              
+    │   └── token_generator.go                  token接口                   
     ├── middleware                              中间件
     │   ├── auth.go                             权限验证
     │   ├── cors.go                             跨域验证
-    │   ├── log.go                              日志记录
+    │   ├── logger.go                              日志记录
     │   └── response.go                         统一返回
     ├── model                                   系统模型
     │   ├── basic.go                            基础统一模型

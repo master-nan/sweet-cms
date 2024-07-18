@@ -116,11 +116,26 @@ type App struct {
 	BlackCache               *cache.BlackCache
 }
 
+// Repository providers
+var RepositoryProvider = wire.NewSet(impl.NewLogRepositoryImpl, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewSysTableRepositoryImpl, impl.NewSysUserRepositoryImpl, impl.NewGeneralizationRepositoryImpl, impl.NewCasbinRuleRepositoryImpl, impl.NewBasicImpl, wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)), wire.Bind(new(repository.CasbinRuleRepository), new(*impl.CasbinRuleRepositoryImpl)), wire.Bind(new(repository.BasicRepository), new(*impl.BasicImpl)))
+
+// Cache providers
+var CacheProvider = wire.NewSet(cache.NewSysConfigureCache, cache.NewSysUserCache, cache.NewSysDictCache, cache.NewSysTableCache, cache.NewSysTableFieldCache, cache.NewGeneralizationCache, cache.NewBlackCache)
+
+// Service providers
+var ServiceProvider = wire.NewSet(service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysTableService, service.NewSysUserService, service.NewGeneralizationService, service.NewCasbinRuleService)
+
+// Controller providers
+var ControllerProvider = wire.NewSet(controller.NewDictController, controller.NewTableController, controller.NewUserController, controller.NewBasicController, controller.NewGeneralizationController)
+
 var Providers = wire.NewSet(
 	LoadConfig,
 	InitDB,
 	InitRedis,
 	InitCasbin,
 	InitSnowflake,
-	InitValidators, utils.NewJWTTokenGen, utils.NewRedisUtil, impl.NewLogRepositoryImpl, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewSysTableRepositoryImpl, impl.NewSysUserRepositoryImpl, impl.NewGeneralizationRepositoryImpl, impl.NewCasbinRuleRepositoryImpl, impl.NewBasicImpl, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)), wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)), wire.Bind(new(repository.CasbinRuleRepository), new(*impl.CasbinRuleRepositoryImpl)), wire.Bind(new(repository.BasicRepository), new(*impl.BasicImpl)), cache.NewSysConfigureCache, cache.NewSysUserCache, cache.NewSysDictCache, cache.NewSysTableCache, cache.NewSysTableFieldCache, cache.NewGeneralizationCache, cache.NewBlackCache, service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysTableService, service.NewSysUserService, service.NewGeneralizationService, service.NewCasbinRuleService, controller.NewDictController, controller.NewTableController, controller.NewUserController, controller.NewBasicController, controller.NewGeneralizationController, wire.Struct(new(App), "*"),
+	InitValidators, utils.NewJWTTokenGen, utils.NewRedisUtil, wire.Bind(new(inter.CacheInterface), new(*utils.RedisUtil)), wire.Bind(new(inter.TokenGenerator), new(*utils.JWTTokenGen)), RepositoryProvider,
+	CacheProvider,
+	ServiceProvider,
+	ControllerProvider, wire.Struct(new(App), "*"),
 )
