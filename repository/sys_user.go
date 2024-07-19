@@ -21,4 +21,6 @@ type SysUserRepository interface {
 	GetList(request.Basic) (response.ListResult[model.SysUser], error)
 	Insert(*gorm.DB, model.SysUser) error
 	GetByEmployeeID(int) (model.SysUser, error)
+	GetUserMenuPermissions(userId int) ([]model.SysUserMenuDataPermission, error)
+	GetUserMenus(userId int) ([]model.SysMenu, error)
 }

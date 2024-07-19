@@ -17,6 +17,4 @@ type SysMenuRepository interface {
 	UpdateMenu(*gorm.DB, model.SysMenu) error
 	DeleteMenu(*gorm.DB, int) error
 	GetMenus() ([]model.SysMenu, error)
-	GetMenuUserPermissionsByMenuId(int) ([]model.SysUserMenuDataPermission, error)
-	GetMenuUsersByMenuId(int) ([]model.SysUser, error)
 }

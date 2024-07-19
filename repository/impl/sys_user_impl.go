@@ -62,3 +62,24 @@ func (s *SysUserRepositoryImpl) GetList(basic request.Basic) (response.ListResul
 	repo.Total = int(total)
 	return repo, err
 }
+
+// GetUserMenuPermissions 获取用户的菜单权限
+func (s *SysUserRepositoryImpl) GetUserMenuPermissions(userId int) ([]model.SysUserMenuDataPermission, error) {
+	var permissions []model.SysUserMenuDataPermission
+	err := s.db.Where("user_id = ?", userId).Find(&permissions).Error
+	return permissions, err
+}
+
+// GetUserMenus 获取用户的菜单
+func (s *SysUserRepositoryImpl) GetUserMenus(userId int) ([]model.SysMenu, error) {
+	var user model.SysUser
+	err := s.db.Preload("Permissions").Preload("Permissions.Menu").First(&user, userId).Error
+	if err != nil {
+		return nil, err
+	}
+	var menus []model.SysMenu
+	for _, permission := range user.Permissions {
+		menus = append(menus, permission.Menu)
+	}
+	return menus, nil
+}
