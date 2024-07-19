@@ -58,10 +58,8 @@ func (s *SysTableRepositoryImpl) DeleteTableById(tx *gorm.DB, i int) error {
 
 func (s *SysTableRepositoryImpl) GetTableList(basic request.Basic) (response.ListResult[model.SysTable], error) {
 	var repo response.ListResult[model.SysTable]
-	query := util.ExecuteQuery(s.db, basic)
 	var sysTableList []model.SysTable
-	var total int64 = 0
-	err := query.Find(&sysTableList).Limit(-1).Offset(-1).Count(&total).Error
+	total, err := s.PaginateAndCountAsync(basic, &sysTableList)
 	repo.Data = sysTableList
 	repo.Total = int(total)
 	return repo, err
