@@ -16,7 +16,8 @@ ENV APP_ENV=${APP_ENV}
 RUN go mod tidy
 
 # 编译应用程序
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main ./cmd/main.go
+RUN go build -o main ./cmd/main.go
+# RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main ./cmd/main.go
 
 # 使用 scratch 作为最终运行镜像，这是一个空白的镜像，用于创建尽可能小的容器
 FROM alpine:latest
@@ -25,6 +26,8 @@ WORKDIR /root/
 
 # 从构建器镜像中复制二进制文件到最终镜像
 COPY --from=builder /app/main .
+
+COPY config-pro.yaml .
 
 # 声明运行时容器提供服务的端口
 EXPOSE 8990

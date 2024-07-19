@@ -40,7 +40,7 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	snowflake, err := InitSnowflake()
+	snowflake, err := InitSnowflake(server)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sweet-cms
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sweet-cms
+  template:
+    metadata:
+      labels:
+        app: sweet-cms
+    spec:
+      containers:
+        - name: sweet-cms
+          image: sweet-cms:latest
+          env:
+            - name: APP_ENV
+              value: "pro"
+            - name: APP_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: name
+            - name: APP_VERSION
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: version
+            - name: APP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: port
+            - name: APP_WORKER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: worker_id
+            - name: APP_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: db-host
+            - name: APP_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: db-port
+            - name: APP_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: db-name
+            - name: APP_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: db-user
+            - name: APP_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: db-password
+            - name: APP_DB_PREFIX
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: db-prefix
+            - name: APP_REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: redis-host
+            - name: APP_REDIS_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: redis-port
+            - name: APP_REDIS_DB
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: redis-db
+            - name: APP_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: redis-password
+            - name: APP_REDIS_POOL_SIZE
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: redis-pool_size
+            - name: APP_REDIS_MIN_IDLE_CONNS
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: redis-min_idle_conns
+            - name: APP_REDIS_MAX_IDLE_CONNS
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: redis-max_idle_conns
+            - name: APP_REDIS_CONN_MAX_IDLE_TIME
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: redis-conn_max_idle_time
+            - name: APP_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: session-secret
+            - name: APP_CONF_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: sweet-cms-secrets
+                  key: conf-salt

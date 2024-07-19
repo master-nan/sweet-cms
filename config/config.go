@@ -1,13 +1,14 @@
 package config
 
 type Server struct {
-	Name    string  `mapStructure:"name"`
-	Version string  `mapStructure:"version"`
-	Port    int     `mapStructure:"port"`
-	DB      DB      `mapStructure:"db"`
-	Redis   Redis   `mapStructure:"redis"`
-	Session Session `mapStructure:"session"`
-	Conf    Conf    `mapStructure:"conf"`
+	Name     string  `mapStructure:"name"`
+	Version  string  `mapStructure:"version"`
+	Port     int     `mapStructure:"port"`
+	DB       DB      `mapStructure:"db"`
+	Redis    Redis   `mapStructure:"redis"`
+	Session  Session `mapStructure:"session"`
+	WorkerID int64   `mapStructure:"worker_id"`
+	Conf     Conf    `mapStructure:"conf"`
 }
 
 type DB struct {

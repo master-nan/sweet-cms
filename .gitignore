@@ -21,3 +21,5 @@
 go.work
 .idea
 /config-local.yaml
+
+/logs

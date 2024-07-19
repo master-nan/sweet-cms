@@ -1,6 +1,7 @@
 name: 'sweet-cms'
 version: '1.0'
 port: 8990
+worker_id: 1
 db:
   host: '127.0.0.1'
   port: 3306

@@ -297,3 +297,9 @@ func ValidatorBody[T any](ctx *gin.Context, data *T, translator ut.Translator) e
 	}
 	return nil
 }
+
+func RandInt64() int64 {
+	src := rand.New(rand.NewSource(time.Now().Unix()))
+	r := rand.New(src)
+	return r.Int63n(100)
+}
