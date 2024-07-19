@@ -12,55 +12,68 @@ type SysConfigure struct {
 
 type SysMenu struct {
 	Basic
-	Pid         int             `gorm:"type:int" json:"pid"`
-	Name        string          `gorm:"size:32;comment:路由" json:"name"`
-	Path        string          `gorm:"size:128;comment:路径" json:"path"`
-	Component   string          `gorm:"size:64;comment:路由主体" json:"component"`
-	Title       string          `gorm:"size:64;comment:显示标题" json:"title"`
-	IsHidden    bool            `gorm:"default:false;comment:是否隐藏" json:"isHidden"`
-	Sequence    uint8           `gorm:"comment:排序;type:tinyint" json:"sequence"`
-	Option      string          `gorm:"size:64;comment:选项" json:"option"`
-	Icon        *string         `gorm:"size:32;comment:图标" json:"icon"`
-	Redirect    *string         `gorm:"size:128;comment:重定向地址" json:"redirect"`
-	IsUnfold    bool            `gorm:"default:false;comment:默认展开" json:"isUnfold"`
-	MenuButtons []SysMenuButton `gorm:"foreignKey:MenuId;references:Id" json:"menuButtons"`
+	Pid         int                         `gorm:"type:int" json:"pid"`
+	Name        string                      `gorm:"size:32;comment:路由" json:"name"`
+	Path        string                      `gorm:"size:128;comment:路径" json:"path"`
+	Component   string                      `gorm:"size:64;comment:路由主体" json:"component"`
+	Title       string                      `gorm:"size:64;comment:显示标题" json:"title"`
+	IsHidden    bool                        `gorm:"default:false;comment:是否隐藏" json:"isHidden"`
+	Sequence    uint8                       `gorm:"comment:排序;type:tinyint" json:"sequence"`
+	Option      string                      `gorm:"size:64;comment:选项" json:"option"`
+	Icon        *string                     `gorm:"size:32;comment:图标" json:"icon"`
+	Redirect    *string                     `gorm:"size:128;comment:重定向地址" json:"redirect"`
+	IsUnfold    bool                        `gorm:"default:false;comment:默认展开" json:"isUnfold"`
+	MenuButtons []SysMenuButton             `gorm:"foreignKey:MenuId;references:Id" json:"menuButtons"`
+	Roles       []SysRole                   `gorm:"many2many:sys_role_menu" json:"roles"`
+	Permissions []SysUserMenuDataPermission `gorm:"foreignKey:MenuId;references:Id" json:"permissions"`
 }
 
 type SysMenuButton struct {
 	Basic
-	MenuId   int                        `gorm:"comment:menu_id" json:"menuId" binding:"required"`
-	Name     string                     `gorm:"size:128;comment:按钮名称" json:"name" binding:"required"`
-	Code     string                     `gorm:"size:128;comment:按钮编码" json:"code" binding:"required"`
-	Memo     string                     `gorm:"size:128;comment:备注" json:"memo"`
-	Position enum.SysMenuButtonPosition `gorm:"type:tinyint;default:1;comment:位置" json:"position" binding:"required"`
+	MenuId      int                        `gorm:"comment:menu_id" json:"menuId" binding:"required"`
+	Name        string                     `gorm:"size:128;comment:按钮名称" json:"name" binding:"required"`
+	Code        string                     `gorm:"size:128;comment:按钮编码" json:"code" binding:"required"`
+	Memo        string                     `gorm:"size:128;comment:备注" json:"memo"`
+	Position    enum.SysMenuButtonPosition `gorm:"type:tinyint;default:1;comment:位置" json:"position" binding:"required"`
+	EventType   string                     `gorm:"size:64;comment:事件类型" json:"eventType"`
+	EventAction string                     `gorm:"size:256;comment:事件动作" json:"eventAction"`
+	BeforeHooks []string                   `gorm:"-" json:"beforeHooks"` // 执行事件前的钩子函数
+	AfterHooks  []string                   `gorm:"-" json:"afterHooks"`  // 执行事件后的钩子函数
+	Roles       []SysRole                  `gorm:"many2many:sys_role_menu_button" json:"roles"`
+	Menus       []SysMenu                  `gorm:"many2many:sys_role_menu_button" json:"menus"`
 }
 
-type SysMenuDataPermission struct {
+type SysUserMenuDataPermission struct {
 	Basic
-	UserId     int    `gorm:"comment:用户Id" json:"userId"`
-	MenuId     int    `gorm:"comment:菜单Id" json:"menuId"`
-	CompanyIds string `gorm:"size:128;comment:公司Id集合" json:"companyIds"`
+	UserId     int     `gorm:"comment:用户Id" json:"userId"`
+	MenuId     int     `gorm:"comment:菜单Id" json:"menuId"`
+	CompanyIds string  `gorm:"size:128;comment:公司Id集合" json:"companyIds"`
+	Menu       SysMenu `gorm:"foreignKey:MenuId;references:Id" json:"menu"`
+	User       SysUser `gorm:"foreignKey:UserId;references:Id" json:"user"`
 }
 
 type SysRole struct {
 	Basic
-	Name  string    `gorm:"size:128;comment:角色名称" json:"name"`
-	Memo  string    `gorm:"size:128;comment:备注" json:"memo"`
-	Menus []SysMenu `gorm:"many2many:sys_role_menu;" json:"menus"`
+	Name    string          `gorm:"size:128;comment:角色名称" json:"name"`
+	Memo    string          `gorm:"size:128;comment:备注" json:"memo"`
+	Menus   []SysMenu       `gorm:"many2many:sys_role_menu" json:"menus"`
+	Buttons []SysMenuButton `gorm:"many2many:sys_role_menu_button" json:"buttons"`
+	Users   []SysUser       `gorm:"many2many:sys_user_role" json:"users"`
 }
 
 type SysUser struct {
 	Basic
-	UserName     string     `gorm:"size:128;uniqueIndex:uni_user_name;comment:用户名" json:"userName"`
-	Password     string     `gorm:"size:128;comment:密码" json:"password"`
-	Email        string     `gorm:"size:128;uniqueIndex:uni_email;comment:邮箱" json:"email"`
-	PhoneNumber  string     `gorm:"size:128;uniqueIndex:uni_phone_number;comment:电话" json:"phoneNumber"`
-	IdCard       string     `gorm:"size:128;uniqueIndex:uni_id_card;comment:身份证号" json:"idCard"`
-	EmployeeId   int        `gorm:"comment:员工Id" json:"employeeId"`
-	GmtLastLogin CustomTime `gorm:"type:datetime;comment:最后登录时间" json:"gmtLastLogin"`
-	Language     string     `gorm:"size:32;comment:语言包" json:"language"`
-	AccessTokens string     `gorm:"type:text;comment:用户最近5次Token" json:"accessTokens"`
-	Roles        []SysRole  `gorm:"many2many:sys_user_role;" json:"roles"`
+	UserName     string                      `gorm:"size:128;uniqueIndex:uni_user_name;comment:用户名" json:"userName"`
+	Password     string                      `gorm:"size:128;comment:密码" json:"password"`
+	Email        string                      `gorm:"size:128;uniqueIndex:uni_email;comment:邮箱" json:"email"`
+	PhoneNumber  string                      `gorm:"size:128;uniqueIndex:uni_phone_number;comment:电话" json:"phoneNumber"`
+	IdCard       string                      `gorm:"size:128;uniqueIndex:uni_id_card;comment:身份证号" json:"idCard"`
+	EmployeeId   int                         `gorm:"comment:员工Id" json:"employeeId"`
+	GmtLastLogin CustomTime                  `gorm:"type:datetime;comment:最后登录时间" json:"gmtLastLogin"`
+	Language     string                      `gorm:"size:32;comment:语言包" json:"language"`
+	AccessTokens string                      `gorm:"type:text;comment:用户最近5次Token" json:"accessTokens"`
+	Roles        []SysRole                   `gorm:"many2many:sys_user_role" json:"roles"`
+	Permissions  []SysUserMenuDataPermission `gorm:"foreignKey:UserId;references:Id" json:"permissions"`
 }
 
 type SysUserRole struct {
@@ -71,6 +84,12 @@ type SysUserRole struct {
 type SysRoleMenu struct {
 	RoleId int `gorm:"primaryKey;autoIncrement:false" json:"roleId"`
 	MenuId int `gorm:"primaryKey;autoIncrement:false" json:"menuId"`
+}
+
+type SysRoleMenuButton struct {
+	RoleId   int `gorm:"primaryKey;autoIncrement:false" json:"roleId"`
+	MenuId   int `gorm:"primaryKey;autoIncrement:false" json:"menuId"`
+	ButtonId int `gorm:"primaryKey;autoIncrement:false" json:"buttonId"`
 }
 
 type SysGlobalDataPermission struct {

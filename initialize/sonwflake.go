@@ -7,6 +7,7 @@ package initialize
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"os"
 	"regexp"
 	"strconv"
@@ -21,11 +22,13 @@ func InitSnowflake(serverConfig *config.Server) (*utils.Snowflake, error) {
 		re := regexp.MustCompile(`-(\d+)$`)
 		matches := re.FindStringSubmatch(podName)
 		if len(matches) != 2 {
+			zap.L().Error("invalid pod name format: %v", zap.String("podName", podName))
 			return nil, fmt.Errorf("invalid pod name format: %s", podName)
 		}
 		id, err := strconv.ParseInt(matches[1], 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("invalid WORKER_ID: %v", err)
+			zap.L().Error("invalid WORKER_ID:: %v", zap.Error(err))
+			return nil, err
 		}
 		workerID = id
 	}

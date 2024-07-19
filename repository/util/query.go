@@ -55,6 +55,48 @@ func ExecuteQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 	return query
 }
 
+func applyRule(query *gorm.DB, rule request.QueryRule, value interface{}) *gorm.DB {
+	switch rule.ExpressionType {
+	case enum.Gt:
+		return query.Where(fmt.Sprintf("%s > ?", rule.Field), value)
+	case enum.Lt:
+		return query.Where(fmt.Sprintf("%s < ?", rule.Field), value)
+	case enum.Gte:
+		return query.Where(fmt.Sprintf("%s >= ?", rule.Field), value)
+	case enum.Lte:
+		return query.Where(fmt.Sprintf("%s <= ?", rule.Field), value)
+	case enum.Eq:
+		return query.Where(fmt.Sprintf("%s = ?", rule.Field), value)
+	case enum.Ne:
+		return query.Where(fmt.Sprintf("%s != ?", rule.Field), value)
+	case enum.Like:
+		return query.Where(fmt.Sprintf("%s LIKE ?", rule.Field), fmt.Sprintf("%%%v%%", value))
+	case enum.NotLike:
+		return query.Where(fmt.Sprintf("%s NOT LIKE ?", rule.Field), fmt.Sprintf("%%%v%%", value))
+	case enum.In:
+		return query.Where(fmt.Sprintf("%s IN (?)", rule.Field), value)
+	case enum.NotIn:
+		return query.Where(fmt.Sprintf("%s NOT IN (?)", rule.Field), value)
+	case enum.IsNull:
+		return query.Where(fmt.Sprintf("%s IS NULL", rule.Field))
+	case enum.IsNotNull:
+		return query.Where(fmt.Sprintf("%s IS NOT NULL", rule.Field))
+	default:
+		return query
+	}
+}
+
+func combineSubQuery(query, subQuery *gorm.DB, logic enum.ExpressionLogic) *gorm.DB {
+	switch logic {
+	case enum.And:
+		return query.Where(subQuery)
+	case enum.Or:
+		return query.Or(subQuery)
+	default:
+		return query
+	}
+}
+
 func buildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 	query := db
 	if !basic.IncludeDeleted {
@@ -65,66 +107,15 @@ func buildQuery(db *gorm.DB, basic request.Basic) *gorm.DB {
 		var subQuery *gorm.DB
 		for _, rule := range exprGroup.Rules {
 			value := parseValue(rule.Value, rule.Type)
-			switch rule.ExpressionType {
-			case enum.Gt:
-				subQuery = query.Where(rule.Field+" > ?", value)
-			case enum.Lt:
-				subQuery = query.Where(rule.Field+" < ?", value)
-			case enum.Gte:
-				subQuery = query.Where(rule.Field+" >= ?", value)
-			case enum.Lte:
-				subQuery = query.Where(rule.Field+" <= ?", value)
-			case enum.Eq:
-				subQuery = query.Where(rule.Field+" = ?", value)
-			case enum.Ne:
-				subQuery = query.Where(rule.Field+" != ?", value)
-			case enum.Like:
-				subQuery = query.Where(rule.Field+" Like %?%", value)
-			case enum.NotLike:
-				subQuery = query.Where(rule.Field+" NOT Like %?%", value)
-			case enum.In:
-				subQuery = query.Where(rule.Field+" In (?)", value)
-			case enum.NotIn:
-				subQuery = query.Where(rule.Field+" NOT In (?)", value)
-			case enum.IsNull:
-				subQuery = query.Where(rule.Field + " IS NULL")
-			case enum.IsNotNull:
-				subQuery = query.Where(rule.Field + " IS NOT NULL")
-			default:
-				continue
-			}
+			subQuery = applyRule(subQuery, rule, value)
 		}
 
 		// 处理嵌套表达式
 		for _, nestedExpr := range exprGroup.Nested {
 			nestedQuery := buildQuery(db, request.Basic{Expressions: []request.ExpressionGroup{nestedExpr}}) // 递归处理嵌套表达式
-			switch exprGroup.Logic {
-			case enum.Or:
-				if subQuery == nil {
-					subQuery = nestedQuery
-				} else {
-					subQuery = subQuery.Or(nestedQuery)
-				}
-			case enum.And:
-				if subQuery == nil {
-					subQuery = nestedQuery
-				} else {
-					subQuery = subQuery.Where(nestedQuery)
-				}
-			}
+			subQuery = combineSubQuery(subQuery, nestedQuery, exprGroup.Logic)
 		}
-
-		// 应用当前表达式组的逻辑
-		if subQuery != nil {
-			switch exprGroup.Logic {
-			case enum.And:
-				query = query.Where(subQuery)
-			case enum.Or:
-				query = query.Or(subQuery)
-			default:
-				continue
-			}
-		}
+		query = combineSubQuery(query, subQuery, exprGroup.Logic)
 	}
 	return query
 }
@@ -151,11 +142,7 @@ func finalizeQuery(query *gorm.DB, basic request.Basic) *gorm.DB {
 	if basic.Num > maxNum {
 		basic.Num = maxNum
 	}
-	// 添加分页
-	if basic.Page > 0 && basic.Num > 0 {
-		query = query.Limit(basic.Num).Offset((basic.Page - 1) * basic.Num)
-	}
-
+	query = query.Limit(basic.Num).Offset((basic.Page - 1) * basic.Num)
 	return query
 }
 

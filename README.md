@@ -17,6 +17,7 @@
 
 ### 项目结构说明
 ```
+    ├── Dockerfile
     ├── LICENSE
     ├── README.md
     ├── cache                                   缓存
@@ -35,6 +36,8 @@
     ├── config-debug.yaml                        配置文件
     ├── config-local.yaml                        配置文件
     ├── config-pro.yaml                          配置文件
+    ├── k8s-deployment.yaml
+    ├── k8s-secret.yaml
     ├── controller                               控制器
     │   ├── basic_controller.go                  
     │   ├── generalization_controller.go
@@ -58,7 +61,7 @@
     │   │   └── sys_user_req.go
     │   └── response                            响应模型
     │       ├── base_res.go
-    │       ├── singin_res.go
+    │       ├── signin_res.go
     │       └── user_res.go
     ├── go.mod
     ├── go.sum

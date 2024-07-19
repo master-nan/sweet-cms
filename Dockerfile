@@ -29,6 +29,7 @@ COPY --from=builder /app/main .
 
 COPY config-pro.yaml .
 COPY config-dev.yaml .
+COPY casbin_model.conf .
 
 # 声明运行时容器提供服务的端口
 EXPOSE 8990
