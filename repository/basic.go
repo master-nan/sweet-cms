@@ -16,4 +16,11 @@ type BasicRepository interface {
 	DBWithContext(*gin.Context) *gorm.DB
 	CountAsync(*gorm.DB, chan int64, chan error)
 	PaginateAndCountAsync(request.Basic, interface{}) (int64, error)
+	Create(*gorm.DB, interface{}) error
+	Update(*gorm.DB, interface{}) error
+	DeleteById(*gorm.DB, int) error
+	DeleteByIds(*gorm.DB, []int) error
+	FindById(id int) (interface{}, error)
+	WithPreload(...string) BasicRepository
+	WithContext(*gin.Context) BasicRepository
 }

@@ -15,11 +15,10 @@ import (
 
 type GeneralizationRepositoryImpl struct {
 	db *gorm.DB
-	*BasicImpl
 }
 
-func NewGeneralizationRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *GeneralizationRepositoryImpl {
-	return &GeneralizationRepositoryImpl{db, basicImpl}
+func NewGeneralizationRepositoryImpl(db *gorm.DB) *GeneralizationRepositoryImpl {
+	return &GeneralizationRepositoryImpl{db}
 }
 
 func (g GeneralizationRepositoryImpl) Query(basic request.Basic, table model.SysTable) (repository.GeneralizationListResult, error) {

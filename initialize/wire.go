@@ -41,9 +41,11 @@ type App struct {
 
 // Repository providers
 var RepositoryProvider = wire.NewSet(
-	impl.NewLogRepositoryImpl,
+	impl.NewAccessLogRepositoryImpl,
+	impl.NewLoginLogRepositoryImpl,
 	impl.NewSysConfigureRepositoryImpl,
 	impl.NewSysDictRepositoryImpl,
+	impl.NewSysDictItemRepositoryImpl,
 	impl.NewSysTableRepositoryImpl,
 	impl.NewSysUserRepositoryImpl,
 	impl.NewSysMenuRepositoryImpl,
@@ -57,9 +59,11 @@ var RepositoryProvider = wire.NewSet(
 	impl.NewCasbinRuleRepositoryImpl,
 	impl.NewBasicImpl,
 
-	wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)),
+	wire.Bind(new(repository.AccessLogRepository), new(*impl.AccessLogRepositoryImpl)),
+	wire.Bind(new(repository.LoginLogRepository), new(*impl.LoginLogRepositoryImpl)),
 	wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)),
 	wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)),
+	wire.Bind(new(repository.SysDictItemRepository), new(*impl.SysDictItemRepositoryImpl)),
 	wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)),
 	wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)),
 	wire.Bind(new(repository.SysMenuRepository), new(*impl.SysMenuRepositoryImpl)),

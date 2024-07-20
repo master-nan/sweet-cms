@@ -6,36 +6,42 @@
 package service
 
 import (
+	"github.com/gin-gonic/gin"
 	"sweet-cms/model"
 	"sweet-cms/repository"
 	"sweet-cms/utils"
 )
 
 type LogService struct {
-	logRepository repository.LogRepository
-	sf            *utils.Snowflake
+	loginLogRepository  repository.LoginLogRepository
+	accessLogRepository repository.AccessLogRepository
+	sf                  *utils.Snowflake
 }
 
-func NewLogServer(logRepository repository.LogRepository, sf *utils.Snowflake) *LogService {
-	return &LogService{logRepository, sf}
+func NewLogServer(loginLogRepository repository.LoginLogRepository, accessLogRepository repository.AccessLogRepository, sf *utils.Snowflake) *LogService {
+	return &LogService{
+		loginLogRepository,
+		accessLogRepository,
+		sf,
+	}
 }
 
-func (ls *LogService) CreateLoginLog(log model.LoginLog) error {
+func (ls *LogService) CreateLoginLog(ctx *gin.Context, log model.LoginLog) error {
 	id, err := ls.sf.GenerateUniqueID()
 	if err != nil {
 		return err
 	}
 	log.Id = int(id)
-	err = ls.logRepository.CreateLoginLog(log)
+	err = ls.loginLogRepository.Create(ls.loginLogRepository.DBWithContext(ctx), log)
 	return err
 }
 
-func (ls *LogService) CreateAccessLog(log model.AccessLog) error {
+func (ls *LogService) CreateAccessLog(ctx *gin.Context, log model.AccessLog) error {
 	id, err := ls.sf.GenerateUniqueID()
 	if err != nil {
 		return err
 	}
 	log.Id = int(id)
-	err = ls.logRepository.CreateAccessLog(log)
+	err = ls.accessLogRepository.Create(ls.loginLogRepository.DBWithContext(ctx), log)
 	return err
 }

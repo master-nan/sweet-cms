@@ -49,8 +49,7 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	basicImpl := impl.NewBasicImpl(db)
-	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl(db, basicImpl)
+	sysDictRepositoryImpl := impl.NewSysDictRepositoryImpl(db)
 	redisUtil := utils.NewRedisUtil(client)
 	sysDictCache := cache.NewSysDictCache(redisUtil)
 	sysDictService := service.NewSysDictService(sysDictRepositoryImpl, snowflake, sysDictCache)
@@ -59,22 +58,23 @@ func InitializeApp() (*App, error) {
 		return nil, err
 	}
 	dictController := controller.NewDictController(sysDictService, v)
-	sysConfigureRepositoryImpl := impl.NewSysConfigureRepositoryImpl(db, basicImpl)
+	sysConfigureRepositoryImpl := impl.NewSysConfigureRepositoryImpl(db)
 	sysConfigureCache := cache.NewSysConfigureCache(redisUtil)
 	sysConfigureService := service.NewSysConfigureService(sysConfigureRepositoryImpl, sysConfigureCache)
-	logRepositoryImpl := impl.NewLogRepositoryImpl(db, basicImpl)
-	logService := service.NewLogServer(logRepositoryImpl, snowflake)
-	sysUserRepositoryImpl := impl.NewSysUserRepositoryImpl(db, basicImpl)
+	loginLogRepositoryImpl := impl.NewLoginLogRepositoryImpl(db)
+	accessLogRepositoryImpl := impl.NewAccessLogRepositoryImpl(db)
+	logService := service.NewLogServer(loginLogRepositoryImpl, accessLogRepositoryImpl, snowflake)
+	sysUserRepositoryImpl := impl.NewSysUserRepositoryImpl(db)
 	sysUserCache := cache.NewSysUserCache(redisUtil)
 	sysUserService := service.NewSysUserService(sysUserRepositoryImpl, snowflake, sysUserCache)
 	basicController := controller.NewBasicController(jwtTokenGen, server, sysConfigureService, logService, sysUserService, v)
-	sysTableRepositoryImpl := impl.NewSysTableRepositoryImpl(db, basicImpl)
+	sysTableRepositoryImpl := impl.NewSysTableRepositoryImpl(db)
 	sysTableCache := cache.NewSysTableCache(redisUtil)
 	sysTableFieldCache := cache.NewSysTableFieldCache(redisUtil)
 	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, snowflake, sysTableCache, sysTableFieldCache, server)
 	tableController := controller.NewTableController(sysTableService, v)
 	userController := controller.NewUserController(sysUserService, v)
-	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db, basicImpl)
+	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db)
 	generalizationService := service.NewGeneralizationService(generalizationRepositoryImpl)
 	generalizationController := controller.NewGeneralizationController(generalizationService, sysTableService)
 	blackCache := cache.NewBlackCache(redisUtil)
@@ -117,7 +117,7 @@ type App struct {
 }
 
 // Repository providers
-var RepositoryProvider = wire.NewSet(impl.NewLogRepositoryImpl, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewSysTableRepositoryImpl, impl.NewSysUserRepositoryImpl, impl.NewSysMenuRepositoryImpl, impl.NewSysRoleRepositoryImpl, impl.NewSysRoleMenuButtonRepositoryImpl, impl.NewSysRoleMenuRepositoryImpl, impl.NewSysUserMenuDataPermissionRepositoryImpl, impl.NewSysUserRoleRepositoryImpl, impl.NewGeneralizationRepositoryImpl, impl.NewCasbinRuleRepositoryImpl, impl.NewBasicImpl, wire.Bind(new(repository.LogRepository), new(*impl.LogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), wire.Bind(new(repository.SysMenuRepository), new(*impl.SysMenuRepositoryImpl)), wire.Bind(new(repository.SysRoleRepository), new(*impl.SysRoleRepositoryImpl)), wire.Bind(new(repository.SysRoleMenuButtonRepository), new(*impl.SysRoleMenuButtonRepositoryImpl)), wire.Bind(new(repository.SysRoleMenuRepository), new(*impl.SysRoleMenuRepositoryImpl)), wire.Bind(new(repository.SysUserMenuDataPermissionRepository), new(*impl.SysUserMenuDataPermissionRepositoryImpl)), wire.Bind(new(repository.SysUserRoleRepository), new(*impl.SysUserRoleRepositoryImpl)), wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)), wire.Bind(new(repository.CasbinRuleRepository), new(*impl.CasbinRuleRepositoryImpl)), wire.Bind(new(repository.BasicRepository), new(*impl.BasicImpl)))
+var RepositoryProvider = wire.NewSet(impl.NewAccessLogRepositoryImpl, impl.NewLoginLogRepositoryImpl, impl.NewSysConfigureRepositoryImpl, impl.NewSysDictRepositoryImpl, impl.NewSysDictItemRepositoryImpl, impl.NewSysTableRepositoryImpl, impl.NewSysUserRepositoryImpl, impl.NewSysMenuRepositoryImpl, impl.NewSysRoleRepositoryImpl, impl.NewSysRoleMenuButtonRepositoryImpl, impl.NewSysRoleMenuRepositoryImpl, impl.NewSysUserMenuDataPermissionRepositoryImpl, impl.NewSysUserRoleRepositoryImpl, impl.NewGeneralizationRepositoryImpl, impl.NewCasbinRuleRepositoryImpl, impl.NewBasicImpl, wire.Bind(new(repository.AccessLogRepository), new(*impl.AccessLogRepositoryImpl)), wire.Bind(new(repository.LoginLogRepository), new(*impl.LoginLogRepositoryImpl)), wire.Bind(new(repository.SysConfigureRepository), new(*impl.SysConfigureRepositoryImpl)), wire.Bind(new(repository.SysDictRepository), new(*impl.SysDictRepositoryImpl)), wire.Bind(new(repository.SysDictItemRepository), new(*impl.SysDictItemRepositoryImpl)), wire.Bind(new(repository.SysTableRepository), new(*impl.SysTableRepositoryImpl)), wire.Bind(new(repository.SysUserRepository), new(*impl.SysUserRepositoryImpl)), wire.Bind(new(repository.SysMenuRepository), new(*impl.SysMenuRepositoryImpl)), wire.Bind(new(repository.SysRoleRepository), new(*impl.SysRoleRepositoryImpl)), wire.Bind(new(repository.SysRoleMenuButtonRepository), new(*impl.SysRoleMenuButtonRepositoryImpl)), wire.Bind(new(repository.SysRoleMenuRepository), new(*impl.SysRoleMenuRepositoryImpl)), wire.Bind(new(repository.SysUserMenuDataPermissionRepository), new(*impl.SysUserMenuDataPermissionRepositoryImpl)), wire.Bind(new(repository.SysUserRoleRepository), new(*impl.SysUserRoleRepositoryImpl)), wire.Bind(new(repository.GeneralizationRepository), new(*impl.GeneralizationRepositoryImpl)), wire.Bind(new(repository.CasbinRuleRepository), new(*impl.CasbinRuleRepositoryImpl)), wire.Bind(new(repository.BasicRepository), new(*impl.BasicImpl)))
 
 // Cache providers
 var CacheProvider = wire.NewSet(cache.NewSysConfigureCache, cache.NewSysUserCache, cache.NewSysDictCache, cache.NewSysTableCache, cache.NewSysTableFieldCache, cache.NewGeneralizationCache, cache.NewBlackCache)

@@ -50,7 +50,7 @@ func LogHandler(logService *service.LogService) gin.HandlerFunc {
 			Query:    string(queryStr),
 			Response: responseBody,
 		}
-		err := logService.CreateAccessLog(accessLog)
+		err := logService.CreateAccessLog(c, accessLog)
 		if err != nil {
 			zap.L().Error("日志存储异常。。。。%s", zap.Error(err))
 		}

@@ -75,7 +75,7 @@ func (b *BasicController) Login(ctx *gin.Context) {
 	}
 	// 异步保存登录日志
 	go func(loginLog model.LoginLog) {
-		e := b.logService.CreateLoginLog(loginLog)
+		e := b.logService.CreateLoginLog(ctx, loginLog)
 		if e != nil {
 			zap.L().Error("login loginLog err", zap.Error(err))
 		}

@@ -6,15 +6,11 @@
 package repository
 
 import (
-	"gorm.io/gorm"
 	"sweet-cms/model"
 )
 
 type SysMenuRepository interface {
 	BasicRepository
 	GetMenuById(int) (model.SysMenu, error)
-	CreateMenu(*gorm.DB, model.SysMenu) error
-	UpdateMenu(*gorm.DB, model.SysMenu) error
-	DeleteMenu(*gorm.DB, int) error
 	GetMenus() ([]model.SysMenu, error)
 }

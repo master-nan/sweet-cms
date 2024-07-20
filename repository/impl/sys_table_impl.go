@@ -20,10 +20,10 @@ type SysTableRepositoryImpl struct {
 	*BasicImpl
 }
 
-func NewSysTableRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysTableRepositoryImpl {
+func NewSysTableRepositoryImpl(db *gorm.DB) *SysTableRepositoryImpl {
 	return &SysTableRepositoryImpl{
 		db,
-		basicImpl,
+		NewBasicImpl(db, &model.SysTable{}),
 	}
 }
 

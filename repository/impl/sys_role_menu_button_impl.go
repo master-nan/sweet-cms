@@ -15,16 +15,8 @@ type SysRoleMenuButtonRepositoryImpl struct {
 	*BasicImpl
 }
 
-func NewSysRoleMenuButtonRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysRoleMenuButtonRepositoryImpl {
-	return &SysRoleMenuButtonRepositoryImpl{db, basicImpl}
-}
-
-func (s *SysRoleMenuButtonRepositoryImpl) CreateRoleMenuButton(tx *gorm.DB, roleMenuButton model.SysRoleMenuButton) error {
-	return tx.Create(&roleMenuButton).Error
-}
-
-func (s *SysRoleMenuButtonRepositoryImpl) DeleteRoleMenuButton(tx *gorm.DB, id int) error {
-	return tx.Where("id = ? ", id).Delete(&model.SysRoleMenuButton{}).Error
+func NewSysRoleMenuButtonRepositoryImpl(db *gorm.DB) *SysRoleMenuButtonRepositoryImpl {
+	return &SysRoleMenuButtonRepositoryImpl{db, NewBasicImpl(db, &model.SysRoleMenuButton{})}
 }
 
 func (s *SysRoleMenuButtonRepositoryImpl) GetRoleMenuButtons(roleId, menuId int) ([]model.SysMenuButton, error) {

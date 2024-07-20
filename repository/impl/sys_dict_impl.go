@@ -18,10 +18,10 @@ type SysDictRepositoryImpl struct {
 	*BasicImpl
 }
 
-func NewSysDictRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysDictRepositoryImpl {
+func NewSysDictRepositoryImpl(db *gorm.DB) *SysDictRepositoryImpl {
 	return &SysDictRepositoryImpl{
 		db,
-		basicImpl,
+		NewBasicImpl(db, &model.SysDict{}),
 	}
 }
 
@@ -42,44 +42,8 @@ func (i *SysDictRepositoryImpl) GetSysDictList(basic request.Basic) (response.Li
 	return repo, err
 }
 
-func (i *SysDictRepositoryImpl) InsertSysDict(tx *gorm.DB, d model.SysDict) error {
-	return tx.Create(&d).Error
-}
-
-func (i *SysDictRepositoryImpl) UpdateSysDict(tx *gorm.DB, d request.DictUpdateReq) error {
-	return tx.Model(model.SysDict{}).Updates(&d).Error
-}
-
-func (i *SysDictRepositoryImpl) DeleteSysDictById(tx *gorm.DB, id int) error {
-	return tx.Where("id = ?", id).Delete(model.SysDict{}).Error
-}
-
 func (i *SysDictRepositoryImpl) GetSysDictByCode(code string) (model.SysDict, error) {
 	var sysDict model.SysDict
 	err := i.db.Preload("DictItems").Where("dict_code = ?", code).First(&sysDict).Error
 	return sysDict, err
-}
-
-func (i *SysDictRepositoryImpl) GetSysDictItemById(id int) (model.SysDictItem, error) {
-	var item model.SysDictItem
-	err := i.db.Where("id = ?", id).First(&item).Error
-	return item, err
-}
-
-func (i *SysDictRepositoryImpl) GetSysDictItemsByDictId(id int) ([]model.SysDictItem, error) {
-	var items []model.SysDictItem
-	err := i.db.Where("dict_id = ?", id).Find(&items).Error
-	return items, err
-}
-
-func (i *SysDictRepositoryImpl) UpdateSysDictItem(tx *gorm.DB, d request.DictItemUpdateReq) error {
-	return tx.Model(model.SysDictItem{}).Updates(&d).Error
-}
-
-func (i *SysDictRepositoryImpl) InsertSysDictItem(tx *gorm.DB, d model.SysDictItem) error {
-	return tx.Create(&d).Error
-}
-
-func (i *SysDictRepositoryImpl) DeleteSysDictItemById(tx *gorm.DB, id int) error {
-	return tx.Delete(model.SysDictItem{}, id).Error
 }

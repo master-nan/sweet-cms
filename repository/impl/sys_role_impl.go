@@ -15,20 +15,8 @@ type SysRoleRepositoryImpl struct {
 	*BasicImpl
 }
 
-func NewSysRoleRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysRoleRepositoryImpl {
-	return &SysRoleRepositoryImpl{db: db, BasicImpl: basicImpl}
-}
-
-func (s *SysRoleRepositoryImpl) CreateRole(tx *gorm.DB, role model.SysRole) error {
-	return tx.Create(&role).Error
-}
-
-func (s *SysRoleRepositoryImpl) UpdateRole(tx *gorm.DB, role model.SysRole) error {
-	return tx.Save(&role).Error
-}
-
-func (s *SysRoleRepositoryImpl) DeleteRole(tx *gorm.DB, roleId int) error {
-	return tx.Delete(&model.SysRole{}, roleId).Error
+func NewSysRoleRepositoryImpl(db *gorm.DB) *SysRoleRepositoryImpl {
+	return &SysRoleRepositoryImpl{db, NewBasicImpl(db, &model.SysRole{})}
 }
 
 func (s *SysRoleRepositoryImpl) GetRoleById(roleId int) (model.SysRole, error) {

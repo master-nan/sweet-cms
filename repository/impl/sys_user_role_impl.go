@@ -15,16 +15,8 @@ type SysUserRoleRepositoryImpl struct {
 	*BasicImpl
 }
 
-func NewSysUserRoleRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysUserRoleRepositoryImpl {
-	return &SysUserRoleRepositoryImpl{db, basicImpl}
-}
-
-func (s *SysUserRoleRepositoryImpl) CreateUserRole(tx *gorm.DB, userRole model.SysUserRole) error {
-	return tx.Create(&userRole).Error
-}
-
-func (s *SysUserRoleRepositoryImpl) DeleteUserRole(tx *gorm.DB, id int) error {
-	return tx.Where("id = ?", id).Delete(&model.SysUserRole{}).Error
+func NewSysUserRoleRepositoryImpl(db *gorm.DB) *SysUserRoleRepositoryImpl {
+	return &SysUserRoleRepositoryImpl{db, NewBasicImpl(db, &model.SysUserRole{})}
 }
 
 func (s *SysUserRoleRepositoryImpl) GetUserRoles(userId int) ([]model.SysRole, error) {

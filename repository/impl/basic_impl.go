@@ -7,20 +7,27 @@ package impl
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"reflect"
 	"sweet-cms/form/request"
+	"sweet-cms/repository"
 	"sweet-cms/repository/util"
 	"sync"
 )
 
 type BasicImpl struct {
-	db *gorm.DB
+	db       *gorm.DB
+	preloads []string
+	model    interface{}
+	ctx      *gin.Context
 }
 
-func NewBasicImpl(db *gorm.DB) *BasicImpl {
+func NewBasicImpl(db *gorm.DB, model interface{}) *BasicImpl {
 	return &BasicImpl{
-		db,
+		db:    db,
+		model: model,
 	}
 }
 
@@ -101,4 +108,61 @@ func (b *BasicImpl) PaginateAndCountAsync(basic request.Basic, result interface{
 			return total, nil
 		}
 	}
+}
+
+func (b *BasicImpl) Create(tx *gorm.DB, entity interface{}) error {
+	return tx.Create(entity).Error
+}
+
+func (b *BasicImpl) Update(tx *gorm.DB, entity interface{}) error {
+	return tx.Save(entity).Error
+}
+
+func (b *BasicImpl) DeleteById(tx *gorm.DB, id int) error {
+	if b.model == nil {
+		return errors.New("model not set")
+	}
+	if b.model == nil {
+		return errors.New("model not set")
+	}
+	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
+	return tx.Delete(modelInstance, id).Error
+}
+
+func (b *BasicImpl) DeleteByIds(tx *gorm.DB, ids []int) error {
+	if b.model == nil {
+		return errors.New("model not set")
+	}
+	return tx.Delete(b.model, ids).Error
+}
+
+func (b *BasicImpl) FindById(id int) (interface{}, error) {
+	if b.model == nil {
+		return nil, errors.New("model not set")
+	}
+	if b.model == nil {
+		return nil, errors.New("model not set")
+	}
+	entity := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
+	query := b.db
+	if b.ctx != nil {
+		query = query.WithContext(b.ctx)
+	}
+	for _, preload := range b.preloads {
+		query = query.Preload(preload)
+	}
+	err := query.First(&entity, id).Error
+	return entity, err
+}
+
+func (b *BasicImpl) WithPreload(preloads ...string) repository.BasicRepository {
+	newImpl := *b
+	newImpl.preloads = append(newImpl.preloads, preloads...)
+	return &newImpl
+}
+
+func (b *BasicImpl) WithContext(ctx *gin.Context) repository.BasicRepository {
+	newImpl := *b
+	newImpl.ctx = ctx
+	return &newImpl
 }

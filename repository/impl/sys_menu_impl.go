@@ -15,25 +15,13 @@ type SysMenuRepositoryImpl struct {
 	*BasicImpl
 }
 
-func NewSysMenuRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysMenuRepositoryImpl {
-	return &SysMenuRepositoryImpl{db: db, BasicImpl: basicImpl}
+func NewSysMenuRepositoryImpl(db *gorm.DB) *SysMenuRepositoryImpl {
+	return &SysMenuRepositoryImpl{db, NewBasicImpl(db, &model.SysMenu{})}
 }
 func (s *SysMenuRepositoryImpl) GetMenuById(id int) (model.SysMenu, error) {
 	var menu model.SysMenu
 	err := s.db.Preload("MenuButtons").First(&menu, id).Error
 	return menu, err
-}
-
-func (s *SysMenuRepositoryImpl) CreateMenu(tx *gorm.DB, menu model.SysMenu) error {
-	return tx.Create(&menu).Error
-}
-
-func (s *SysMenuRepositoryImpl) UpdateMenu(tx *gorm.DB, menu model.SysMenu) error {
-	return tx.Save(&menu).Error
-}
-
-func (s *SysMenuRepositoryImpl) DeleteMenu(tx *gorm.DB, id int) error {
-	return tx.Delete(&model.SysMenu{}, id).Error
 }
 
 func (s *SysMenuRepositoryImpl) GetMenus() ([]model.SysMenu, error) {

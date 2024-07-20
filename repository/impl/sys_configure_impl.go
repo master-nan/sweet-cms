@@ -15,8 +15,8 @@ type SysConfigureRepositoryImpl struct {
 	*BasicImpl
 }
 
-func NewSysConfigureRepositoryImpl(db *gorm.DB, basicImpl *BasicImpl) *SysConfigureRepositoryImpl {
-	return &SysConfigureRepositoryImpl{db, basicImpl}
+func NewSysConfigureRepositoryImpl(db *gorm.DB) *SysConfigureRepositoryImpl {
+	return &SysConfigureRepositoryImpl{db, NewBasicImpl(db, &model.SysConfigure{})}
 }
 
 func (c *SysConfigureRepositoryImpl) GetSysConfigure() (model.SysConfigure, error) {
