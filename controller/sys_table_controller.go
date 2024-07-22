@@ -126,7 +126,7 @@ func (t *TableController) UpdateSysTable(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.UpdateTable(data)
+	err = t.sysTableService.UpdateTable(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

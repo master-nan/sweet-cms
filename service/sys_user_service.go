@@ -127,7 +127,7 @@ func (s *SysUserService) Insert(ctx *gin.Context, req request.UserCreateReq) err
 	}
 	data.Id = int(id)
 	tx := s.sysUserRepo.DBWithContext(ctx)
-	return s.sysUserRepo.Insert(tx, data)
+	return s.sysUserRepo.Create(tx, data)
 }
 
 func (s *SysUserService) Update(ctx *gin.Context, req request.UserUpdateReq) error {

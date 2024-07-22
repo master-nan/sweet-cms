@@ -115,13 +115,14 @@ func (b *BasicImpl) Create(tx *gorm.DB, entity interface{}) error {
 }
 
 func (b *BasicImpl) Update(tx *gorm.DB, entity interface{}) error {
-	return tx.Save(entity).Error
-}
-
-func (b *BasicImpl) DeleteById(tx *gorm.DB, id int) error {
 	if b.model == nil {
 		return errors.New("model not set")
 	}
+	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
+	return tx.Model(modelInstance).Updates(entity).Error
+}
+
+func (b *BasicImpl) DeleteById(tx *gorm.DB, id int) error {
 	if b.model == nil {
 		return errors.New("model not set")
 	}
