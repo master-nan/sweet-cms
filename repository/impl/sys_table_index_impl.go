@@ -33,7 +33,3 @@ func (s *SysTableIndexRepositoryImpl) GetTableIndexById(id int) (model.SysTableI
 	err := s.db.Where("id = ?", id).Find(&index).Error
 	return index, err
 }
-
-func (s *SysTableIndexRepositoryImpl) DeleteTableIndexByTableId(tx *gorm.DB, tableId int) error {
-	return tx.Where("table_id = ?", tableId).Delete(model.SysTableIndex{}).Error
-}

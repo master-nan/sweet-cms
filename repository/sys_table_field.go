@@ -6,7 +6,6 @@
 package repository
 
 import (
-	"gorm.io/gorm"
 	"sweet-cms/model"
 )
 
@@ -14,5 +13,4 @@ type SysTableFieldRepository interface {
 	BasicRepository
 	GetTableFieldById(int) (model.SysTableField, error)
 	GetTableFieldsByTableId(int) ([]model.SysTableField, error)
-	DeleteTableFieldByTableId(*gorm.DB, int) error
 }

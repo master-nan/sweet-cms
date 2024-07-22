@@ -20,15 +20,17 @@ type SysTableRepository interface {
 
 	FetchTableMetadata(string, string) ([]model.TableColumnMate, error)
 	FetchTableIndexMetadata(string, string) ([]model.TableIndexMate, error)
+
+	Model([]model.SysTableField) interface{}
+
+	// DropTableIndex
+	// 所有数据库操作
 	DropTableIndex(*gorm.DB, string, string) error
 	DropTable(*gorm.DB, string) error
 	DropTableColumn(*gorm.DB, string, string) error
 	ModifyTableColumn(*gorm.DB, string, string, string) error
-	// ChangeTableColumn 修改字段
 	ChangeTableColumn(*gorm.DB, string, string, string, string) error
 	CreateTableColumn(*gorm.DB, string, string, string) error
 	CreateTable(*gorm.DB, string, any) error
 	CreateTableIndex(*gorm.DB, bool, string, string, string) error
-
-	Model([]model.SysTableField) interface{}
 }

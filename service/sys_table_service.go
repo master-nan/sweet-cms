@@ -182,7 +182,7 @@ func (s *SysTableService) DeleteTableById(ctx *gin.Context, id int) error {
 			return e
 		}
 		// 删除字段元数据
-		if e := s.sysTableFieldRepo.DeleteTableFieldByTableId(tx, id); e != nil {
+		if e := s.sysTableFieldRepo.DeleteByField(tx, "table_id", id); e != nil {
 			return e
 		}
 		// 查询表所有索引
@@ -191,7 +191,7 @@ func (s *SysTableService) DeleteTableById(ctx *gin.Context, id int) error {
 			return e
 		}
 		// 删除索引信息
-		if e := s.sysTableIndexRepo.DeleteTableIndexByTableId(tx, id); e != nil {
+		if e := s.sysTableIndexRepo.DeleteByField(tx, "table_id", id); e != nil {
 			return e
 		}
 		var indexIDs []int
@@ -200,7 +200,8 @@ func (s *SysTableService) DeleteTableById(ctx *gin.Context, id int) error {
 		}
 		// 删除索引中间表信息，需要使用 IN 查询
 		if len(indexIDs) > 0 {
-			if e := s.sysTableIndexFieldRepo.DeleteTableIndexFieldByIndexIds(tx, indexIDs); e != nil {
+			slice := utils.ToInterfaceSlice(indexIDs)
+			if e := s.sysTableIndexFieldRepo.DeleteByFieldIn(tx, "index_id", slice); e != nil {
 				return e
 			}
 		}
@@ -573,7 +574,7 @@ func (s *SysTableService) InsertTableIndex(ctx *gin.Context, req request.TableIn
 func (s *SysTableService) UpdateTableIndex(ctx *gin.Context, req request.TableIndexUpdateReq) error {
 	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
 		// 删除中间表数据
-		if e := s.sysTableIndexFieldRepo.DeleteTableIndexFieldByIndexId(tx, req.Id); e != nil {
+		if e := s.sysTableIndexFieldRepo.DeleteByField(tx, "index_id", req.Id); e != nil {
 			return e
 		}
 		if e := s.sysTableIndexRepo.Update(tx, req); e != nil {
@@ -647,7 +648,7 @@ func (s *SysTableService) DeleteTableIndexByTableId(ctx *gin.Context, id int) er
 		return e
 	}
 	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
-		if e := s.sysTableIndexRepo.DeleteTableIndexByTableId(tx, id); e != nil {
+		if e := s.sysTableIndexRepo.DeleteByField(tx, "table_id", id); e != nil {
 			return e
 		}
 		for _, index := range indexes {

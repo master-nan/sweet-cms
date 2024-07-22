@@ -5,12 +5,6 @@
 
 package repository
 
-import (
-	"gorm.io/gorm"
-)
-
 type SysTableIndexFieldRepository interface {
 	BasicRepository
-	DeleteTableIndexFieldByIndexId(*gorm.DB, int) error
-	DeleteTableIndexFieldByIndexIds(*gorm.DB, []int) error
 }

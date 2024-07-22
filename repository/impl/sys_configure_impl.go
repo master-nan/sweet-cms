@@ -24,7 +24,3 @@ func (c *SysConfigureRepositoryImpl) GetSysConfigure() (model.SysConfigure, erro
 	err := c.db.First(&data).Error
 	return data, err
 }
-
-func (c *SysConfigureRepositoryImpl) UpdateSysConfigure(tx *gorm.DB, d model.SysConfigure) error {
-	return tx.Save(d).Error
-}

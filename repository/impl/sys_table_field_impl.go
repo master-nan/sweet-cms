@@ -33,7 +33,3 @@ func (s *SysTableFieldRepositoryImpl) GetTableFieldsByTableId(id int) ([]model.S
 	err := s.db.Where("table_id = ?", id).Order("sequence").Find(&items).Error
 	return items, err
 }
-
-func (s *SysTableFieldRepositoryImpl) DeleteTableFieldByTableId(tx *gorm.DB, tableId int) error {
-	return tx.Where("table_id = ?", tableId).Delete(model.SysTableField{}).Error
-}

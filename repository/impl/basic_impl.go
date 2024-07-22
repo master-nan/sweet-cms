@@ -6,6 +6,7 @@
 package impl
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -130,11 +131,28 @@ func (b *BasicImpl) DeleteById(tx *gorm.DB, id int) error {
 	return tx.Delete(modelInstance, id).Error
 }
 
+func (b *BasicImpl) DeleteByField(tx *gorm.DB, field string, value interface{}) error {
+	if b.model == nil {
+		return errors.New("model not set")
+	}
+	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
+	return tx.Where(fmt.Sprintf("%s = ?", field), value).Delete(modelInstance).Error
+}
+
 func (b *BasicImpl) DeleteByIds(tx *gorm.DB, ids []int) error {
 	if b.model == nil {
 		return errors.New("model not set")
 	}
-	return tx.Delete(b.model, ids).Error
+	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
+	return tx.Where("id in ?", ids).Delete(modelInstance).Error
+}
+
+func (b *BasicImpl) DeleteByFieldIn(tx *gorm.DB, field string, values []interface{}) error {
+	if b.model == nil {
+		return errors.New("model not set")
+	}
+	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
+	return tx.Where(fmt.Sprintf("%s in ?", field), values).Delete(modelInstance).Error
 }
 
 func (b *BasicImpl) FindById(id int) (interface{}, error) {

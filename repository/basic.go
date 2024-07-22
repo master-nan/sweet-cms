@@ -19,7 +19,9 @@ type BasicRepository interface {
 	Create(*gorm.DB, interface{}) error
 	Update(*gorm.DB, interface{}) error
 	DeleteById(*gorm.DB, int) error
+	DeleteByField(*gorm.DB, string, interface{}) error
 	DeleteByIds(*gorm.DB, []int) error
+	DeleteByFieldIn(*gorm.DB, string, []interface{}) error
 	FindById(id int) (interface{}, error)
 	WithPreload(...string) BasicRepository
 	WithContext(*gin.Context) BasicRepository
