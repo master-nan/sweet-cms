@@ -8,7 +8,7 @@ package model
 type AccessLog struct {
 	Basic
 	Method   string `gorm:"size:64;comment:操作" json:"method"`
-	Ip       string `gorm:"size:128;comment:ip"json:"ip"`
+	Ip       string `gorm:"size:128;comment:ip" json:"ip"`
 	Locality string `gorm:"size:128;comment:用户名" json:"locality"`
 	Url      string `gorm:"size:512;comment:路径" json:"url"`
 	Body     string `gorm:"type:text;comment:请求数据" json:"body"`
