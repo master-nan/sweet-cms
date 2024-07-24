@@ -26,6 +26,7 @@ type SysMenu struct {
 	MenuButtons []SysMenuButton             `gorm:"foreignKey:MenuId;references:Id" json:"menuButtons"`
 	Roles       []SysRole                   `gorm:"many2many:sys_role_menu" json:"roles"`
 	Permissions []SysUserMenuDataPermission `gorm:"foreignKey:MenuId;references:Id" json:"permissions"`
+	Children    []SysMenu                   `gorm:"-" json:"children"` // 子菜单
 }
 
 type SysMenuButton struct {
