@@ -102,6 +102,8 @@ var ServiceProvider = wire.NewSet(
 	service.NewLogServer,
 	service.NewSysConfigureService,
 	service.NewSysDictService,
+	service.NewSysRoleService,
+	service.NewSysMenuService,
 	service.NewSysTableService,
 	service.NewSysUserService,
 	service.NewGeneralizationService,

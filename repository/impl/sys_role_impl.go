@@ -7,6 +7,8 @@ package impl
 
 import (
 	"gorm.io/gorm"
+	"sweet-cms/form/request"
+	"sweet-cms/form/response"
 	"sweet-cms/model"
 )
 
@@ -47,4 +49,13 @@ func (s *SysRoleRepositoryImpl) GetRoleButtons(roleId int) ([]model.SysMenuButto
 		return nil, err
 	}
 	return role.Buttons, nil
+}
+
+func (s *SysRoleRepositoryImpl) GetRoleList(basic request.Basic) (response.ListResult[model.SysRole], error) {
+	var repo response.ListResult[model.SysRole]
+	var sysRoleList []model.SysRole
+	total, err := s.PaginateAndCountAsync(basic, &sysRoleList)
+	repo.Data = sysRoleList
+	repo.Total = int(total)
+	return repo, err
 }

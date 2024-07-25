@@ -11,5 +11,6 @@ import (
 
 type SysUserMenuDataPermissionRepository interface {
 	BasicRepository
-	GetUserMenuPermissionsByUserId(userId int) ([]model.SysUserMenuDataPermission, error)
+	GetUserMenuPermissionsByUserId(int) ([]model.SysUserMenuDataPermission, error)
+	GetUserMenuPermissions(int) ([]model.SysUserMenuDataPermission, error)
 }

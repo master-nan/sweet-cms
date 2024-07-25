@@ -11,5 +11,6 @@ import (
 
 type SysRoleMenuRepository interface {
 	BasicRepository
-	GetRoleMenus(roleId int) ([]model.SysMenu, error)
+	GetRoleMenus(int) ([]model.SysMenu, error)
+	GetRoleMenusByRoleIds([]int) ([]model.SysMenu, error)
 }

@@ -26,7 +26,7 @@ func (s *SysMenuRepositoryImpl) GetMenuById(id int) (model.SysMenu, error) {
 
 func (s *SysMenuRepositoryImpl) GetMenus() ([]model.SysMenu, error) {
 	var menus []model.SysMenu
-	err := s.db.Preload("MenuButtons").Find(&menus).Error
+	err := s.db.Preload("MenuButtons").Preload("Permissions").Find(&menus).Error
 	return menus, err
 }
 

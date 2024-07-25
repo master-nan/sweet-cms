@@ -128,7 +128,7 @@ var RepositoryProvider = wire.NewSet(impl.NewAccessLogRepositoryImpl, impl.NewLo
 var CacheProvider = wire.NewSet(cache.NewSysConfigureCache, cache.NewSysUserCache, cache.NewSysDictCache, cache.NewSysTableCache, cache.NewSysTableFieldCache, cache.NewGeneralizationCache, cache.NewBlackCache)
 
 // Service providers
-var ServiceProvider = wire.NewSet(service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysTableService, service.NewSysUserService, service.NewGeneralizationService, service.NewCasbinRuleService)
+var ServiceProvider = wire.NewSet(service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysRoleService, service.NewSysMenuService, service.NewSysTableService, service.NewSysUserService, service.NewGeneralizationService, service.NewCasbinRuleService)
 
 // Controller providers
 var ControllerProvider = wire.NewSet(controller.NewDictController, controller.NewTableController, controller.NewUserController, controller.NewBasicController, controller.NewGeneralizationController)

@@ -24,3 +24,10 @@ func (s *SysUserMenuDataPermissionRepositoryImpl) GetUserMenuPermissionsByUserId
 	err := s.db.Where("user_id = ?", userId).Find(&permissions).Error
 	return permissions, err
 }
+
+// GetUserMenuPermissions 获取用户在指定菜单下的数据权限
+func (s *SysUserMenuDataPermissionRepositoryImpl) GetUserMenuPermissions(menuId int) ([]model.SysUserMenuDataPermission, error) {
+	var permissions []model.SysUserMenuDataPermission
+	err := s.db.Where("menu_id = ?", menuId).Find(&permissions).Error
+	return permissions, err
+}

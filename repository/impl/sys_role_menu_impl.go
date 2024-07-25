@@ -21,6 +21,13 @@ func NewSysRoleMenuRepositoryImpl(db *gorm.DB) *SysRoleMenuRepositoryImpl {
 
 func (s *SysRoleMenuRepositoryImpl) GetRoleMenus(roleId int) ([]model.SysMenu, error) {
 	var menus []model.SysMenu
-	err := s.db.Preload("Roles").Where("Roles.id = ?", roleId).Find(&menus).Error
+	err := s.db.Preload("Roles", "Roles.id = ?", roleId).Find(&menus).Error
+	return menus, err
+}
+
+// GetRoleMenusByRoleIds 获取角色的所有菜单
+func (s *SysRoleMenuRepositoryImpl) GetRoleMenusByRoleIds(roleIds []int) ([]model.SysMenu, error) {
+	var menus []model.SysMenu
+	err := s.db.Preload("Roles", "Roles.id IN ?", roleIds).Find(&menus).Error
 	return menus, err
 }
