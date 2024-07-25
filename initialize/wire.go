@@ -89,6 +89,7 @@ var RepositoryProvider = wire.NewSet(
 // Cache providers
 var CacheProvider = wire.NewSet(
 	cache.NewSysConfigureCache,
+	cache.NewSysUserRoleCache,
 	cache.NewSysUserCache,
 	cache.NewSysDictCache,
 	cache.NewSysTableCache,
