@@ -36,7 +36,7 @@ type App struct {
 	GeneralizationController *controller.GeneralizationController
 	LogService               *service.LogService
 	UserService              *service.SysUserService
-	BlackCache               *cache.BlackCache
+	BlackCache               *cache.BlackUserCache
 }
 
 // Repository providers

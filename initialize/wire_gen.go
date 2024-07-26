@@ -82,7 +82,7 @@ func InitializeApp() (*App, error) {
 	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db)
 	generalizationService := service.NewGeneralizationService(generalizationRepositoryImpl)
 	generalizationController := controller.NewGeneralizationController(generalizationService, sysTableService)
-	blackCache := cache.NewBlackCache(redisUtil)
+	blackUserCache := cache.NewBlackCache(redisUtil)
 	app := &App{
 		Config:                   server,
 		DB:                       db,
@@ -97,7 +97,7 @@ func InitializeApp() (*App, error) {
 		GeneralizationController: generalizationController,
 		LogService:               logService,
 		UserService:              sysUserService,
-		BlackCache:               blackCache,
+		BlackCache:               blackUserCache,
 	}
 	return app, nil
 }
@@ -118,7 +118,7 @@ type App struct {
 	GeneralizationController *controller.GeneralizationController
 	LogService               *service.LogService
 	UserService              *service.SysUserService
-	BlackCache               *cache.BlackCache
+	BlackCache               *cache.BlackUserCache
 }
 
 // Repository providers
