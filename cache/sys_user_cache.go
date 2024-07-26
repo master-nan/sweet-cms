@@ -6,46 +6,18 @@
 package cache
 
 import (
-	"go.uber.org/zap"
 	"sweet-cms/inter"
 	"sweet-cms/model"
-	"time"
 )
 
 type SysUserCache struct {
-	cacheInterface inter.CacheInterface
+	*BasicCache[model.SysUser]
 }
 
 const UserCacheKey = "USER_CACHE_KEY_"
 
 func NewSysUserCache(cacheInterface inter.CacheInterface) *SysUserCache {
-	return &SysUserCache{cacheInterface: cacheInterface}
-}
-
-func (c *SysUserCache) Get(key string) (model.SysUser, error) {
-	var data model.SysUser
-	err := c.cacheInterface.Get(UserCacheKey+key, &data)
-	if err != nil {
-		zap.L().Error(UserCacheKey+"Error getting key in cache", zap.String("key", key), zap.Error(err))
-		return data, err
+	return &SysUserCache{
+		BasicCache: NewBasicCache[model.SysUser](cacheInterface, UserCacheKey),
 	}
-	return data, nil
-}
-
-func (c *SysUserCache) Set(key string, data model.SysUser) error {
-	err := c.cacheInterface.Set(UserCacheKey+key, &data, 7200*time.Second)
-	if err != nil {
-		zap.L().Error(UserCacheKey+"Error setting key in cache", zap.String("key", key), zap.Error(err))
-		return err
-	}
-	return nil
-}
-
-func (c *SysUserCache) Delete(key string) error {
-	err := c.cacheInterface.Del(UserCacheKey + key)
-	if err != nil {
-		zap.L().Error(UserCacheKey+"Error delete key in cache", zap.String("key", key), zap.Error(err))
-		return err
-	}
-	return nil
 }
