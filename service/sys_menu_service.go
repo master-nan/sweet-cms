@@ -6,7 +6,10 @@
 package service
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
+	"sweet-cms/form/request"
 	"sweet-cms/model"
 	"sweet-cms/repository"
 	"sweet-cms/utils"
@@ -34,14 +37,29 @@ func NewSysMenuService(sysMenuRepo repository.SysMenuRepository, sysRoleMenuRepo
 	}
 }
 
-// CreateMenu 新增菜单
-func (s *SysMenuService) CreateMenu(ctx *gin.Context, menu model.SysMenu) error {
-	return s.sysMenuRepo.Create(s.sysMenuRepo.DBWithContext(ctx), menu)
+func (s *SysMenuService) GetMenuById(id int) (model.SysMenu, error) {
+	return s.sysMenuRepo.GetMenuById(id)
+}
+
+// InsertMenu 新增菜单
+func (s *SysMenuService) InsertMenu(ctx *gin.Context, req request.MenuCreateReq) error {
+	var data model.SysMenu
+	err := mapstructure.Decode(req, &data)
+	if err != nil {
+		fmt.Println("Error during struct mapping:", err)
+		return err
+	}
+	id, err := s.sf.GenerateUniqueID()
+	if err != nil {
+		return err
+	}
+	data.Id = int(id)
+	return s.sysMenuRepo.Create(s.sysMenuRepo.DBWithContext(ctx), data)
 }
 
 // UpdateMenu 更新菜单
-func (s *SysMenuService) UpdateMenu(ctx *gin.Context, menu model.SysMenu) error {
-	return s.sysMenuRepo.Update(s.sysMenuRepo.DBWithContext(ctx), menu)
+func (s *SysMenuService) UpdateMenu(ctx *gin.Context, data request.MenuUpdateReq) error {
+	return s.sysMenuRepo.Update(s.sysMenuRepo.DBWithContext(ctx), data)
 }
 
 // DeleteMenu 删除菜单
@@ -64,12 +82,10 @@ func (s *SysMenuService) GetUserMenus(userId int) ([]model.SysMenu, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	var roleIds []int
 	for _, role := range roles {
 		roleIds = append(roleIds, role.Id)
 	}
-
 	menus, err := s.sysRoleMenuRepo.GetRoleMenusByRoleIds(roleIds)
 	if err != nil {
 		return nil, err

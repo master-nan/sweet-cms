@@ -8,11 +8,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
-	"github.com/pkg/errors"
-	"net/http"
 	"strconv"
-	"strings"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/service"
@@ -66,27 +62,9 @@ func (t *TableController) QuerySysTable(ctx *gin.Context) {
 	ctx.Set("response", resp)
 	var data request.Basic
 	translator, _ := t.translators["zh"]
-	if err := ctx.ShouldBindQuery(&data); err != nil {
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			// 如果是验证错误，则翻译错误信息
-			var errorMessages []string
-			for _, e := range ve {
-				errMsg := e.Translate(translator)
-				errorMessages = append(errorMessages, errMsg)
-			}
-			e := &response.AdminError{
-				ErrorCode:    http.StatusBadRequest,
-				ErrorMessage: strings.Join(errorMessages, ","),
-			}
-			_ = ctx.Error(e)
-			return
-		}
-		e := &response.AdminError{
-			ErrorCode:    http.StatusBadRequest,
-			ErrorMessage: err.Error(),
-		}
-		_ = ctx.Error(e)
+	err := utils.ValidatorQuery[request.Basic](ctx, &data, translator)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 	result, err := t.sysTableService.GetTableList(data)

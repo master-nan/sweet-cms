@@ -298,6 +298,36 @@ func ValidatorBody[T any](ctx *gin.Context, data *T, translator ut.Translator) e
 	return nil
 }
 
+func ValidatorQuery[T any](ctx *gin.Context, data *T, translator ut.Translator) error {
+	err := ctx.ShouldBindQuery(data)
+	if err != nil {
+		if err == io.EOF {
+			// 客户端请求体为空
+			e := &response.AdminError{
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: "请求参数数据",
+			}
+			return e
+		}
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			// 如果是验证错误，则翻译错误信息
+			var errorMessages []string
+			for _, e := range ve {
+				errMsg := e.Translate(translator)
+				errorMessages = append(errorMessages, errMsg)
+			}
+			e := &response.AdminError{
+				ErrorCode:    http.StatusBadRequest,
+				ErrorMessage: strings.Join(errorMessages, ","),
+			}
+			return e
+		}
+		return err
+	}
+	return nil
+}
+
 func RandInt64() int64 {
 	src := rand.New(rand.NewSource(time.Now().Unix()))
 	r := rand.New(src)
