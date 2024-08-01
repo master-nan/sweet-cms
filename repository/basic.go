@@ -23,6 +23,7 @@ type BasicRepository interface {
 	DeleteByIds(*gorm.DB, []int) error
 	DeleteByFieldIn(*gorm.DB, string, []interface{}) error
 	FindById(id int) (interface{}, error)
+	FindByField(field string, value interface{}) (interface{}, error)
 	WithPreload(...string) BasicRepository
 	WithContext(*gin.Context) BasicRepository
 }

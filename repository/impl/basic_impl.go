@@ -159,6 +159,19 @@ func (b *BasicImpl) FindById(id int) (interface{}, error) {
 	if b.model == nil {
 		return nil, errors.New("model not set")
 	}
+	entity := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
+	query := b.db
+	if b.ctx != nil {
+		query = query.WithContext(b.ctx)
+	}
+	for _, preload := range b.preloads {
+		query = query.Preload(preload)
+	}
+	err := query.First(&entity, id).Error
+	return entity, err
+}
+
+func (b *BasicImpl) FindByField(field string, value interface{}) (interface{}, error) {
 	if b.model == nil {
 		return nil, errors.New("model not set")
 	}
@@ -170,7 +183,7 @@ func (b *BasicImpl) FindById(id int) (interface{}, error) {
 	for _, preload := range b.preloads {
 		query = query.Preload(preload)
 	}
-	err := query.First(&entity, id).Error
+	err := query.Where(fmt.Sprintf("%s = ?", field), value).First(&entity).Error
 	return entity, err
 }
 
