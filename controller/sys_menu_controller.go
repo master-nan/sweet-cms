@@ -82,7 +82,7 @@ func (m *MenuController) UpdateSysMenu(ctx *gin.Context) {
 	return
 }
 
-func (m *MenuController) DeleteSysMenu(ctx *gin.Context) {
+func (m *MenuController) DeleteSysMenuById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -90,7 +90,7 @@ func (m *MenuController) DeleteSysMenu(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = m.sysMenuService.DeleteMenu(ctx, id)
+	err = m.sysMenuService.DeleteMenuById(ctx, id)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

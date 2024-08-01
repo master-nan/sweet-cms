@@ -68,8 +68,8 @@ func (s *SysMenuService) UpdateMenu(ctx *gin.Context, data request.MenuUpdateReq
 	return s.sysMenuRepo.Update(s.sysMenuRepo.DBWithContext(ctx), data)
 }
 
-// DeleteMenu 删除菜单
-func (s *SysMenuService) DeleteMenu(ctx *gin.Context, id int) error {
+// DeleteMenuById 删除菜单
+func (s *SysMenuService) DeleteMenuById(ctx *gin.Context, id int) error {
 	return s.sysMenuRepo.DeleteById(s.sysMenuRepo.DBWithContext(ctx), id)
 }
 

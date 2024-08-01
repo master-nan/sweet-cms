@@ -78,6 +78,14 @@ func InitializeApp() (*App, error) {
 	sysTableFieldCache := cache.NewSysTableFieldCache(redisUtil)
 	sysTableService := service.NewSysTableService(sysTableRepositoryImpl, sysTableFieldRepositoryImpl, sysTableIndexRepositoryImpl, sysTableIndexFieldRepositoryImpl, sysTableRelationRepositoryImpl, snowflake, sysTableCache, sysTableFieldCache, server)
 	tableController := controller.NewTableController(sysTableService, v)
+	sysMenuRepositoryImpl := impl.NewSysMenuRepositoryImpl(db)
+	sysRoleMenuRepositoryImpl := impl.NewSysRoleMenuRepositoryImpl(db)
+	sysUserMenuDataPermissionRepositoryImpl := impl.NewSysUserMenuDataPermissionRepositoryImpl(db)
+	sysRoleMenuButtonRepositoryImpl := impl.NewSysRoleMenuButtonRepositoryImpl(db)
+	sysUserRoleRepositoryImpl := impl.NewSysUserRoleRepositoryImpl(db)
+	sysMenuButtonRepositoryImpl := impl.NewSysMenuButtonRepositoryImpl(db)
+	sysMenuService := service.NewSysMenuService(sysMenuRepositoryImpl, sysRoleMenuRepositoryImpl, sysUserMenuDataPermissionRepositoryImpl, sysRoleMenuButtonRepositoryImpl, sysUserRoleRepositoryImpl, sysMenuButtonRepositoryImpl, snowflake)
+	menuController := controller.NewMenuController(sysMenuService, v)
 	userController := controller.NewUserController(sysUserService, v)
 	generalizationRepositoryImpl := impl.NewGeneralizationRepositoryImpl(db)
 	generalizationService := service.NewGeneralizationService(generalizationRepositoryImpl)
@@ -93,6 +101,7 @@ func InitializeApp() (*App, error) {
 		DictController:           dictController,
 		BasicController:          basicController,
 		TableController:          tableController,
+		MenuController:           menuController,
 		UserController:           userController,
 		GeneralizationController: generalizationController,
 		LogService:               logService,
@@ -114,6 +123,7 @@ type App struct {
 	DictController           *controller.DictController
 	BasicController          *controller.BasicController
 	TableController          *controller.TableController
+	MenuController           *controller.MenuController
 	UserController           *controller.UserController
 	GeneralizationController *controller.GeneralizationController
 	LogService               *service.LogService
@@ -131,7 +141,7 @@ var CacheProvider = wire.NewSet(cache.NewSysConfigureCache, cache.NewSysUserRole
 var ServiceProvider = wire.NewSet(service.NewLogServer, service.NewSysConfigureService, service.NewSysDictService, service.NewSysRoleService, service.NewSysMenuService, service.NewSysTableService, service.NewSysUserService, service.NewGeneralizationService, service.NewCasbinRuleService)
 
 // Controller providers
-var ControllerProvider = wire.NewSet(controller.NewDictController, controller.NewTableController, controller.NewUserController, controller.NewBasicController, controller.NewGeneralizationController)
+var ControllerProvider = wire.NewSet(controller.NewDictController, controller.NewTableController, controller.NewMenuController, controller.NewUserController, controller.NewBasicController, controller.NewGeneralizationController)
 
 var Providers = wire.NewSet(
 	LoadConfig,

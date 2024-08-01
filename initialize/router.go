@@ -52,21 +52,44 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.DELETE("/dict/item/:id", app.DictController.DeleteSysDictItemById)
 
 		// table
-		adminGroup.GET("/table/id/:id", app.TableController.GetSysTableByID)
-		adminGroup.GET("/table/code/:code", app.TableController.GetSysTableByCode)
-		adminGroup.GET("/table/query", app.TableController.QuerySysTable)
-		adminGroup.POST("/table", app.TableController.InsertSysTable)
-		adminGroup.PUT("/table/:id", app.TableController.UpdateSysTable)
-		adminGroup.DELETE("/table/:id", app.TableController.DeleteSysTableById)
+		adminGroup.GET("/table/id/:id", app.TableController.GetTableByID)
+		adminGroup.GET("/table/code/:code", app.TableController.GetTableByCode)
+		adminGroup.GET("/table/query", app.TableController.QueryTable)
+		adminGroup.POST("/table", app.TableController.InsertTable)
+		adminGroup.PUT("/table/:id", app.TableController.UpdateTable)
+		adminGroup.DELETE("/table/:id", app.TableController.DeleteTableById)
 
 		// table_field
-		adminGroup.GET("/table/fields/:id", app.TableController.GetSysTableFieldsByTableId)
-		adminGroup.GET("/table/field/:id", app.TableController.GetSysTableFieldById)
-		adminGroup.POST("/table/field", app.TableController.InsertSysTableField)
-		adminGroup.PUT("/table/field/:id", app.TableController.UpdateSysTableField)
-		adminGroup.DELETE("/table/field/:id", app.TableController.DeleteSysTableFieldById)
+		adminGroup.GET("/table/fields/:id", app.TableController.GetTableFieldsByTableId)
+		adminGroup.GET("/table/field/:id", app.TableController.GetTableFieldById)
+		adminGroup.POST("/table/field", app.TableController.InsertTableField)
+		adminGroup.PUT("/table/field/:id", app.TableController.UpdateTableField)
+		adminGroup.DELETE("/table/field/:id", app.TableController.DeleteTableFieldById)
 
 		adminGroup.GET("/table/init/:code", app.TableController.InitTable)
+
+		// table_index
+		adminGroup.GET("/table/indexes/:id", app.TableController.GetTableIndexesByTableId)
+		adminGroup.GET("/table/index/:id", app.TableController.GetTableIndexById)
+		adminGroup.POST("/table/index", app.TableController.InsertTableIndex)
+		adminGroup.PUT("/table/index/:id", app.TableController.UpdateTableIndex)
+		adminGroup.DELETE("/table/index/:id", app.TableController.DeleteTableIndexById)
+
+		// table_relation
+		adminGroup.GET("/table/relations/:id", app.TableController.GetTableRelationsByTableId)
+		adminGroup.GET("/table/relation/:id", app.TableController.GetTableRelationById)
+		adminGroup.POST("/table/relation", app.TableController.InsertTableRelation)
+		adminGroup.PUT("/table/relation/:id", app.TableController.UpdateTableRelation)
+		adminGroup.DELETE("/table/relation/:id", app.TableController.DeleteTableRelationById)
+
+		// menu
+		adminGroup.GET("/menu/id/:id", app.MenuController.GetSysMenuById)
+		adminGroup.GET("/menu/query", app.MenuController.QuerySysMenu)
+		adminGroup.POST("/menu", app.MenuController.InsertSysMenu)
+		adminGroup.PUT("/menu/:id", app.MenuController.UpdateSysMenu)
+		adminGroup.DELETE("/menu/:id", app.MenuController.DeleteSysMenuById)
+		adminGroup.GET("/menu/my", app.MenuController.GetMyMenus)
+		adminGroup.GET("/menu/role", app.MenuController.GetRoleMenus)
 
 		// user
 		adminGroup.GET("/user/me", app.UserController.GetMe)

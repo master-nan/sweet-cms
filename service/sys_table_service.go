@@ -513,7 +513,13 @@ func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.Tabl
 	s.DeleteCache(req.TableId)
 	return err
 }
-func (s *SysTableService) DeleteTableRelation(ctx *gin.Context, id int) error {
+
+func (s *SysTableService) UpdateTableRelation(ctx *gin.Context, data request.TableRelationUpdateReq) error {
+	// TODO 需要完善
+	return nil
+}
+
+func (s *SysTableService) DeleteTableRelationById(ctx *gin.Context, id int) error {
 	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
 		if e := s.sysTableRelationRepo.DeleteById(tx, id); e != nil {
 			return e
@@ -528,6 +534,18 @@ func (s *SysTableService) DeleteTableRelation(ctx *gin.Context, id int) error {
 		return nil
 	})
 	return err
+}
+
+func (s *SysTableService) GetTableIndexById(id int) (model.SysTableIndex, error) {
+	result, err := s.sysTableIndexRepo.FindById(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.SysTableIndex{}, nil
+		}
+		return model.SysTableIndex{}, err
+	}
+	data := result.(model.SysTableIndex)
+	return data, nil
 }
 
 func (s *SysTableService) GetTableIndexesByTableId(tableId int) ([]model.SysTableIndex, error) {
@@ -624,7 +642,7 @@ func (s *SysTableService) UpdateTableIndex(ctx *gin.Context, req request.TableIn
 	return err
 }
 
-func (s *SysTableService) DeleteTableIndex(ctx *gin.Context, id int) error {
+func (s *SysTableService) DeleteTableIndexById(ctx *gin.Context, id int) error {
 	result, e := s.sysTableIndexRepo.FindById(id)
 	if e != nil {
 		return e

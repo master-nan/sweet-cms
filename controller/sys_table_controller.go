@@ -27,7 +27,7 @@ func NewTableController(sysTableService *service.SysTableService, translators ma
 	}
 }
 
-func (t *TableController) GetSysTableByID(ctx *gin.Context) {
+func (t *TableController) GetTableByID(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -44,7 +44,7 @@ func (t *TableController) GetSysTableByID(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) GetSysTableByCode(ctx *gin.Context) {
+func (t *TableController) GetTableByCode(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	code := ctx.Param("code")
@@ -57,7 +57,7 @@ func (t *TableController) GetSysTableByCode(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) QuerySysTable(ctx *gin.Context) {
+func (t *TableController) QueryTable(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.Basic
@@ -76,7 +76,7 @@ func (t *TableController) QuerySysTable(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) InsertSysTable(ctx *gin.Context) {
+func (t *TableController) InsertTable(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.TableCreateReq
@@ -94,7 +94,7 @@ func (t *TableController) InsertSysTable(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) UpdateSysTable(ctx *gin.Context) {
+func (t *TableController) UpdateTable(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.TableUpdateReq
@@ -112,7 +112,7 @@ func (t *TableController) UpdateSysTable(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) DeleteSysTableById(ctx *gin.Context) {
+func (t *TableController) DeleteTableById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -128,7 +128,7 @@ func (t *TableController) DeleteSysTableById(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) GetSysTableFieldsByTableId(ctx *gin.Context) {
+func (t *TableController) GetTableFieldsByTableId(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -146,7 +146,7 @@ func (t *TableController) GetSysTableFieldsByTableId(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) GetSysTableFieldById(ctx *gin.Context) {
+func (t *TableController) GetTableFieldById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -163,7 +163,7 @@ func (t *TableController) GetSysTableFieldById(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) InsertSysTableField(ctx *gin.Context) {
+func (t *TableController) InsertTableField(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.TableFieldCreateReq
@@ -181,7 +181,7 @@ func (t *TableController) InsertSysTableField(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) UpdateSysTableField(ctx *gin.Context) {
+func (t *TableController) UpdateTableField(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.TableFieldUpdateReq
@@ -199,7 +199,7 @@ func (t *TableController) UpdateSysTableField(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) DeleteSysTableFieldById(ctx *gin.Context) {
+func (t *TableController) DeleteTableFieldById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -268,7 +268,25 @@ func (t *TableController) InsertTableRelation(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) DeleteTableRelation(ctx *gin.Context) {
+func (t *TableController) UpdateTableRelation(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	var data request.TableRelationUpdateReq
+	translator, _ := t.translators["zh"]
+	err := utils.ValidatorBody[request.TableRelationUpdateReq](ctx, &data, translator)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	err = t.sysTableService.UpdateTableRelation(ctx, data)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	return
+}
+
+func (t *TableController) DeleteTableRelationById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -276,11 +294,28 @@ func (t *TableController) DeleteTableRelation(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.DeleteTableRelation(ctx, id)
+	err = t.sysTableService.DeleteTableRelationById(ctx, id)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
+	return
+}
+
+func (t *TableController) GetTableIndexById(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	data, err := t.sysTableService.GetTableIndexById(id)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	resp.SetData(data)
 	return
 }
 
@@ -337,7 +372,7 @@ func (t *TableController) UpdateTableIndex(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) DeleteTableIndex(ctx *gin.Context) {
+func (t *TableController) DeleteTableIndexById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -345,7 +380,7 @@ func (t *TableController) DeleteTableIndex(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.DeleteTableIndex(ctx, id)
+	err = t.sysTableService.DeleteTableIndexById(ctx, id)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
