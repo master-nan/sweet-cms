@@ -13,7 +13,6 @@ import (
 
 type SysRoleRepository interface {
 	BasicRepository
-	GetRoleById(roleId int) (model.SysRole, error)
 	GetRoles() ([]model.SysRole, error)
 	GetRoleMenus(roleId int) ([]model.SysMenu, error)
 	GetRoleButtons(roleId int) ([]model.SysMenuButton, error)

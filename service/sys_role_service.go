@@ -31,7 +31,12 @@ func NewSysRoleService(sysRoleRepo repository.SysRoleRepository, sysRoleMenuRepo
 }
 
 func (s *SysRoleService) GetRoleById(id int) (model.SysRole, error) {
-	return s.sysRoleRepo.GetRoleById(id)
+	result, err := s.sysRoleRepo.WithPreload("Menus", "Buttons").FindById(id)
+	if err != nil {
+		return model.SysRole{}, err
+	}
+	data := result.(model.SysRole)
+	return data, nil
 }
 
 func (s *SysRoleService) GetRoleList(basic request.Basic) (response.ListResult[model.SysRole], error) {

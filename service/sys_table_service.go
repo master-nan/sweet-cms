@@ -237,7 +237,8 @@ func (s *SysTableService) GetTableFieldById(id int) (model.SysTableField, error)
 	if !errors.Is(err, inter.ErrCacheMiss) {
 		return model.SysTableField{}, err
 	}
-	data, err = s.sysTableFieldRepo.GetTableFieldById(id)
+	result, err := s.sysTableFieldRepo.FindById(id)
+	data = result.(model.SysTableField)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return model.SysTableField{}, nil
@@ -427,7 +428,15 @@ func (s *SysTableService) GetTableRelationsByTableId(tableId int) ([]model.SysTa
 }
 
 func (s *SysTableService) GetTableRelationById(id int) (model.SysTableRelation, error) {
-	return s.sysTableRelationRepo.GetTableRelationById(id)
+	result, err := s.sysTableRelationRepo.FindById(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.SysTableRelation{}, nil
+		}
+		return model.SysTableRelation{}, err
+	}
+	data := result.(model.SysTableRelation)
+	return data, nil
 }
 
 func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.TableRelationCreateReq) error {
@@ -509,7 +518,8 @@ func (s *SysTableService) DeleteTableRelation(ctx *gin.Context, id int) error {
 		if e := s.sysTableRelationRepo.DeleteById(tx, id); e != nil {
 			return e
 		}
-		relation, e := s.sysTableRelationRepo.GetTableRelationById(id)
+		result, e := s.sysTableRelationRepo.FindById(id)
+		relation := result.(model.SysTableRelation)
 		if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
 			return e
 		}
@@ -615,10 +625,11 @@ func (s *SysTableService) UpdateTableIndex(ctx *gin.Context, req request.TableIn
 }
 
 func (s *SysTableService) DeleteTableIndex(ctx *gin.Context, id int) error {
-	index, e := s.sysTableIndexRepo.GetTableIndexById(id)
+	result, e := s.sysTableIndexRepo.FindById(id)
 	if e != nil {
 		return e
 	}
+	index := result.(model.SysTableIndex)
 	table, e := s.GetTableById(index.TableId)
 	if e != nil {
 		return e

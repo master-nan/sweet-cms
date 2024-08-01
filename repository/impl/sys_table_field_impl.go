@@ -22,12 +22,6 @@ func NewSysTableFieldRepositoryImpl(db *gorm.DB) *SysTableFieldRepositoryImpl {
 	}
 }
 
-func (s *SysTableFieldRepositoryImpl) GetTableFieldById(i int) (model.SysTableField, error) {
-	var tableField model.SysTableField
-	err := s.db.Where("id = ? ", i).First(&tableField).Error
-	return tableField, err
-}
-
 func (s *SysTableFieldRepositoryImpl) GetTableFieldsByTableId(id int) ([]model.SysTableField, error) {
 	var items []model.SysTableField
 	err := s.db.Where("table_id = ?", id).Order("sequence").Find(&items).Error

@@ -11,6 +11,5 @@ import (
 
 type SysMenuRepository interface {
 	BasicRepository
-	GetMenuById(int) (model.SysMenu, error)
 	GetMenus() ([]model.SysMenu, error)
 }

@@ -21,12 +21,6 @@ func NewSysRoleRepositoryImpl(db *gorm.DB) *SysRoleRepositoryImpl {
 	return &SysRoleRepositoryImpl{db, NewBasicImpl(db, &model.SysRole{})}
 }
 
-func (s *SysRoleRepositoryImpl) GetRoleById(roleId int) (model.SysRole, error) {
-	var role model.SysRole
-	err := s.db.Preload("Menus").Preload("Buttons").First(&role, roleId).Error
-	return role, err
-}
-
 func (s *SysRoleRepositoryImpl) GetRoles() ([]model.SysRole, error) {
 	var roles []model.SysRole
 	err := s.db.Preload("Menus").Preload("Buttons").Find(&roles).Error

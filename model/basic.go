@@ -98,7 +98,7 @@ func (b *Basic) BeforeUpdate(tx *gorm.DB) error {
 	return nil
 }
 
-func (r *SysTableRelation) BeforeDelete(tx *gorm.DB) error {
+func (b *Basic) BeforeDelete(tx *gorm.DB) error {
 	var user SysUser
 	ctx, ok := tx.Statement.Context.(*gin.Context)
 	if ok {

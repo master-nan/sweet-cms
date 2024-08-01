@@ -12,5 +12,4 @@ import (
 type SysTableIndexRepository interface {
 	BasicRepository
 	GetTableIndexesByTableId(int) ([]model.SysTableIndex, error)
-	GetTableIndexById(int) (model.SysTableIndex, error)
 }

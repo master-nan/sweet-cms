@@ -22,12 +22,6 @@ func NewSysDictItemRepositoryImpl(db *gorm.DB) *SysDictItemRepositoryImpl {
 	}
 }
 
-func (i *SysDictItemRepositoryImpl) GetSysDictItemById(id int) (model.SysDictItem, error) {
-	var item model.SysDictItem
-	err := i.db.Where("id = ?", id).First(&item).Error
-	return item, err
-}
-
 func (i *SysDictItemRepositoryImpl) GetSysDictItemsByDictId(id int) ([]model.SysDictItem, error) {
 	var items []model.SysDictItem
 	err := i.db.Where("dict_id = ?", id).Find(&items).Error

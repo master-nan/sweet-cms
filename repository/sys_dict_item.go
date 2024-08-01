@@ -11,6 +11,5 @@ import (
 
 type SysDictItemRepository interface {
 	BasicRepository
-	GetSysDictItemById(int) (model.SysDictItem, error)
 	GetSysDictItemsByDictId(int) ([]model.SysDictItem, error)
 }

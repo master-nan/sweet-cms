@@ -22,12 +22,6 @@ func NewSysTableRelationRepositoryImpl(db *gorm.DB) *SysTableRelationRepositoryI
 	}
 }
 
-func (s *SysTableRelationRepositoryImpl) GetTableRelationById(i int) (model.SysTableRelation, error) {
-	var relation model.SysTableRelation
-	err := s.db.Where("id = ?", i).First(&relation).Error
-	return relation, err
-}
-
 func (s *SysTableRelationRepositoryImpl) GetTableRelationsByTableId(i int) ([]model.SysTableRelation, error) {
 	var relations []model.SysTableRelation
 	err := s.db.Where("table_id = ?", i).First(&relations).Error

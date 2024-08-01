@@ -72,13 +72,14 @@ func (s *SysUserService) GetById(id int) (model.SysUser, error) {
 	if !errors.Is(err, inter.ErrCacheMiss) {
 		return model.SysUser{}, err
 	}
-	data, err = s.sysUserRepo.GetById(id)
+	result, err := s.sysUserRepo.FindById(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return model.SysUser{}, nil
 		}
 		return model.SysUser{}, err
 	}
+	data = result.(model.SysUser)
 	// 将用户按照id、username以及手机号缓存
 	s.sysUserCache.Set(string(data.Id), data)
 	s.sysUserCache.Set(data.UserName, data)

@@ -28,12 +28,6 @@ func (s *SysUserRepositoryImpl) GetByUserName(username string) (model.SysUser, e
 	return user, result.Error
 }
 
-func (s *SysUserRepositoryImpl) GetById(id int) (model.SysUser, error) {
-	var user model.SysUser
-	result := s.db.Where("id = ?", id).First(&user)
-	return user, result.Error
-}
-
 func (s *SysUserRepositoryImpl) GetByEmployeeID(id int) (model.SysUser, error) {
 	var user model.SysUser
 	result := s.db.Where("employee_id = ?", id).First(&user)

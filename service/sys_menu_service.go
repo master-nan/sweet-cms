@@ -16,29 +16,35 @@ import (
 )
 
 type SysMenuService struct {
-	sysMenuRepo         repository.SysMenuRepository
-	sysRoleMenuRepo     repository.SysRoleMenuRepository
-	sysUserMenuPermRepo repository.SysUserMenuDataPermissionRepository
-	sysRoleMenuButtons  repository.SysRoleMenuButtonRepository
-	sysUserRoleRepo     repository.SysUserRoleRepository
-	sf                  *utils.Snowflake
+	sysMenuRepo           repository.SysMenuRepository
+	sysRoleMenuRepo       repository.SysRoleMenuRepository
+	sysUserMenuPermRepo   repository.SysUserMenuDataPermissionRepository
+	sysRoleMenuButtonRepo repository.SysRoleMenuButtonRepository
+	sysUserRoleRepo       repository.SysUserRoleRepository
+	sysMenuButtonRepo     repository.SysMenuButtonRepository
+	sf                    *utils.Snowflake
 }
 
 func NewSysMenuService(sysMenuRepo repository.SysMenuRepository, sysRoleMenuRepo repository.SysRoleMenuRepository,
 	sysUserMenuPermRepo repository.SysUserMenuDataPermissionRepository, sysRoleMenuButtons repository.SysRoleMenuButtonRepository,
-	sysUserRoleRepo repository.SysUserRoleRepository, sf *utils.Snowflake) *SysMenuService {
+	sysUserRoleRepo repository.SysUserRoleRepository, sysMenuButtonRepo repository.SysMenuButtonRepository, sf *utils.Snowflake) *SysMenuService {
 	return &SysMenuService{
 		sysMenuRepo,
 		sysRoleMenuRepo,
 		sysUserMenuPermRepo,
 		sysRoleMenuButtons,
 		sysUserRoleRepo,
+		sysMenuButtonRepo,
 		sf,
 	}
 }
 
 func (s *SysMenuService) GetMenuById(id int) (model.SysMenu, error) {
-	return s.sysMenuRepo.GetMenuById(id)
+	result, err := s.sysMenuRepo.WithPreload("MenuButtons").FindById(id)
+	if err != nil {
+		return model.SysMenu{}, err
+	}
+	return result.(model.SysMenu), nil
 }
 
 // InsertMenu 新增菜单
@@ -109,7 +115,7 @@ func (s *SysMenuService) GetUserMenuPermissions(menuId int) ([]model.SysUserMenu
 
 // GetRoleMenuButtons 获取角色菜单按钮权限
 func (s *SysMenuService) GetRoleMenuButtons(roleId, menuId int) ([]model.SysMenuButton, error) {
-	return s.sysRoleMenuButtons.GetRoleMenuButtons(roleId, menuId)
+	return s.sysRoleMenuButtonRepo.GetRoleMenuButtons(roleId, menuId)
 }
 
 // 递归构建树形结构
@@ -122,4 +128,20 @@ func buildMenuTree(menus []model.SysMenu, pid int) []model.SysMenu {
 		}
 	}
 	return tree
+}
+
+// InsertRoleMenu 新增角色菜单
+func (s *SysMenuService) InsertRoleMenu(ctx *gin.Context, req request.SysRoleMenuCreateReq) error {
+	var data model.SysRoleMenu
+	err := mapstructure.Decode(req, &data)
+	if err != nil {
+		fmt.Println("Error during struct mapping:", err)
+		return err
+	}
+	return s.sysRoleMenuRepo.Create(s.sysMenuRepo.DBWithContext(ctx), data)
+}
+
+// DeleteRoleMenu 删除角色菜单
+func (s *SysMenuService) DeleteRoleMenu(ctx *gin.Context, roleId, menuId int) error {
+	return s.sysRoleMenuRepo.DeleteRoleMenuByRoleIdAndMenuId(s.sysRoleMenuRepo.DBWithContext(ctx), roleId, menuId)
 }

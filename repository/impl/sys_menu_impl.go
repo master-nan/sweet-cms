@@ -18,11 +18,6 @@ type SysMenuRepositoryImpl struct {
 func NewSysMenuRepositoryImpl(db *gorm.DB) *SysMenuRepositoryImpl {
 	return &SysMenuRepositoryImpl{db, NewBasicImpl(db, &model.SysMenu{})}
 }
-func (s *SysMenuRepositoryImpl) GetMenuById(id int) (model.SysMenu, error) {
-	var menu model.SysMenu
-	err := s.db.Preload("MenuButtons").First(&menu, id).Error
-	return menu, err
-}
 
 func (s *SysMenuRepositoryImpl) GetMenus() ([]model.SysMenu, error) {
 	var menus []model.SysMenu

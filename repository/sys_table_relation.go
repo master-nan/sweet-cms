@@ -11,6 +11,5 @@ import (
 
 type SysTableRelationRepository interface {
 	BasicRepository
-	GetTableRelationById(int) (model.SysTableRelation, error)
 	GetTableRelationsByTableId(int) ([]model.SysTableRelation, error)
 }

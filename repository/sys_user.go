@@ -14,7 +14,6 @@ import (
 type SysUserRepository interface {
 	BasicRepository
 	GetByUserName(string) (model.SysUser, error)
-	GetById(int) (model.SysUser, error)
 	GetList(request.Basic) (response.ListResult[model.SysUser], error)
 	GetByEmployeeID(int) (model.SysUser, error)
 	GetUserMenuPermissions(userId int) ([]model.SysUserMenuDataPermission, error)

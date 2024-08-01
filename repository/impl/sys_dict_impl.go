@@ -25,12 +25,6 @@ func NewSysDictRepositoryImpl(db *gorm.DB) *SysDictRepositoryImpl {
 	}
 }
 
-func (i *SysDictRepositoryImpl) GetSysDictById(id int) (model.SysDict, error) {
-	var sysDict model.SysDict
-	err := i.db.Preload("DictItems").Where("id = ?", id).First(&sysDict).Error
-	return sysDict, err
-}
-
 func (i *SysDictRepositoryImpl) GetSysDictList(basic request.Basic) (response.ListResult[model.SysDict], error) {
 	var repo response.ListResult[model.SysDict]
 	query := util.ExecuteQuery(i.db, basic)

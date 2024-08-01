@@ -11,6 +11,5 @@ import (
 
 type SysTableFieldRepository interface {
 	BasicRepository
-	GetTableFieldById(int) (model.SysTableField, error)
 	GetTableFieldsByTableId(int) ([]model.SysTableField, error)
 }

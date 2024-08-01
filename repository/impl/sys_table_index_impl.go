@@ -27,9 +27,3 @@ func (s *SysTableIndexRepositoryImpl) GetTableIndexesByTableId(id int) ([]model.
 	err := s.db.Where("table_id = ?", id).Find(&indexes).Error
 	return indexes, err
 }
-
-func (s *SysTableIndexRepositoryImpl) GetTableIndexById(id int) (model.SysTableIndex, error) {
-	var index model.SysTableIndex
-	err := s.db.Where("id = ?", id).Find(&index).Error
-	return index, err
-}

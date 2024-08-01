@@ -48,13 +48,15 @@ func (s *SysDictService) GetSysDictById(id int) (model.SysDict, error) {
 		return model.SysDict{}, err
 	}
 	// 尝试从数据库获取
-	dict, err := s.sysDictRepo.GetSysDictById(id)
+	result, err := s.sysDictRepo.WithPreload("DictItems").FindById(id)
+
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return model.SysDict{}, nil
 		}
 		return model.SysDict{}, err
 	}
+	dict := result.(model.SysDict)
 	s.sysDictCache.Set(strconv.Itoa(id), dict)
 	return dict, nil
 }
@@ -136,10 +138,11 @@ func (s *SysDictService) DeleteSysDictById(ctx *gin.Context, id int) error {
 }
 
 func (s *SysDictService) GetSysDictItemById(id int) (model.SysDictItem, error) {
-	data, err := s.sysDictItemRepo.GetSysDictItemById(id)
+	result, err := s.sysDictItemRepo.FindById(id)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return data, nil
+		return model.SysDictItem{}, nil
 	}
+	data := result.(model.SysDictItem)
 	return data, err
 }
 
