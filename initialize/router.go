@@ -40,14 +40,14 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.GET("/dict/id/:id", app.DictController.GetSysDictById)
 		adminGroup.GET("/dict/code/:code", app.DictController.GetSysDictByCode)
 		adminGroup.GET("/dict/query", app.DictController.QuerySysDict)
-		adminGroup.POST("/dict", app.DictController.InsertSysDict)
+		adminGroup.POST("/dict", app.DictController.CreateSysDict)
 		adminGroup.PUT("/dict/:id", app.DictController.UpdateSysDict)
 		adminGroup.DELETE("/dict/:id", app.DictController.DeleteSysDictById)
 
 		// dict_item
 		adminGroup.GET("/dict/items/:id", app.DictController.GetSysDictItemsByDictId)
 		adminGroup.GET("/dict/item/:id", app.DictController.GetSysDictItemById)
-		adminGroup.POST("/dict/item", app.DictController.InsertSysDictItem)
+		adminGroup.POST("/dict/item", app.DictController.CreateSysDictItem)
 		adminGroup.PUT("/dict/item/:id", app.DictController.UpdateSysDictItem)
 		adminGroup.DELETE("/dict/item/:id", app.DictController.DeleteSysDictItemById)
 
@@ -55,14 +55,14 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.GET("/table/id/:id", app.TableController.GetTableByID)
 		adminGroup.GET("/table/code/:code", app.TableController.GetTableByCode)
 		adminGroup.GET("/table/query", app.TableController.QueryTable)
-		adminGroup.POST("/table", app.TableController.InsertTable)
+		adminGroup.POST("/table", app.TableController.CreateTable)
 		adminGroup.PUT("/table/:id", app.TableController.UpdateTable)
 		adminGroup.DELETE("/table/:id", app.TableController.DeleteTableById)
 
 		// table_field
 		adminGroup.GET("/table/fields/:id", app.TableController.GetTableFieldsByTableId)
 		adminGroup.GET("/table/field/:id", app.TableController.GetTableFieldById)
-		adminGroup.POST("/table/field", app.TableController.InsertTableField)
+		adminGroup.POST("/table/field", app.TableController.CreateTableField)
 		adminGroup.PUT("/table/field/:id", app.TableController.UpdateTableField)
 		adminGroup.DELETE("/table/field/:id", app.TableController.DeleteTableFieldById)
 
@@ -71,21 +71,21 @@ func InitRouter(app *App) *gin.Engine {
 		// table_index
 		adminGroup.GET("/table/indexes/:id", app.TableController.GetTableIndexesByTableId)
 		adminGroup.GET("/table/index/:id", app.TableController.GetTableIndexById)
-		adminGroup.POST("/table/index", app.TableController.InsertTableIndex)
+		adminGroup.POST("/table/index", app.TableController.CreateTableIndex)
 		adminGroup.PUT("/table/index/:id", app.TableController.UpdateTableIndex)
 		adminGroup.DELETE("/table/index/:id", app.TableController.DeleteTableIndexById)
 
 		// table_relation
 		adminGroup.GET("/table/relations/:id", app.TableController.GetTableRelationsByTableId)
 		adminGroup.GET("/table/relation/:id", app.TableController.GetTableRelationById)
-		adminGroup.POST("/table/relation", app.TableController.InsertTableRelation)
+		adminGroup.POST("/table/relation", app.TableController.CreateTableRelation)
 		adminGroup.PUT("/table/relation/:id", app.TableController.UpdateTableRelation)
 		adminGroup.DELETE("/table/relation/:id", app.TableController.DeleteTableRelationById)
 
 		// menu
 		adminGroup.GET("/menu/id/:id", app.MenuController.GetSysMenuById)
 		adminGroup.GET("/menu/query", app.MenuController.QuerySysMenu)
-		adminGroup.POST("/menu", app.MenuController.InsertSysMenu)
+		adminGroup.POST("/menu", app.MenuController.CreateSysMenu)
 		adminGroup.PUT("/menu/:id", app.MenuController.UpdateSysMenu)
 		adminGroup.DELETE("/menu/:id", app.MenuController.DeleteSysMenuById)
 		adminGroup.GET("/menu/my", app.MenuController.GetMyMenus)
@@ -94,7 +94,7 @@ func InitRouter(app *App) *gin.Engine {
 		// user
 		adminGroup.GET("/user/me", app.UserController.GetMe)
 		adminGroup.GET("/user/query", app.UserController.QuerySysUser)
-		adminGroup.POST("/user", app.UserController.InsertSysUser)
+		adminGroup.POST("/user", app.UserController.CreateSysUser)
 		adminGroup.PUT("/user/:id", app.UserController.UpdateSysUser)
 		adminGroup.DELETE("/user/:id", app.UserController.DeleteSysUser)
 

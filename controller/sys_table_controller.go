@@ -76,7 +76,7 @@ func (t *TableController) QueryTable(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) InsertTable(ctx *gin.Context) {
+func (t *TableController) CreateTable(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.TableCreateReq
@@ -86,7 +86,7 @@ func (t *TableController) InsertTable(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.InsertTable(ctx, data)
+	err = t.sysTableService.CreateTable(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -163,7 +163,7 @@ func (t *TableController) GetTableFieldById(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) InsertTableField(ctx *gin.Context) {
+func (t *TableController) CreateTableField(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.TableFieldCreateReq
@@ -173,7 +173,7 @@ func (t *TableController) InsertTableField(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.InsertTableField(ctx, data)
+	err = t.sysTableService.CreateTableField(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -250,7 +250,7 @@ func (t *TableController) GetTableRelationById(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) InsertTableRelation(ctx *gin.Context) {
+func (t *TableController) CreateTableRelation(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.TableRelationCreateReq
@@ -260,7 +260,7 @@ func (t *TableController) InsertTableRelation(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.InsertTableRelation(ctx, data)
+	err = t.sysTableService.CreateTableRelation(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -336,7 +336,7 @@ func (t *TableController) GetTableIndexesByTableId(ctx *gin.Context) {
 	return
 }
 
-func (t *TableController) InsertTableIndex(ctx *gin.Context) {
+func (t *TableController) CreateTableIndex(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.TableIndexCreateReq
@@ -346,7 +346,7 @@ func (t *TableController) InsertTableIndex(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = t.sysTableService.InsertTableIndex(ctx, data)
+	err = t.sysTableService.CreateTableIndex(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

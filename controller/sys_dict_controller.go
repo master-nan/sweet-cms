@@ -112,7 +112,7 @@ func (t *DictController) QuerySysDict(ctx *gin.Context) {
 	return
 }
 
-// InsertSysDict 新增字典
+// CreateSysDict 新增字典
 // @Summary 新增字典
 // @Description 新增字典主体
 // @Tags 字典
@@ -123,7 +123,7 @@ func (t *DictController) QuerySysDict(ctx *gin.Context) {
 // @Failure 400 {object} response.Response "参数错误"
 // @Failure 500 {object} response.Response  "内部错误"
 // @Router /dict [post]
-func (t *DictController) InsertSysDict(ctx *gin.Context) {
+func (t *DictController) CreateSysDict(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.DictCreateReq
@@ -227,7 +227,7 @@ func (t *DictController) GetSysDictItemById(ctx *gin.Context) {
 	return
 }
 
-func (t *DictController) InsertSysDictItem(ctx *gin.Context) {
+func (t *DictController) CreateSysDictItem(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.DictItemCreateReq

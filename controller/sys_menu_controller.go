@@ -46,7 +46,7 @@ func (m *MenuController) GetSysMenuById(ctx *gin.Context) {
 	return
 }
 
-func (m *MenuController) InsertSysMenu(ctx *gin.Context) {
+func (m *MenuController) CreateSysMenu(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.MenuCreateReq

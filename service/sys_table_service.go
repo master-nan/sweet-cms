@@ -106,7 +106,7 @@ func (s *SysTableService) GetTableByTableCode(code string) (model.SysTable, erro
 	return data, nil
 }
 
-func (s *SysTableService) InsertTable(ctx *gin.Context, req request.TableCreateReq) error {
+func (s *SysTableService) CreateTable(ctx *gin.Context, req request.TableCreateReq) error {
 	var data model.SysTable
 	table, e := s.GetTableByTableCode(req.TableCode)
 	if e != nil {
@@ -267,7 +267,7 @@ func (s *SysTableService) GetTableFieldsByTableId(tableId int) ([]model.SysTable
 	return fields, nil
 }
 
-func (s *SysTableService) InsertTableField(ctx *gin.Context, req request.TableFieldCreateReq) error {
+func (s *SysTableService) CreateTableField(ctx *gin.Context, req request.TableFieldCreateReq) error {
 	var data model.SysTableField
 	fields, e := s.GetTableFieldsByTableId(req.TableId)
 	if e != nil {
@@ -439,7 +439,7 @@ func (s *SysTableService) GetTableRelationById(id int) (model.SysTableRelation, 
 	return data, nil
 }
 
-func (s *SysTableService) InsertTableRelation(ctx *gin.Context, req request.TableRelationCreateReq) error {
+func (s *SysTableService) CreateTableRelation(ctx *gin.Context, req request.TableRelationCreateReq) error {
 	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
 		var data model.SysTableRelation
 		e := mapstructure.Decode(req, &data)
@@ -552,7 +552,7 @@ func (s *SysTableService) GetTableIndexesByTableId(tableId int) ([]model.SysTabl
 	return s.sysTableIndexRepo.GetTableIndexesByTableId(tableId)
 }
 
-func (s *SysTableService) InsertTableIndex(ctx *gin.Context, req request.TableIndexCreateReq) error {
+func (s *SysTableService) CreateTableIndex(ctx *gin.Context, req request.TableIndexCreateReq) error {
 	err := s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
 		var data model.SysTableIndex
 		e := mapstructure.Decode(req, &data)

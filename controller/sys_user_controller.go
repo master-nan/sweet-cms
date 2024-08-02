@@ -82,7 +82,7 @@ func (u *UserController) GetSysUserById(ctx *gin.Context) {
 	return
 }
 
-func (u *UserController) InsertSysUser(ctx *gin.Context) {
+func (u *UserController) CreateSysUser(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.UserCreateReq
