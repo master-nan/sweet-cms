@@ -50,7 +50,7 @@ func (u *UserController) GetMe(ctx *gin.Context) {
 	}
 }
 
-func (u *UserController) GetSysUserByUserName(ctx *gin.Context) {
+func (u *UserController) GetUserByUserName(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	username := ctx.Param("username")
@@ -65,7 +65,7 @@ func (u *UserController) GetSysUserByUserName(ctx *gin.Context) {
 	return
 }
 
-func (u *UserController) GetSysUserById(ctx *gin.Context) {
+func (u *UserController) GetUserById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -82,7 +82,7 @@ func (u *UserController) GetSysUserById(ctx *gin.Context) {
 	return
 }
 
-func (u *UserController) CreateSysUser(ctx *gin.Context) {
+func (u *UserController) CreateUser(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.UserCreateReq
@@ -96,7 +96,7 @@ func (u *UserController) CreateSysUser(ctx *gin.Context) {
 	return
 }
 
-func (u *UserController) UpdateSysUser(ctx *gin.Context) {
+func (u *UserController) UpdateUser(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.UserUpdateReq
@@ -110,7 +110,7 @@ func (u *UserController) UpdateSysUser(ctx *gin.Context) {
 	return
 }
 
-func (u *UserController) DeleteSysUser(ctx *gin.Context) {
+func (u *UserController) DeleteUser(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))

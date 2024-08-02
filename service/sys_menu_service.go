@@ -131,7 +131,7 @@ func buildMenuTree(menus []model.SysMenu, pid int) []model.SysMenu {
 }
 
 // CreateRoleMenu 新增角色菜单
-func (s *SysMenuService) CreateRoleMenu(ctx *gin.Context, req request.SysRoleMenuCreateReq) error {
+func (s *SysMenuService) CreateRoleMenu(ctx *gin.Context, req request.RoleMenuCreateReq) error {
 	var data model.SysRoleMenu
 	err := mapstructure.Decode(req, &data)
 	if err != nil {

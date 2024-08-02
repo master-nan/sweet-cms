@@ -27,15 +27,6 @@ func (s *SysRoleRepositoryImpl) GetRoles() ([]model.SysRole, error) {
 	return roles, err
 }
 
-func (s *SysRoleRepositoryImpl) GetRoleMenus(roleId int) ([]model.SysMenu, error) {
-	var role model.SysRole
-	err := s.db.Preload("Menus").First(&role, roleId).Error
-	if err != nil {
-		return nil, err
-	}
-	return role.Menus, nil
-}
-
 func (s *SysRoleRepositoryImpl) GetRoleButtons(roleId int) ([]model.SysMenuButton, error) {
 	var role model.SysRole
 	err := s.db.Preload("Buttons").First(&role, roleId).Error

@@ -33,6 +33,7 @@ type App struct {
 	BasicController          *controller.BasicController
 	TableController          *controller.TableController
 	MenuController           *controller.MenuController
+	RoleController           *controller.RoleController
 	UserController           *controller.UserController
 	GeneralizationController *controller.GeneralizationController
 	LogService               *service.LogService
@@ -125,6 +126,7 @@ var ControllerProvider = wire.NewSet(
 	controller.NewDictController,
 	controller.NewTableController,
 	controller.NewMenuController,
+	controller.NewRoleController,
 	controller.NewUserController,
 	controller.NewBasicController,
 	controller.NewGeneralizationController,

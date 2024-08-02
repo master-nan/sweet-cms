@@ -6,7 +6,9 @@
 package service
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
@@ -43,7 +45,13 @@ func (s *SysRoleService) GetRoleList(basic request.Basic) (response.ListResult[m
 	return s.sysRoleRepo.GetRoleList(basic)
 }
 
-func (s *SysRoleService) CreateRole(ctx *gin.Context, role model.SysRole) error {
+func (s *SysRoleService) CreateRole(ctx *gin.Context, req request.RoleCreateReq) error {
+	var role model.SysRole
+	err := mapstructure.Decode(req, &role)
+	if err != nil {
+		fmt.Println("Error during struct mapping:", err)
+		return err
+	}
 	id, err := s.sf.GenerateUniqueID()
 	if err != nil {
 		return err
@@ -52,8 +60,8 @@ func (s *SysRoleService) CreateRole(ctx *gin.Context, role model.SysRole) error 
 	return s.sysRoleRepo.Create(s.sysRoleRepo.DBWithContext(ctx), role)
 }
 
-func (s *SysRoleService) UpdateRole(ctx *gin.Context, role model.SysRole) error {
-	return s.sysRoleRepo.Update(s.sysRoleRepo.DBWithContext(ctx), role)
+func (s *SysRoleService) UpdateRole(ctx *gin.Context, req request.RoleUpdateReq) error {
+	return s.sysRoleRepo.Update(s.sysRoleRepo.DBWithContext(ctx), req)
 }
 
 func (s *SysRoleService) DeleteRole(ctx *gin.Context, id int) error {

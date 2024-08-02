@@ -29,7 +29,7 @@ func NewMenuController(sysMenuService *service.SysMenuService, translators map[s
 	}
 }
 
-func (m *MenuController) GetSysMenuById(ctx *gin.Context) {
+func (m *MenuController) GetMenuById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -46,7 +46,7 @@ func (m *MenuController) GetSysMenuById(ctx *gin.Context) {
 	return
 }
 
-func (m *MenuController) CreateSysMenu(ctx *gin.Context) {
+func (m *MenuController) CreateMenu(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.MenuCreateReq
@@ -64,7 +64,7 @@ func (m *MenuController) CreateSysMenu(ctx *gin.Context) {
 	return
 }
 
-func (m *MenuController) UpdateSysMenu(ctx *gin.Context) {
+func (m *MenuController) UpdateMenu(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	var data request.MenuUpdateReq
@@ -82,7 +82,7 @@ func (m *MenuController) UpdateSysMenu(ctx *gin.Context) {
 	return
 }
 
-func (m *MenuController) DeleteSysMenuById(ctx *gin.Context) {
+func (m *MenuController) DeleteMenuById(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -98,7 +98,7 @@ func (m *MenuController) DeleteSysMenuById(ctx *gin.Context) {
 	return
 }
 
-func (m *MenuController) QuerySysMenu(ctx *gin.Context) {
+func (m *MenuController) QueryMenus(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
 	//var data request.Basic
@@ -143,23 +143,6 @@ func (m *MenuController) GetUserMenuPermissions(ctx *gin.Context) {
 		return
 	}
 	result, err := m.sysMenuService.GetUserMenuPermissions(id)
-	if err != nil {
-		_ = ctx.Error(err)
-		return
-	}
-	resp.SetData(result)
-	return
-}
-
-func (m *MenuController) GetRoleMenus(ctx *gin.Context) {
-	resp := response.NewResponse()
-	ctx.Set("response", resp)
-	roleId, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		_ = ctx.Error(err)
-		return
-	}
-	result, err := m.sysMenuService.GetRoleMenus(roleId)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

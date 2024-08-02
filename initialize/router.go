@@ -83,20 +83,26 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.DELETE("/table/relation/:id", app.TableController.DeleteTableRelationById)
 
 		// menu
-		adminGroup.GET("/menu/id/:id", app.MenuController.GetSysMenuById)
-		adminGroup.GET("/menu/query", app.MenuController.QuerySysMenu)
-		adminGroup.POST("/menu", app.MenuController.CreateSysMenu)
-		adminGroup.PUT("/menu/:id", app.MenuController.UpdateSysMenu)
-		adminGroup.DELETE("/menu/:id", app.MenuController.DeleteSysMenuById)
+		adminGroup.GET("/menu/id/:id", app.MenuController.GetMenuById)
+		adminGroup.GET("/menu/query", app.MenuController.QueryMenus)
+		adminGroup.POST("/menu", app.MenuController.CreateMenu)
+		adminGroup.PUT("/menu/:id", app.MenuController.UpdateMenu)
+		adminGroup.DELETE("/menu/:id", app.MenuController.DeleteMenuById)
 		adminGroup.GET("/menu/my", app.MenuController.GetMyMenus)
-		adminGroup.GET("/menu/role", app.MenuController.GetRoleMenus)
+
+		// role
+		adminGroup.GET("/role/menu/:id", app.RoleController.GetRoleMenus)
+		adminGroup.GET("/role/menu/buttons/:roleId/:menuId", app.RoleController.GetRoleMenuButtons)
+		adminGroup.POST("/role", app.RoleController.CreateRole)
+		adminGroup.PUT("/role/:id", app.RoleController.UpdateRole)
+		adminGroup.DELETE("/role/:id", app.RoleController.DeleteRoleById)
 
 		// user
 		adminGroup.GET("/user/me", app.UserController.GetMe)
 		adminGroup.GET("/user/query", app.UserController.QuerySysUser)
-		adminGroup.POST("/user", app.UserController.CreateSysUser)
-		adminGroup.PUT("/user/:id", app.UserController.UpdateSysUser)
-		adminGroup.DELETE("/user/:id", app.UserController.DeleteSysUser)
+		adminGroup.POST("/user", app.UserController.CreateUser)
+		adminGroup.PUT("/user/:id", app.UserController.UpdateUser)
+		adminGroup.DELETE("/user/:id", app.UserController.DeleteUser)
 
 		// generalization
 		adminGroup.GET("/generalization/query/:id", app.GeneralizationController.Query)
