@@ -53,15 +53,6 @@ type SysUserMenuDataPermission struct {
 	User       SysUser `gorm:"foreignKey:UserId;references:Id" json:"user"`
 }
 
-type SysRole struct {
-	Basic
-	Name    string          `gorm:"size:128;comment:角色名称" json:"name"`
-	Memo    string          `gorm:"size:128;comment:备注" json:"memo"`
-	Menus   []SysMenu       `gorm:"many2many:sys_role_menu" json:"menus"`
-	Buttons []SysMenuButton `gorm:"many2many:sys_role_menu_button" json:"buttons"`
-	Users   []SysUser       `gorm:"many2many:sys_user_role" json:"users"`
-}
-
 type SysUser struct {
 	Basic
 	UserName     string                      `gorm:"size:128;uniqueIndex:uni_user_name;comment:用户名" json:"userName"`
@@ -80,6 +71,15 @@ type SysUser struct {
 type SysUserRole struct {
 	UserId int `gorm:"primaryKey;autoIncrement:false" json:"userId"`
 	RoleId int `gorm:"primaryKey;autoIncrement:false" json:"roleId"`
+}
+
+type SysRole struct {
+	Basic
+	Name    string          `gorm:"size:128;comment:角色名称" json:"name"`
+	Memo    string          `gorm:"size:128;comment:备注" json:"memo"`
+	Menus   []SysMenu       `gorm:"many2many:sys_role_menu" json:"menus"`
+	Buttons []SysMenuButton `gorm:"many2many:sys_role_menu_button" json:"buttons"`
+	Users   []SysUser       `gorm:"many2many:sys_user_role" json:"users"`
 }
 
 type SysRoleMenu struct {

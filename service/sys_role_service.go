@@ -73,7 +73,7 @@ func (s *SysRoleService) GetRoleMenus(roleId int) ([]model.SysMenu, error) {
 	if err != nil {
 		return nil, err
 	}
-	return buildMenuTree(menus, 0), nil
+	return utils.BuildMenuTree(menus, 0), nil
 }
 
 func (s *SysRoleService) GetRoleMenuButtons(roleId, menuId int) ([]model.SysMenuButton, error) {

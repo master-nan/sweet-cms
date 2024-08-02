@@ -79,7 +79,7 @@ func (s *SysMenuService) GetMenuTree() ([]model.SysMenu, error) {
 	if err != nil {
 		return nil, err
 	}
-	return buildMenuTree(menus, 0), nil
+	return utils.BuildMenuTree(menus, 0), nil
 }
 
 // GetUserMenus 获取用户菜单权限
@@ -96,16 +96,7 @@ func (s *SysMenuService) GetUserMenus(userId int) ([]model.SysMenu, error) {
 	if err != nil {
 		return nil, err
 	}
-	return buildMenuTree(menus, 0), nil
-}
-
-// GetRoleMenus 获取角色菜单权限
-func (s *SysMenuService) GetRoleMenus(roleId int) ([]model.SysMenu, error) {
-	menus, err := s.sysRoleMenuRepo.GetRoleMenus(roleId)
-	if err != nil {
-		return nil, err
-	}
-	return buildMenuTree(menus, 0), nil
+	return utils.BuildMenuTree(menus, 0), nil
 }
 
 // GetUserMenuPermissions 获取菜单的用户权限
@@ -116,18 +107,6 @@ func (s *SysMenuService) GetUserMenuPermissions(menuId int) ([]model.SysUserMenu
 // GetRoleMenuButtons 获取角色菜单按钮权限
 func (s *SysMenuService) GetRoleMenuButtons(roleId, menuId int) ([]model.SysMenuButton, error) {
 	return s.sysRoleMenuButtonRepo.GetRoleMenuButtons(roleId, menuId)
-}
-
-// 递归构建树形结构
-func buildMenuTree(menus []model.SysMenu, pid int) []model.SysMenu {
-	var tree []model.SysMenu
-	for _, menu := range menus {
-		if menu.Pid == pid {
-			menu.Children = buildMenuTree(menus, menu.Id)
-			tree = append(tree, menu)
-		}
-	}
-	return tree
 }
 
 // CreateRoleMenu 新增角色菜单

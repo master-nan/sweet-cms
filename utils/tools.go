@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sweet-cms/enum"
 	"sweet-cms/form/response"
+	"sweet-cms/model"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -344,4 +345,16 @@ func ToInterfaceSlice(slice interface{}) []interface{} {
 		interfaceSlice[i] = v.Index(i).Interface()
 	}
 	return interfaceSlice
+}
+
+// BuildMenuTree 递归构建树形结构
+func BuildMenuTree(menus []model.SysMenu, pid int) []model.SysMenu {
+	var tree []model.SysMenu
+	for _, menu := range menus {
+		if menu.Pid == pid {
+			menu.Children = BuildMenuTree(menus, menu.Id)
+			tree = append(tree, menu)
+		}
+	}
+	return tree
 }
