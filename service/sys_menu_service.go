@@ -47,8 +47,8 @@ func (s *SysMenuService) GetMenuById(id int) (model.SysMenu, error) {
 	return result.(model.SysMenu), nil
 }
 
-// InsertMenu 新增菜单
-func (s *SysMenuService) InsertMenu(ctx *gin.Context, req request.MenuCreateReq) error {
+// CreateMenu 新增菜单
+func (s *SysMenuService) CreateMenu(ctx *gin.Context, req request.MenuCreateReq) error {
 	var data model.SysMenu
 	err := mapstructure.Decode(req, &data)
 	if err != nil {
@@ -130,8 +130,8 @@ func buildMenuTree(menus []model.SysMenu, pid int) []model.SysMenu {
 	return tree
 }
 
-// InsertRoleMenu 新增角色菜单
-func (s *SysMenuService) InsertRoleMenu(ctx *gin.Context, req request.SysRoleMenuCreateReq) error {
+// CreateRoleMenu 新增角色菜单
+func (s *SysMenuService) CreateRoleMenu(ctx *gin.Context, req request.SysRoleMenuCreateReq) error {
 	var data model.SysRoleMenu
 	err := mapstructure.Decode(req, &data)
 	if err != nil {

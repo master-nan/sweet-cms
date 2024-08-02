@@ -129,7 +129,7 @@ func (t *DictController) InsertSysDict(ctx *gin.Context) {
 	var data request.DictCreateReq
 	translator, _ := t.translators["zh"]
 	err := utils.ValidatorBody[request.DictCreateReq](ctx, &data, translator)
-	err = t.sysDictService.InsertSysDict(ctx, data)
+	err = t.sysDictService.CreateSysDict(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -237,7 +237,7 @@ func (t *DictController) InsertSysDictItem(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = t.sysDictService.InsertSysDictItem(ctx, data)
+	err = t.sysDictService.CreateSysDictItem(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

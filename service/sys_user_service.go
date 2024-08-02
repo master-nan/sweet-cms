@@ -103,7 +103,7 @@ func (s *SysUserService) GetList(basic request.Basic) (response.ListResult[model
 	return result, err
 }
 
-func (s *SysUserService) Insert(ctx *gin.Context, req request.UserCreateReq) error {
+func (s *SysUserService) Create(ctx *gin.Context, req request.UserCreateReq) error {
 	var data model.SysUser
 	//user, e := s.GetByUserName(req.UserName)
 	user, e := s.GetByEmployeeId(req.EmployeeId)

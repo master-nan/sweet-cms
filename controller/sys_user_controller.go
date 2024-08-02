@@ -88,7 +88,7 @@ func (u *UserController) InsertSysUser(ctx *gin.Context) {
 	var data request.UserCreateReq
 	translator, _ := u.translators["zh"]
 	err := utils.ValidatorBody[request.UserCreateReq](ctx, &data, translator)
-	err = u.sysUserService.Insert(ctx, data)
+	err = u.sysUserService.Create(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

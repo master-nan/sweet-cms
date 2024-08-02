@@ -87,7 +87,7 @@ func (s *SysDictService) GetSysDictByCode(code string) (model.SysDict, error) {
 	return dict, nil
 }
 
-func (s *SysDictService) InsertSysDict(ctx *gin.Context, req request.DictCreateReq) error {
+func (s *SysDictService) CreateSysDict(ctx *gin.Context, req request.DictCreateReq) error {
 	var data model.SysDict
 	dict, e := s.GetSysDictByCode(req.DictCode)
 	if e != nil {
@@ -151,7 +151,7 @@ func (s *SysDictService) GetSysDictItemsByDictId(id int) ([]model.SysDictItem, e
 	return result, err
 }
 
-func (s *SysDictService) InsertSysDictItem(ctx *gin.Context, req request.DictItemCreateReq) error {
+func (s *SysDictService) CreateSysDictItem(ctx *gin.Context, req request.DictItemCreateReq) error {
 	var data model.SysDictItem
 	err := mapstructure.Decode(req, &data)
 	if err != nil {
@@ -166,12 +166,12 @@ func (s *SysDictService) InsertSysDictItem(ctx *gin.Context, req request.DictIte
 	tx := s.sysDictRepo.DBWithContext(ctx)
 	err = s.sysDictItemRepo.Create(tx, data)
 	if err != nil {
-		zap.L().Error("InsertSysDictItem err:", zap.Error(err))
+		zap.L().Error("CreateSysDictItem err:", zap.Error(err))
 		return err
 	}
 	dict, err := s.GetSysDictById(req.DictId)
 	if err != nil {
-		zap.L().Error("InsertSysDictItem err:", zap.Error(err))
+		zap.L().Error("CreateSysDictItem err:", zap.Error(err))
 		return err
 	}
 	if dict.Id != 0 {

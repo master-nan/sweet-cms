@@ -56,7 +56,7 @@ func (m *MenuController) InsertSysMenu(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = m.sysMenuService.InsertMenu(ctx, data)
+	err = m.sysMenuService.CreateMenu(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
