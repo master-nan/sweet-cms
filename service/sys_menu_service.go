@@ -103,24 +103,3 @@ func (s *SysMenuService) GetUserMenus(userId int) ([]model.SysMenu, error) {
 func (s *SysMenuService) GetUserMenuPermissions(menuId int) ([]model.SysUserMenuDataPermission, error) {
 	return s.sysUserMenuPermRepo.GetUserMenuPermissions(menuId)
 }
-
-// GetRoleMenuButtons 获取角色菜单按钮权限
-func (s *SysMenuService) GetRoleMenuButtons(roleId, menuId int) ([]model.SysMenuButton, error) {
-	return s.sysRoleMenuButtonRepo.GetRoleMenuButtons(roleId, menuId)
-}
-
-// CreateRoleMenu 新增角色菜单
-func (s *SysMenuService) CreateRoleMenu(ctx *gin.Context, req request.RoleMenuCreateReq) error {
-	var data model.SysRoleMenu
-	err := mapstructure.Decode(req, &data)
-	if err != nil {
-		fmt.Println("Error during struct mapping:", err)
-		return err
-	}
-	return s.sysRoleMenuRepo.Create(s.sysMenuRepo.DBWithContext(ctx), data)
-}
-
-// DeleteRoleMenu 删除角色菜单
-func (s *SysMenuService) DeleteRoleMenu(ctx *gin.Context, roleId, menuId int) error {
-	return s.sysRoleMenuRepo.DeleteRoleMenuByRoleIdAndMenuId(s.sysRoleMenuRepo.DBWithContext(ctx), roleId, menuId)
-}

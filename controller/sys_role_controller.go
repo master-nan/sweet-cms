@@ -134,6 +134,31 @@ func (r *RoleController) GetRoleMenus(ctx *gin.Context) {
 	return
 }
 
+func (r *RoleController) CreateRoleMenu(ctx *gin.Context) {
+	resp := response.NewResponse()
+	ctx.Set("response", resp)
+	roleId, err := strconv.Atoi(ctx.Param("roleId"))
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	menuId, err := strconv.Atoi(ctx.Param("menuId"))
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	data := request.RoleMenuCreateReq{
+		MenuId: menuId,
+		RoleId: roleId,
+	}
+	err = r.sysRoleService.CreateRoleMenu(ctx, data)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	return
+}
+
 func (r *RoleController) GetRoleMenuButtons(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)

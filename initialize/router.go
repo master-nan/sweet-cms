@@ -83,7 +83,7 @@ func InitRouter(app *App) *gin.Engine {
 		adminGroup.DELETE("/table/relation/:id", app.TableController.DeleteTableRelationById)
 
 		// menu
-		adminGroup.GET("/menu/id/:id", app.MenuController.GetMenuById)
+		adminGroup.GET("/menu/:id", app.MenuController.GetMenuById)
 		adminGroup.GET("/menu/query", app.MenuController.QueryMenus)
 		adminGroup.POST("/menu", app.MenuController.CreateMenu)
 		adminGroup.PUT("/menu/:id", app.MenuController.UpdateMenu)
@@ -93,6 +93,7 @@ func InitRouter(app *App) *gin.Engine {
 		// role
 		adminGroup.GET("/role/menu/:id", app.RoleController.GetRoleMenus)
 		adminGroup.GET("/role/menu/buttons/:roleId/:menuId", app.RoleController.GetRoleMenuButtons)
+		adminGroup.POST("/role/menu/:roleId/:menuId", app.RoleController.CreateRoleMenu)
 		adminGroup.POST("/role", app.RoleController.CreateRole)
 		adminGroup.PUT("/role/:id", app.RoleController.UpdateRole)
 		adminGroup.DELETE("/role/:id", app.RoleController.DeleteRoleById)
