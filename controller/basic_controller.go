@@ -100,7 +100,9 @@ func (b *BasicController) Login(ctx *gin.Context) {
 				up.AccessTokens = utils.UpdateAccessTokens(user.AccessTokens, token)
 				up.GmtLastLogin = model.CustomTime(time.Now())
 				err := b.sysUserService.Update(ctx, up)
-				zap.L().Error("login update err", zap.Error(err))
+				if err != nil {
+					zap.L().Error("login update err", zap.Error(err))
+				}
 			}()
 			var userRes response.UserRes
 			utils.Assignment(&user, &userRes)

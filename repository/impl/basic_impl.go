@@ -123,8 +123,14 @@ func (b *BasicImpl) Update(tx *gorm.DB, entity interface{}) error {
 	if b.model == nil {
 		return errors.New("model not set")
 	}
+	val := reflect.ValueOf(entity).Elem()
+	idField := val.FieldByName("Id")
+	if !idField.IsValid() || idField.IsZero() {
+		return errors.New("invalid or missing ID")
+	}
+	id := idField.Interface() // 获取 ID 的值
 	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
-	return tx.Model(modelInstance).Updates(entity).Error
+	return tx.Model(modelInstance).Where("id = ?", id).Omit("id").Updates(entity).Error
 }
 
 func (b *BasicImpl) DeleteById(tx *gorm.DB, id int) error {
