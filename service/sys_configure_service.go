@@ -40,7 +40,7 @@ func (cs *SysConfigureService) Query() (model.SysConfigure, error) {
 		if errors.Is(err, inter.ErrCacheMiss) {
 			err = cs.sysConfigureCache.Set("", data)
 			if err != nil {
-				zap.L().Error("Failed to cache sysConfigure set: %s", zap.Error(err))
+				zap.L().Error("Failed to cache sysConfigure set: ", zap.Error(err))
 			}
 		}
 	}
@@ -57,12 +57,12 @@ func (cs *SysConfigureService) Update(ctx *gin.Context, req request.ConfigureUpd
 	tx := cs.sysConfigureRepo.DBWithContext(ctx)
 	err := cs.sysConfigureRepo.Update(tx, &data)
 	if err != nil {
-		zap.L().Error("Failed to sysConfigure update: %s", zap.Error(err))
+		zap.L().Error("Failed to sysConfigure update: ", zap.Error(err))
 		return err
 	}
 	err = cs.sysConfigureCache.Delete("")
 	if err != nil {
-		zap.L().Error("Failed to cache sysConfigure delete: %s", zap.Error(err))
+		zap.L().Error("Failed to cache sysConfigure delete: ", zap.Error(err))
 		return err
 	}
 	return nil

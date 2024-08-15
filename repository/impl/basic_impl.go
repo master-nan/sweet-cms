@@ -171,8 +171,8 @@ func (b *BasicImpl) FindById(id int) (interface{}, error) {
 	for _, preload := range b.preloads {
 		query = query.Preload(preload)
 	}
-	err := query.First(&entity, id).Error
-	return entity, err
+	err := query.First(entity, id).Error
+	return reflect.ValueOf(entity).Elem().Interface(), err
 }
 
 func (b *BasicImpl) FindByField(field string, value interface{}) (interface{}, error) {

@@ -78,7 +78,7 @@ func (s *SysTableService) GetTableById(id int) (model.SysTable, error) {
 		}
 		return model.SysTable{}, err
 	}
-	s.sysTableCache.Set(string(id), data)
+	s.sysTableCache.Set(strconv.Itoa(id), data)
 	return data, nil
 }
 

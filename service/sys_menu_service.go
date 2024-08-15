@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"sweet-cms/form/request"
 	"sweet-cms/model"
 	"sweet-cms/repository"
@@ -42,6 +44,9 @@ func NewSysMenuService(sysMenuRepo repository.SysMenuRepository, sysRoleMenuRepo
 func (s *SysMenuService) GetMenuById(id int) (model.SysMenu, error) {
 	result, err := s.sysMenuRepo.WithPreload("MenuButtons").FindById(id)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.SysMenu{}, nil
+		}
 		return model.SysMenu{}, err
 	}
 	return result.(model.SysMenu), nil

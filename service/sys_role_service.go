@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
 	"sweet-cms/model"
@@ -35,6 +37,9 @@ func NewSysRoleService(sysRoleRepo repository.SysRoleRepository, sysRoleMenuRepo
 func (s *SysRoleService) GetRoleById(id int) (model.SysRole, error) {
 	result, err := s.sysRoleRepo.WithPreload("Menus", "Buttons").FindById(id)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.SysRole{}, nil
+		}
 		return model.SysRole{}, err
 	}
 	data := result.(model.SysRole)
