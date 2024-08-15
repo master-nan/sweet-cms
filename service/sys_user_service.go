@@ -128,12 +128,12 @@ func (s *SysUserService) Create(ctx *gin.Context, req request.UserCreateReq) err
 	}
 	data.Id = int(id)
 	tx := s.sysUserRepo.DBWithContext(ctx)
-	return s.sysUserRepo.Create(tx, data)
+	return s.sysUserRepo.Create(tx, &data)
 }
 
 func (s *SysUserService) Update(ctx *gin.Context, req request.UserUpdateReq) error {
 	tx := s.sysUserRepo.DBWithContext(ctx)
-	err := s.sysUserRepo.Update(tx, req)
+	err := s.sysUserRepo.Update(tx, &req)
 	if err != nil {
 		return err
 	}

@@ -52,7 +52,7 @@ func LogHandler(logService *service.LogService) gin.HandlerFunc {
 		}
 		err := logService.CreateAccessLog(c, accessLog)
 		if err != nil {
-			zap.L().Error("日志存储异常。。。。%s", zap.Error(err))
+			zap.L().Error("日志存储异常。。。。", zap.Error(err))
 		}
 		zap.L().Info("用户访问日志:",
 			zap.String("uri", c.Request.URL.Path),

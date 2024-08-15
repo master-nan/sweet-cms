@@ -60,12 +60,12 @@ func (s *SysMenuService) CreateMenu(ctx *gin.Context, req request.MenuCreateReq)
 		return err
 	}
 	data.Id = int(id)
-	return s.sysMenuRepo.Create(s.sysMenuRepo.DBWithContext(ctx), data)
+	return s.sysMenuRepo.Create(s.sysMenuRepo.DBWithContext(ctx), &data)
 }
 
 // UpdateMenu 更新菜单
 func (s *SysMenuService) UpdateMenu(ctx *gin.Context, data request.MenuUpdateReq) error {
-	return s.sysMenuRepo.Update(s.sysMenuRepo.DBWithContext(ctx), data)
+	return s.sysMenuRepo.Update(s.sysMenuRepo.DBWithContext(ctx), &data)
 }
 
 // DeleteMenuById 删除菜单

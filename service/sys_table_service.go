@@ -149,7 +149,7 @@ func (s *SysTableService) CreateTable(ctx *gin.Context, req request.TableCreateR
 	}
 	data.TableFields = fields
 	return s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
-		if e := s.sysTableRepo.Create(tx, data); e != nil {
+		if e := s.sysTableRepo.Create(tx, &data); e != nil {
 			return e
 		}
 		// 创建实例
@@ -167,7 +167,7 @@ func (s *SysTableService) CreateTable(ctx *gin.Context, req request.TableCreateR
 
 func (s *SysTableService) UpdateTable(ctx *gin.Context, req request.TableUpdateReq) error {
 	tx := s.sysTableRepo.DBWithContext(ctx)
-	err := s.sysTableRepo.Update(tx, req)
+	err := s.sysTableRepo.Update(tx, &req)
 	if err != nil {
 		return err
 	}
@@ -297,7 +297,7 @@ func (s *SysTableService) CreateTableField(ctx *gin.Context, req request.TableFi
 	}
 	data.Id = int(id)
 	err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
-		if e := s.sysTableFieldRepo.Create(tx, data); err != nil {
+		if e := s.sysTableFieldRepo.Create(tx, &data); err != nil {
 			return e
 		}
 		// 构建SQL类型字符串，包括长度、默认值、是否可为空和备注
@@ -352,7 +352,7 @@ func (s *SysTableService) UpdateTableField(ctx *gin.Context, req request.TableFi
 			}
 		}
 		err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
-			if e := s.sysTableFieldRepo.Update(tx, req); e != nil {
+			if e := s.sysTableFieldRepo.Update(tx, &req); e != nil {
 				return e
 			}
 			var sqlType string
@@ -452,7 +452,7 @@ func (s *SysTableService) CreateTableRelation(ctx *gin.Context, req request.Tabl
 			return e
 		}
 		data.Id = int(id)
-		if e := s.sysTableRelationRepo.Create(tx, data); e != nil {
+		if e := s.sysTableRelationRepo.Create(tx, &data); e != nil {
 			return e
 		}
 		// 如果是多对多 创建对应的表
@@ -565,7 +565,7 @@ func (s *SysTableService) CreateTableIndex(ctx *gin.Context, req request.TableIn
 			return e
 		}
 		data.Id = int(id)
-		if e := s.sysTableIndexRepo.Create(tx, data); e != nil {
+		if e := s.sysTableIndexRepo.Create(tx, &data); e != nil {
 			return e
 		}
 		var indexFields []model.SysTableIndexField
@@ -578,7 +578,7 @@ func (s *SysTableService) CreateTableIndex(ctx *gin.Context, req request.TableIn
 			}
 			indexFields = append(indexFields, indexField)
 		}
-		if e := s.sysTableIndexFieldRepo.Create(tx, indexFields); e != nil {
+		if e := s.sysTableIndexFieldRepo.Create(tx, &indexFields); e != nil {
 			return e
 		}
 		table, err := s.GetTableById(data.TableId)
@@ -605,7 +605,7 @@ func (s *SysTableService) UpdateTableIndex(ctx *gin.Context, req request.TableIn
 		if e := s.sysTableIndexFieldRepo.DeleteByField(tx, "index_id", req.Id); e != nil {
 			return e
 		}
-		if e := s.sysTableIndexRepo.Update(tx, req); e != nil {
+		if e := s.sysTableIndexRepo.Update(tx, &req); e != nil {
 			return e
 		}
 		table, e := s.GetTableById(req.TableId)
@@ -627,7 +627,7 @@ func (s *SysTableService) UpdateTableIndex(ctx *gin.Context, req request.TableIn
 			indexFields = append(indexFields, indexField)
 		}
 		// 创建中间表数据
-		if e := s.sysTableIndexFieldRepo.Create(tx, indexFields); e != nil {
+		if e := s.sysTableIndexFieldRepo.Create(tx, &indexFields); e != nil {
 			return e
 		}
 		fields := strings.Join(fieldCodeList, ",")
@@ -762,11 +762,11 @@ func (s *SysTableService) InitTable(ctx *gin.Context, tableCode string) error {
 	table.TableFields = fields
 	table.TableIndexes = indexes
 	return s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
-		if e := s.sysTableRepo.Create(tx, table); e != nil {
+		if e := s.sysTableRepo.Create(tx, &table); e != nil {
 			return e
 		}
 		if indexFields != nil && len(indexFields) > 0 {
-			if e := s.sysTableIndexFieldRepo.Create(tx, indexFields); e != nil {
+			if e := s.sysTableIndexFieldRepo.Create(tx, &indexFields); e != nil {
 				return e
 			}
 		}

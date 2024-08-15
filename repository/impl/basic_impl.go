@@ -112,7 +112,11 @@ func (b *BasicImpl) PaginateAndCountAsync(basic request.Basic, result interface{
 }
 
 func (b *BasicImpl) Create(tx *gorm.DB, entity interface{}) error {
-	return tx.Create(entity).Error
+	if b.model == nil {
+		return errors.New("model not set")
+	}
+	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
+	return tx.Model(modelInstance).Create(entity).Error
 }
 
 func (b *BasicImpl) Update(tx *gorm.DB, entity interface{}) error {

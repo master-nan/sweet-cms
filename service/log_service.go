@@ -32,7 +32,7 @@ func (ls *LogService) CreateLoginLog(ctx *gin.Context, log model.LoginLog) error
 		return err
 	}
 	log.Id = int(id)
-	err = ls.loginLogRepository.Create(ls.loginLogRepository.DBWithContext(ctx), log)
+	err = ls.loginLogRepository.Create(ls.loginLogRepository.DBWithContext(ctx), &log)
 	return err
 }
 
@@ -42,6 +42,6 @@ func (ls *LogService) CreateAccessLog(ctx *gin.Context, log model.AccessLog) err
 		return err
 	}
 	log.Id = int(id)
-	err = ls.accessLogRepository.Create(ls.loginLogRepository.DBWithContext(ctx), log)
+	err = ls.accessLogRepository.Create(ls.loginLogRepository.DBWithContext(ctx), &log)
 	return err
 }

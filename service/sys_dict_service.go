@@ -111,7 +111,7 @@ func (s *SysDictService) CreateSysDict(ctx *gin.Context, req request.DictCreateR
 	}
 	data.Id = int(id)
 	tx := s.sysDictRepo.DBWithContext(ctx)
-	return s.sysDictRepo.Create(tx, data)
+	return s.sysDictRepo.Create(tx, &data)
 }
 
 func (s *SysDictService) UpdateSysDict(ctx *gin.Context, req request.DictUpdateReq) error {

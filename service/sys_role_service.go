@@ -57,11 +57,11 @@ func (s *SysRoleService) CreateRole(ctx *gin.Context, req request.RoleCreateReq)
 		return err
 	}
 	role.Id = int(id)
-	return s.sysRoleRepo.Create(s.sysRoleRepo.DBWithContext(ctx), role)
+	return s.sysRoleRepo.Create(s.sysRoleRepo.DBWithContext(ctx), &role)
 }
 
 func (s *SysRoleService) UpdateRole(ctx *gin.Context, req request.RoleUpdateReq) error {
-	return s.sysRoleRepo.Update(s.sysRoleRepo.DBWithContext(ctx), req)
+	return s.sysRoleRepo.Update(s.sysRoleRepo.DBWithContext(ctx), &req)
 }
 
 func (s *SysRoleService) DeleteRole(ctx *gin.Context, id int) error {
@@ -93,7 +93,7 @@ func (s *SysRoleService) CreateRoleMenu(ctx *gin.Context, req request.RoleMenuCr
 		fmt.Println("Error during struct mapping:", err)
 		return err
 	}
-	return s.sysRoleMenuRepo.Create(s.sysRoleMenuRepo.DBWithContext(ctx), data)
+	return s.sysRoleMenuRepo.Create(s.sysRoleMenuRepo.DBWithContext(ctx), &data)
 }
 
 // DeleteRoleMenu 删除角色菜单
