@@ -66,7 +66,7 @@ func (s *SysRoleService) CreateRole(ctx *gin.Context, req request.RoleCreateReq)
 }
 
 func (s *SysRoleService) UpdateRole(ctx *gin.Context, req request.RoleUpdateReq) error {
-	return s.sysRoleRepo.Update(s.sysRoleRepo.DBWithContext(ctx), &req)
+	return s.sysRoleRepo.Update(s.sysRoleRepo.DBWithContext(ctx), &req, req.Id)
 }
 
 func (s *SysRoleService) DeleteRole(ctx *gin.Context, id int) error {

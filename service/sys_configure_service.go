@@ -55,7 +55,7 @@ func (cs *SysConfigureService) Update(ctx *gin.Context, req request.ConfigureUpd
 		return e
 	}
 	tx := cs.sysConfigureRepo.DBWithContext(ctx)
-	err := cs.sysConfigureRepo.Update(tx, &data)
+	err := cs.sysConfigureRepo.Update(tx, &data, data.Id)
 	if err != nil {
 		zap.L().Error("Failed to sysConfigure update: ", zap.Error(err))
 		return err

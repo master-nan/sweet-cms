@@ -167,7 +167,7 @@ func (s *SysTableService) CreateTable(ctx *gin.Context, req request.TableCreateR
 
 func (s *SysTableService) UpdateTable(ctx *gin.Context, req request.TableUpdateReq) error {
 	tx := s.sysTableRepo.DBWithContext(ctx)
-	err := s.sysTableRepo.Update(tx, &req)
+	err := s.sysTableRepo.Update(tx, &req, req.Id)
 	if err != nil {
 		return err
 	}
@@ -352,7 +352,7 @@ func (s *SysTableService) UpdateTableField(ctx *gin.Context, req request.TableFi
 			}
 		}
 		err = s.sysTableRepo.ExecuteTx(ctx, func(tx *gorm.DB) error {
-			if e := s.sysTableFieldRepo.Update(tx, &req); e != nil {
+			if e := s.sysTableFieldRepo.Update(tx, &req, req.Id); e != nil {
 				return e
 			}
 			var sqlType string
@@ -605,7 +605,7 @@ func (s *SysTableService) UpdateTableIndex(ctx *gin.Context, req request.TableIn
 		if e := s.sysTableIndexFieldRepo.DeleteByField(tx, "index_id", req.Id); e != nil {
 			return e
 		}
-		if e := s.sysTableIndexRepo.Update(tx, &req); e != nil {
+		if e := s.sysTableIndexRepo.Update(tx, &req, req.Id); e != nil {
 			return e
 		}
 		table, e := s.GetTableById(req.TableId)

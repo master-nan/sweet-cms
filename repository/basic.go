@@ -17,7 +17,7 @@ type BasicRepository interface {
 	CountAsync(*gorm.DB, chan int64, chan error)
 	PaginateAndCountAsync(request.Basic, interface{}) (int64, error)
 	Create(*gorm.DB, interface{}) error
-	Update(*gorm.DB, interface{}) error
+	Update(*gorm.DB, interface{}, int) error
 	DeleteById(*gorm.DB, int) error
 	DeleteByField(*gorm.DB, string, interface{}) error
 	DeleteByIds(*gorm.DB, []int) error

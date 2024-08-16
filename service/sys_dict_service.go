@@ -116,7 +116,7 @@ func (s *SysDictService) CreateSysDict(ctx *gin.Context, req request.DictCreateR
 
 func (s *SysDictService) UpdateSysDict(ctx *gin.Context, req request.DictUpdateReq) error {
 	tx := s.sysDictRepo.DBWithContext(ctx)
-	err := s.sysDictRepo.Update(tx, req)
+	err := s.sysDictRepo.Update(tx, req, req.Id)
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (s *SysDictService) CreateSysDictItem(ctx *gin.Context, req request.DictIte
 
 func (s *SysDictService) UpdateSysDictItem(ctx *gin.Context, req request.DictItemUpdateReq) error {
 	tx := s.sysDictRepo.DBWithContext(ctx)
-	err := s.sysDictItemRepo.Update(tx, req)
+	err := s.sysDictItemRepo.Update(tx, &req, req.Id)
 	if err != nil {
 		zap.L().Error("UpdateSysDictItem err:", zap.Error(err))
 		return err

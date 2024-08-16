@@ -70,7 +70,7 @@ func (s *SysMenuService) CreateMenu(ctx *gin.Context, req request.MenuCreateReq)
 
 // UpdateMenu 更新菜单
 func (s *SysMenuService) UpdateMenu(ctx *gin.Context, data request.MenuUpdateReq) error {
-	return s.sysMenuRepo.Update(s.sysMenuRepo.DBWithContext(ctx), &data)
+	return s.sysMenuRepo.Update(s.sysMenuRepo.DBWithContext(ctx), &data, data.Id)
 }
 
 // DeleteMenuById 删除菜单

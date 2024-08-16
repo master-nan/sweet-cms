@@ -133,7 +133,7 @@ func (s *SysUserService) Create(ctx *gin.Context, req request.UserCreateReq) err
 
 func (s *SysUserService) Update(ctx *gin.Context, req request.UserUpdateReq) error {
 	tx := s.sysUserRepo.DBWithContext(ctx)
-	err := s.sysUserRepo.Update(tx, &req)
+	err := s.sysUserRepo.Update(tx, &req, req.Id)
 	if err != nil {
 		return err
 	}
