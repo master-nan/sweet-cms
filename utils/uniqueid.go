@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	workerIDBits = 5
-	sequenceBits = 12
+	workerIDBits = 4 // 最大16台机器
+	sequenceBits = 9 // 单机器每秒最大生成52万个ID
 	maxWorkerID  = -1 ^ (-1 << workerIDBits)
 	maxSequence  = -1 ^ (-1 << sequenceBits)
-	epoch        = 1693497600000 // 2023-09-01 00:00:00 的毫秒时间戳
+	epoch        = 1093184868000 // 2023-09-01 00:00:00 的毫秒时间戳  1693497600000
 )
 
 // Snowflake 结构体用于保存 Snowflake ID 的状态
