@@ -20,12 +20,12 @@ type MenuCreateReq struct {
 
 type MenuUpdateReq struct {
 	Id        int     `json:"id" binding:"required"`
-	Pid       int     `json:"pid" binding:"required"`
+	Pid       *int    `json:"pid" binding:"required"`
 	Name      string  `json:"name" binding:"required"`
 	Path      string  `json:"path" binding:"required"`
 	Component string  `json:"component" binding:"required"`
 	Title     string  `json:"title" binding:"required"`
-	IsHidden  bool    `json:"isHidden" binding:"required"`
+	IsHidden  *bool   `json:"isHidden" binding:"required"`
 	Sequence  uint8   `json:"sequence" binding:"required"`
 	Option    string  `json:"option"`
 	Icon      *string `json:"icon"`

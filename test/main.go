@@ -48,9 +48,9 @@ func main() {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{}, &model.SysConfigure{}, model.SysUser{}, model.SysUserRole{}, model.SysMenu{}, model.SysMenuButton{}, model.SysRoleMenu{})
+	db.Migrator().DropTable(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{}, &model.SysConfigure{}, model.SysUser{}, model.SysUserRole{}, model.SysMenu{}, model.SysMenuButton{}, model.SysRoleMenu{}, model.SysUserMenuDataPermission{})
 	// 迁移 schema
-	db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{}, &model.SysConfigure{}, model.SysUser{}, model.SysUserRole{}, model.SysMenu{}, model.SysMenuButton{}, model.SysRoleMenu{})
+	db.AutoMigrate(&model.SysTable{}, &model.SysTableField{}, &model.SysTableRelation{}, &model.SysTableIndex{}, &model.SysTableIndexField{}, &model.SysDict{}, &model.SysDictItem{}, &model.AccessLog{}, &model.LoginLog{}, &model.SysConfigure{}, model.SysUser{}, model.SysUserRole{}, model.SysMenu{}, model.SysMenuButton{}, model.SysRoleMenu{}, model.SysUserMenuDataPermission{})
 
 	// Create SysConfigure
 	m := &model.SysConfigure{EnableCaptcha: false}
