@@ -26,7 +26,7 @@ func (t *JWTTokenGen) GenerateToken(id string) (token string, err error) {
 	tkn := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.RegisteredClaims{
 		Issuer:    t.issuer,
 		IssuedAt:  jwt.NewNumericDate(nowSec),
-		ExpiresAt: jwt.NewNumericDate(nowSec.Add(3 * time.Hour * time.Duration(1))),
+		ExpiresAt: jwt.NewNumericDate(nowSec.Add(72 * time.Hour * time.Duration(1))),
 		NotBefore: jwt.NewNumericDate(nowSec),
 		Subject:   id,
 	})

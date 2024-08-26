@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -64,10 +65,10 @@ type Basic struct {
 	CreateUser *int           `gorm:"comment:创建人ID" json:"createUser"`
 	CreateName *string        `gorm:"size:128;comment:创建人" json:"CreateName"`
 	GmtModify  CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime;comment:修改时间" json:"gmtModify"`
-	ModifyUser *int           `gorm:"comment:修改人ID" json:"modifyUser"`
+	ModifyUser *int           `gorm:"column:modify_user;comment:修改人ID" json:"modifyUser"`
 	ModifyName *string        `gorm:"size:128;comment:修改人" json:"modifyName"`
 	GmtDelete  gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
-	DeleteUser *int           `gorm:"comment:删除人ID" json:"-"`
+	DeleteUser *int           `gorm:"column:delete_user;comment:删除人ID" json:"deleteUser"`
 	DeleteName *string        `gorm:"size:128;comment:删除人" json:"-"`
 	State      bool           `gorm:"default:true;comment:状态" json:"state"`
 }
@@ -105,12 +106,18 @@ func (b *Basic) BeforeDelete(tx *gorm.DB) error {
 		obj, exists := ctx.Get("user")
 		if exists {
 			user, _ = obj.(SysUser)
-			tx.Statement.SetColumn("delete_user", user.EmployeeId)
+
+			tx.Statement.AddClause(clause.Update{})
+			tx.Statement.AddClause(clause.Set{
+				{Column: clause.Column{Name: "delete_user"}, Value: user.EmployeeId},
+				{Column: clause.Column{Name: "gmt_delete"}, Value: time.Now()},
+			})
+			tx.Statement.Build(
+				clause.Update{}.Name(),
+				clause.Set{}.Name(),
+				clause.Where{}.Name(),
+			)
 		}
 	}
 	return nil
-}
-
-func (b *Basic) AfterFind(tx *gorm.DB) (err error) {
-	return
 }

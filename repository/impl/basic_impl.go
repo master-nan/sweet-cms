@@ -8,6 +8,7 @@ package impl
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -123,8 +124,13 @@ func (b *BasicImpl) Update(tx *gorm.DB, entity interface{}, id int) error {
 	if b.model == nil {
 		return errors.New("model not set")
 	}
+	entityMap := make(map[string]interface{})
+	err := mapstructure.Decode(entity, &entityMap)
+	if err != nil {
+		return err
+	}
 	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
-	return tx.Model(modelInstance).Where("id = ?", id).Omit("id").Updates(entity).Error
+	return tx.Model(modelInstance).Where("id = ?", id).Omit("id").Updates(entityMap).Error
 }
 
 func (b *BasicImpl) DeleteById(tx *gorm.DB, id int) error {
@@ -132,7 +138,7 @@ func (b *BasicImpl) DeleteById(tx *gorm.DB, id int) error {
 		return errors.New("model not set")
 	}
 	modelInstance := reflect.New(reflect.TypeOf(b.model).Elem()).Interface()
-	return tx.Delete(modelInstance, id).Error
+	return tx.Where("id = ?", id).Delete(modelInstance).Error
 }
 
 func (b *BasicImpl) DeleteByField(tx *gorm.DB, field string, value interface{}) error {
