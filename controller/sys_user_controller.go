@@ -99,9 +99,19 @@ func (u *UserController) CreateUser(ctx *gin.Context) {
 func (u *UserController) UpdateUser(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		e := &response.AdminError{
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
+		}
+		_ = ctx.Error(e)
+		return
+	}
 	var data request.UserUpdateReq
+	data.Id = id
 	translator, _ := u.translators["zh"]
-	err := utils.ValidatorBody[request.UserUpdateReq](ctx, &data, translator)
+	err = utils.ValidatorBody[request.UserUpdateReq](ctx, &data, translator)
 	err = u.sysUserService.Update(ctx, data)
 	if err != nil {
 		_ = ctx.Error(err)

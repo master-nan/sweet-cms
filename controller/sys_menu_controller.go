@@ -67,9 +67,19 @@ func (m *MenuController) CreateMenu(ctx *gin.Context) {
 func (m *MenuController) UpdateMenu(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		e := &response.AdminError{
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
+		}
+		_ = ctx.Error(e)
+		return
+	}
 	var data request.MenuUpdateReq
+	data.Id = id
 	translator, _ := m.translators["zh"]
-	err := utils.ValidatorBody[request.MenuUpdateReq](ctx, &data, translator)
+	err = utils.ValidatorBody[request.MenuUpdateReq](ctx, &data, translator)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

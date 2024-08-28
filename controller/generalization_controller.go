@@ -27,9 +27,9 @@ func NewGeneralizationController(generalizationService *service.GeneralizationSe
 }
 
 func (gc *GeneralizationController) Query(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		_ = ctx.Error(err)
 		return

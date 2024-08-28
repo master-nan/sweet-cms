@@ -66,7 +66,7 @@ func (t *DictController) GetSysDictById(ctx *gin.Context) {
 func (t *DictController) GetSysDictByCode(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
-	code := ctx.Param("code")
+	code := utils.SanitizeInput(ctx.Param("code"))
 	data, err := t.sysDictService.GetSysDictByCode(code)
 	if err != nil {
 		e := &response.AdminError{
@@ -248,9 +248,19 @@ func (t *DictController) CreateSysDictItem(ctx *gin.Context) {
 func (t *DictController) UpdateSysDictItem(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		e := &response.AdminError{
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
+		}
+		_ = ctx.Error(e)
+		return
+	}
 	translator, _ := t.translators["zh"]
 	var data request.DictItemUpdateReq
-	err := utils.ValidatorBody[request.DictItemUpdateReq](ctx, &data, translator)
+	data.Id = id
+	err = utils.ValidatorBody[request.DictItemUpdateReq](ctx, &data, translator)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

@@ -8,6 +8,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
+	"net/http"
 	"strconv"
 	"sweet-cms/form/request"
 	"sweet-cms/form/response"
@@ -47,7 +48,7 @@ func (t *TableController) GetTableByID(ctx *gin.Context) {
 func (t *TableController) GetTableByCode(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
-	code := ctx.Param("code")
+	code := utils.SanitizeInput(ctx.Param("code"))
 	data, err := t.sysTableService.GetTableByTableCode(code)
 	if err != nil {
 		_ = ctx.Error(err)
@@ -97,9 +98,19 @@ func (t *TableController) CreateTable(ctx *gin.Context) {
 func (t *TableController) UpdateTable(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		e := &response.AdminError{
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
+		}
+		_ = ctx.Error(e)
+		return
+	}
 	var data request.TableUpdateReq
+	data.Id = id
 	translator, _ := t.translators["zh"]
-	err := utils.ValidatorBody[request.TableUpdateReq](ctx, &data, translator)
+	err = utils.ValidatorBody[request.TableUpdateReq](ctx, &data, translator)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -184,9 +195,19 @@ func (t *TableController) CreateTableField(ctx *gin.Context) {
 func (t *TableController) UpdateTableField(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		e := &response.AdminError{
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
+		}
+		_ = ctx.Error(e)
+		return
+	}
 	var data request.TableFieldUpdateReq
+	data.Id = id
 	translator, _ := t.translators["zh"]
-	err := utils.ValidatorBody[request.TableFieldUpdateReq](ctx, &data, translator)
+	err = utils.ValidatorBody[request.TableFieldUpdateReq](ctx, &data, translator)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -271,9 +292,19 @@ func (t *TableController) CreateTableRelation(ctx *gin.Context) {
 func (t *TableController) UpdateTableRelation(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		e := &response.AdminError{
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
+		}
+		_ = ctx.Error(e)
+		return
+	}
 	var data request.TableRelationUpdateReq
+	data.Id = id
 	translator, _ := t.translators["zh"]
-	err := utils.ValidatorBody[request.TableRelationUpdateReq](ctx, &data, translator)
+	err = utils.ValidatorBody[request.TableRelationUpdateReq](ctx, &data, translator)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -357,9 +388,19 @@ func (t *TableController) CreateTableIndex(ctx *gin.Context) {
 func (t *TableController) UpdateTableIndex(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		e := &response.AdminError{
+			ErrorCode:    http.StatusBadRequest,
+			ErrorMessage: err.Error(),
+		}
+		_ = ctx.Error(e)
+		return
+	}
 	var data request.TableIndexUpdateReq
+	data.Id = id
 	translator, _ := t.translators["zh"]
-	err := utils.ValidatorBody[request.TableIndexUpdateReq](ctx, &data, translator)
+	err = utils.ValidatorBody[request.TableIndexUpdateReq](ctx, &data, translator)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -407,7 +448,7 @@ func (t *TableController) DeleteTableIndexByTableId(ctx *gin.Context) {
 func (t *TableController) InitTable(ctx *gin.Context) {
 	resp := response.NewResponse()
 	ctx.Set("response", resp)
-	code := ctx.Param("code")
+	code := utils.SanitizeInput(ctx.Param("code"))
 	err := t.sysTableService.InitTable(ctx, code)
 	if err != nil {
 		_ = ctx.Error(err)
