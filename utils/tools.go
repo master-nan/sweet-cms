@@ -297,7 +297,7 @@ func ValidatorBody[T any](ctx *gin.Context, data *T, translator ut.Translator) e
 		}
 		return err
 	}
-	cleanData(data)
+	SanitizeData(data)
 	return nil
 }
 
@@ -328,7 +328,7 @@ func ValidatorQuery[T any](ctx *gin.Context, data *T, translator ut.Translator) 
 		}
 		return err
 	}
-	cleanData(data)
+	SanitizeData(data)
 	return nil
 }
 
@@ -362,46 +362,39 @@ func BuildMenuTree(menus []model.SysMenu, pid int) []model.SysMenu {
 	return tree
 }
 
-func cleanData(data any) {
-	val := reflect.ValueOf(data).Elem()
-	if val.Kind() != reflect.Struct {
+func SanitizeData(data any) {
+	val := reflect.ValueOf(data)
+	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
 		return
 	}
-
+	val = val.Elem()
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
-
 		switch field.Kind() {
 		case reflect.String:
-			// Sanitize the string by escaping HTML special characters
-			escapedStr := html.EscapeString(field.String())
+			escapedStr := SanitizeInput(field.String())
 			field.SetString(escapedStr)
 		case reflect.Struct:
-			// Recursively sanitize nested structs
-			fieldValue := field.Addr().Interface()
-			cleanData(fieldValue)
-
+			SanitizeData(field.Addr().Interface())
 		case reflect.Slice:
-			// Recursively sanitize elements of slice if it's a slice of struct or string
 			if field.Type().Elem().Kind() == reflect.String {
 				for j := 0; j < field.Len(); j++ {
-					escapedStr := html.EscapeString(field.Index(j).String())
+					escapedStr := SanitizeInput(field.Index(j).String())
 					field.Index(j).SetString(escapedStr)
 				}
 			} else if field.Type().Elem().Kind() == reflect.Struct {
 				for j := 0; j < field.Len(); j++ {
 					element := field.Index(j).Addr().Interface()
-					cleanData(element)
+					SanitizeData(element)
 				}
 			}
 		case reflect.Map:
-			// Recursively sanitize elements of map if it's a map of strings
 			if field.Type().Key().Kind() == reflect.String && field.Type().Elem().Kind() == reflect.String {
 				iter := field.MapRange()
 				for iter.Next() {
 					key := iter.Key()
 					val := iter.Value()
-					escapedVal := html.EscapeString(val.String())
+					escapedVal := SanitizeInput(val.String())
 					field.SetMapIndex(key, reflect.ValueOf(escapedVal))
 				}
 			}
@@ -418,13 +411,6 @@ func SanitizeInput(input string) string {
 	for old, new := range replacements {
 		input = strings.ReplaceAll(input, old, new)
 	}
-	cleaned := ""
-	for _, r := range input {
-		if r >= 32 && r <= 126 {
-			cleaned += string(r)
-		} else {
-			cleaned += fmt.Sprintf("\\x%x", r)
-		}
-	}
-	return cleaned
+	escaped := html.EscapeString(input)
+	return escaped
 }
