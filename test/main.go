@@ -3,7 +3,7 @@
  * @Date: 2023/8/24 21:42
  */
 
-package main
+package test
 
 import (
 	"fmt"
