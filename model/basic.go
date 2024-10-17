@@ -63,7 +63,7 @@ type Basic struct {
 	Id         int            `gorm:"primaryKey;comment:ID" json:"id"`
 	GmtCreate  CustomTime     `gorm:"type:datetime;autoCreateTime;comment:创建时间" json:"gmtCreate"`
 	CreateUser *int           `gorm:"comment:创建人ID" json:"createUser"`
-	CreateName *string        `gorm:"size:128;comment:创建人" json:"CreateName"`
+	CreateName *string        `gorm:"size:128;comment:创建人" json:"createName"`
 	GmtModify  CustomTime     `gorm:"type:datetime;autoCreateTime;autoUpdateTime;comment:修改时间" json:"gmtModify"`
 	ModifyUser *int           `gorm:"column:modify_user;comment:修改人ID" json:"modifyUser"`
 	ModifyName *string        `gorm:"size:128;comment:修改人" json:"modifyName"`
