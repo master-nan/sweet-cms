@@ -3,10 +3,6 @@ package controller
 import (
 	"bytes"
 	"fmt"
-	"github.com/dchest/captcha"
-	"github.com/gin-gonic/gin"
-	ut "github.com/go-playground/universal-translator"
-	"go.uber.org/zap"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,7 +14,13 @@ import (
 	"sweet-cms/service"
 	"sweet-cms/utils"
 	"time"
-	"vitess.io/vitess/go/vt/sqlparser"
+
+	"github.com/dchest/captcha"
+	"github.com/gin-gonic/gin"
+	ut "github.com/go-playground/universal-translator"
+	"go.uber.org/zap"
+
+	"github.com/blastrain/vitess-sqlparser/sqlparser"
 )
 
 type BasicController struct {
@@ -148,8 +150,7 @@ func (b *BasicController) Logout(ctx *gin.Context) {
 
 func (b *BasicController) Test(ctx *gin.Context) {
 	sql := "SELECT u.id as user_id, u.name as username, o.order_id FROM users u JOIN orders o ON u.id = o.user_id"
-	parser := sqlparser.NewTestParser()
-	stmt, err := parser.Parse(sql)
+	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
 		// 处理解析错误
 		log.Fatalf("Error parsing SQL: %v", err)

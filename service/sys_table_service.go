@@ -7,12 +7,6 @@ package service
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/google/go-cmp/cmp"
-	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,6 +19,13 @@ import (
 	"sweet-cms/model"
 	"sweet-cms/repository"
 	"sweet-cms/utils"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/go-cmp/cmp"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type SysTableService struct {
@@ -306,7 +307,7 @@ func (s *SysTableService) CreateTableField(ctx *gin.Context, req request.TableFi
 			sqlType += fmt.Sprintf("(%d)", data.FieldLength)
 		}
 		if data.DefaultValue != nil {
-			sqlType += fmt.Sprintf(" DEFAULT '%s'", data.DefaultValue)
+			sqlType += fmt.Sprintf(" DEFAULT '%s'", *data.DefaultValue)
 		}
 		if data.IsNull {
 			sqlType += " NULL"
